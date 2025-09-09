@@ -14,15 +14,11 @@
     };
 
     // 🔹 ADDONS DEFINITION (PUSTE - DODASZ PÓŹNIEJ)
-    // panel.js - fragment do zmiany
-const AVAILABLE_ADDONS = {
-    kcs_icons: {
-        name: "KCS i Zwój Ikony",
-        description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
-        default: true // Albo false, jeśli chcesz aby było domyślnie wyłączone
-    }
-    // Tutaj później dodasz kolejne dodatki
-};
+    const AVAILABLE_ADDONS = {
+        // Tutaj później dodasz swoje dodatki
+        // przykład: 
+        // autoheal: { name: "Auto Heal", description: "Automatyczne leczenie", default: false }
+    };
 
     // 🔹 MAIN INITIALIZATION
     function initPanel() {
@@ -149,25 +145,46 @@ const AVAILABLE_ADDONS = {
         const savedKey = localStorage.getItem(CONFIG.LICENSE_KEY);
         
         if (isVerified && savedKey) {
-            showLicenseMessage('Licencja zweryfikowana pomyślnie!', 'success');
-            loadAddonsForVerifiedUser();
+            console.log('📋 Licencja zweryfikowana, sprawdzam aktualność...');
+            validateLicenseWithYourSystem(savedKey).then(result => {
+                if (result.success) {
+                    showLicenseMessage('Licencja zweryfikowana pomyślnie!', 'success');
+                    updateLicenseStatus(true);
+                    loadAddonsForVerifiedUser();
+                } else {
+                    console.log('❌ Licencja wygasła lub nieaktualna');
+                    localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
+                    showLicenseMessage('Licencja wygasła. Wprowadź nowy klucz.', 'error');
+                    updateLicenseStatus(false);
+                }
+            });
         } else if (savedKey) {
-            // Klucz jest zapisany, ale niezweryfikowany - spróbuj ponownie
             verifyLicense(savedKey);
+        } else {
+            updateLicenseStatus(false);
         }
     }
 
     function verifyLicense(licenseKey) {
         showLicenseMessage('🔐 Weryfikowanie klucza...', 'success');
         
-        validateLicenseWithYourSystem(licenseKey).then(isValid => {
-            if (isValid) {
+        validateLicenseWithYourSystem(licenseKey).then(result => {
+            if (result.success) {
                 localStorage.setItem(CONFIG.LICENSE_VERIFIED, 'true');
                 localStorage.setItem(CONFIG.LICENSE_KEY, licenseKey);
+                
+                localStorage.setItem('license_user', result.user || 'Unknown User');
+                localStorage.setItem('license_expires', result.expires || '2024-12-31');
+                
                 showLicenseMessage('✅ Licencja aktywowana pomyślnie!', 'success');
+                updateLicenseStatus(true);
                 loadAddonsForVerifiedUser();
+                
             } else {
                 localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
+                localStorage.removeItem('license_user');
+                localStorage.removeItem('license_expires');
+                updateLicenseStatus(false);
                 showLicenseMessage('❌ Nieprawidłowy klucz licencyjny', 'error');
             }
         }).catch(error => {
@@ -177,23 +194,78 @@ const AVAILABLE_ADDONS = {
     }
 
     function validateLicenseWithYourSystem(licenseKey) {
-        // 🔹 TYMACZASOWA WERYFIKACJA - korzysta z symulowanego serwera
         return new Promise((resolve) => {
-            // Dynamicznie ładujemy nasz symulowany serwer
             if (window.validateLicense) {
-                // Jeśli funkcja jest już załadowana (np. z license-server.js)
                 window.validateLicense(licenseKey).then(result => {
-                    resolve(result.success);
+                    resolve(result);
+                }).catch(() => {
+                    resolve({ success: false, message: "Server error" });
                 });
             } else {
-                // Fallback: symulacja lokalna jeśli serwer nie jest dostępny
-                console.warn("License server not loaded, using fallback validation");
-                const validKeys = ['SYNERGY-2024-001', 'SYNERGY-2024-002', 'TEST-KEY-12345'];
+                const validKeys = ['SYNERGY-2024-001', 'SYNERGY-2024-002', 'SYNERGY-2024-003', 
+                                 'TEST-KEY-12345', 'DEV-ACCESS-777', 'BETA-TESTER-888'];
                 setTimeout(() => {
-                    resolve(validKeys.includes(licenseKey));
+                    resolve({
+                        success: validKeys.includes(licenseKey),
+                        user: "Fallback User",
+                        expires: "2024-12-31"
+                    });
                 }, 500);
             }
         });
+    }
+
+    function loadAddonsForVerifiedUser() {
+        console.log('🔓 Licencja zweryfikowana - ładuję dodatki...');
+        
+        AVAILABLE_ADDONS.kcs_icons = {
+            name: "KCS i Zwój Ikony",
+            description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
+            default: true
+        };
+        
+        const addonsList = document.getElementById('addons-list');
+        if (addonsList) {
+            addonsList.innerHTML = generateAddonsList();
+            setupAddonsToggle();
+        }
+        
+        const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+        for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
+            const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
+            if (isEnabled) {
+                loadAddonScript(addonId);
+            }
+        }
+    }
+
+    function updateLicenseStatus(isValid) {
+        let statusElement = document.getElementById('licenseStatusIndicator');
+        
+        if (!statusElement) {
+            statusElement = document.createElement('div');
+            statusElement.id = 'licenseStatusIndicator';
+            statusElement.className = 'license-status';
+            document.body.appendChild(statusElement);
+        }
+        
+        if (isValid) {
+            const user = localStorage.getItem('license_user') || 'Użytkownik';
+            const expires = localStorage.getItem('license_expires') || '2024-12-31';
+            
+            statusElement.innerHTML = `
+                <div>✅ LICENCJA AKTYWNA</div>
+                <div class="license-user">${user}</div>
+                <div class="license-expiry">Wygasa: ${expires}</div>
+            `;
+            statusElement.className = 'license-status valid';
+        } else {
+            statusElement.className = 'license-status invalid';
+            statusElement.innerHTML = '❌ BRAK LICENCJI';
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 3000);
+        }
     }
 
     function showLicenseMessage(message, type) {
@@ -201,22 +273,12 @@ const AVAILABLE_ADDONS = {
         messageElement.textContent = message;
         messageElement.className = `license-message license-${type}`;
         
-        // Auto-ukrywanie wiadomości sukcesu
         if (type === 'success') {
             setTimeout(() => {
                 messageElement.textContent = '';
                 messageElement.className = 'license-message';
             }, 3000);
         }
-    }
-
-    function loadAddonsForVerifiedUser() {
-        // 🔹 TUTAJ MOŻESZ DODAĆ LOGIKĘ ŁADOWANIA DODATKÓW
-        // Dla zweryfikowanego użytkownika
-        console.log('Ładuję dodatki dla zweryfikowanego użytkownika...');
-        
-        // Przykład: możesz dynamicznie dodać dodatki do AVAILABLE_ADDONS
-        // i zregenerować listę
     }
 
     // 🔹 STATE MANAGEMENT
@@ -226,7 +288,6 @@ const AVAILABLE_ADDONS = {
         loadAddonsConfig();
         loadPanelVisibility();
         
-        // Załaduj zapisany klucz licencyjny
         const savedKey = localStorage.getItem(CONFIG.LICENSE_KEY);
         if (savedKey) {
             document.getElementById('licenseKeyInput').value = savedKey;
@@ -284,6 +345,9 @@ const AVAILABLE_ADDONS = {
 
     // 🔹 ADDONS LOADING
     function loadAddonScript(addonId) {
+        const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+        if (!config[addonId]) return;
+
         const baseUrl = `https://shaderderwraith.github.io/SynergyWraith/addons/`;
         const scriptUrl = `${baseUrl}${addonId}.js?t=${Date.now()}`;
         
@@ -429,7 +493,6 @@ const AVAILABLE_ADDONS = {
                 const settingsPanel = document.getElementById(`settings-${addonId}`);
                 settingsPanel.classList.toggle('visible');
                 
-                // Optional: Zamknij inne otwarte panele
                 document.querySelectorAll('.addon-settings-panel').forEach(panel => {
                     if (panel.id !== `settings-${addonId}`) {
                         panel.classList.remove('visible');
@@ -449,7 +512,6 @@ const AVAILABLE_ADDONS = {
             }
         });
 
-        // Enter key support
         document.getElementById('licenseKeyInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 document.getElementById('verifyLicense').click();
