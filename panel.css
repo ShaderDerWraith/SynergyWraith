@@ -61,7 +61,7 @@
 }
 
 #myAddonsPanelContent {
-    padding: 0; /* Zmienione na 0, bo zakładki mają własny padding */
+    padding: 0;
 }
 
 .addon {
