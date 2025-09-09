@@ -10,7 +10,8 @@
         LICENSE_VERIFIED: "sw_license_verified",
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
-        TOGGLE_BTN_POSITION: "sw_toggle_button_position"
+        TOGGLE_BTN_POSITION: "sw_toggle_button_position",
+        KCS_ICONS_ENABLED: "kcs_icons_enabled"
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -276,12 +277,12 @@
 
             <div class="sw-tab-content" id="swTabAddons" style="padding: 15px; display: block;">
                 <h3 style="color: #00ccff; margin-top: 0;">Aktywne Dodatki</h3>
-                <div style="background: rgba(40, 40, 50, 0.6; border: 1px solid #393945; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-weight: 600; color: #ccddee;">KCS i Zwój Ikony</span>
-                        <label style="position: relative; display: inline-block; width: 36px; height: 18px;">
-                            <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
-                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #00ccff; border-radius: 18px; transition: .3s;"></span>
+                        <label class="switch">
+                            <input type="checkbox" id="kcsIconsToggle">
+                            <span class="slider"></span>
                         </label>
                     </div>
                     <div style="color: #8899aa; font-size: 12px;">Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka</div>
@@ -408,6 +409,7 @@
                     SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                     SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                     SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
+                    SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
                     
                     // Przywróć klucz licencji i status jeśli istnieją
                     if (licenseKey) {
@@ -429,6 +431,24 @@
                 }
             });
         }
+
+        // Obsługa suwaka KCS Icons
+        const kcsToggle = document.getElementById('kcsIconsToggle');
+        if (kcsToggle) {
+            kcsToggle.addEventListener('change', function() {
+                const isEnabled = this.checked;
+                SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+                
+                // Pokaż komunikat o konieczności odświeżenia
+                const message = isEnabled ? 
+                    'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
+                    'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
+                
+                alert(message);
+                console.log('💾 KCS Icons ' + (isEnabled ? 'włączony' : 'wyłączony') + ' - wymagane odświeżenie gry');
+            });
+        }
+
         console.log('✅ Event listeners setup complete');
     }
 
@@ -476,22 +496,30 @@
 
     function loadAddons() {
         console.log('🔓 Ładowanie dodatków...');
-        if (SW && SW.GM_xmlhttpRequest) {
-            SW.GM_xmlhttpRequest({
-                method: 'GET',
-                url: 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/addons/kcs-icons.js?v=' + Date.now(),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        const script = document.createElement('script');
-                        script.textContent = response.responseText;
-                        document.head.appendChild(script);
-                        console.log('✅ Dodatek kcs-icons załadowany');
+        
+        // Sprawdź czy KCS Icons jest włączony
+        const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
+        
+        if (isKcsEnabled) {
+            if (SW && SW.GM_xmlhttpRequest) {
+                SW.GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/addons/kcs-icons.js?v=' + Date.now(),
+                    onload: function(response) {
+                        if (response.status === 200) {
+                            const script = document.createElement('script');
+                            script.textContent = response.responseText;
+                            document.head.appendChild(script);
+                            console.log('✅ Dodatek kcs-icons załadowany');
+                        }
+                    },
+                    onerror: function(error) {
+                        console.error('❌ Błąd ładowania dodatku:', error);
                     }
-                },
-                onerror: function(error) {
-                    console.error('❌ Błąd ładowania dodatku:', error);
-                }
-            });
+                });
+            }
+        } else {
+            console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
         }
     }
 
@@ -546,6 +574,14 @@
                 statusEl.textContent = 'Nieaktywna';
                 statusEl.style.color = '#ff3366';
             }
+        }
+        
+        // Załaduj stan suwaka KCS Icons
+        const kcsToggle = document.getElementById('kcsIconsToggle');
+        if (kcsToggle) {
+            const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
+            kcsToggle.checked = isKcsEnabled;
+            console.log('📍 KCS Icons state loaded:', isKcsEnabled);
         }
         
         console.log('✅ Saved state loaded');
