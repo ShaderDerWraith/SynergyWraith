@@ -5,7 +5,7 @@
     left: 70px;
     width: 50px;
     height: 50px;
-    background: linear-gradient(45deg, #ff0000, #ff3333);
+    background: transparent; /* Usunięto gradient */
     border: 3px solid #00ff00;
     border-radius: 50%;
     cursor: grab;
@@ -23,6 +23,7 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    overflow: hidden; /* Dodano, aby obrazek nie wystawał poza zaokrąglone rogi */
 }
 
 #swPanelToggle.dragging {
@@ -432,7 +433,7 @@ input:checked + .slider:before {
     font-weight: 600;
 }
 
-/* 🔹 BUTTONs 🔹 */
+/* 🔹 BUTTONS 🔹 */
 #reset-settings {
     width: 100%;
     padding: 10px;
