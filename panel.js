@@ -12,7 +12,7 @@
     const toggleBtn = document.createElement("div");
     toggleBtn.id = "myPanelToggle";
     toggleBtn.textContent = "⚙️ Dodatki";
-    toggleBtn.title = "Kliknij, aby otworzyć/ukryć panel. Przytrzymaj Alt i przeciągnij, aby przenieść."; // Podpowiedź
+    toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel."; // Nowa podpowiedź
     document.body.appendChild(toggleBtn);
 
     // Dodanie panelu
@@ -65,43 +65,53 @@
     loadPanelState();
     loadToggleBtnState();
 
-    // Obsługa otwierania/zamykania panelu (ZWYKŁY KLIK)
-    toggleBtn.addEventListener("click", (e) => {
-        // Jeśli to był element formularza wewnątrz przycisku (teoretycznie), zignoruj
-        if (e.target !== toggleBtn) return;
-        const isVisible = panel.style.display === "block";
-        panel.style.display = isVisible ? "none" : "block";
-        localStorage.setItem(PANEL_VISIBLE_KEY, (!isVisible).toString());
+    // 🔹 OBSŁUGA PODWÓJNEGO KLIKNIĘCIA (otwieranie/zamykanie panelu)
+    let clickTimer = null;
+    toggleBtn.addEventListener('click', (e) => {
+        // Jeśli to już drugie kliknięcie w krótkim czasie, wyczyść timer i otwórz/ zamknij panel
+        if (clickTimer !== null) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            // Główna akcja: przełącz widoczność panelu
+            const isVisible = panel.style.display === "block";
+            panel.style.display = isVisible ? "none" : "block";
+            localStorage.setItem(PANEL_VISIBLE_KEY, (!isVisible).toString());
+        } else {
+            // To pierwsze kliknięcie, uruchom timer. Jeśli drugie nie nadejdzie, timer się wyzeruje.
+            clickTimer = setTimeout(() => {
+                clickTimer = null;
+            }, 300); // Czas (w ms) na uznanie drugiego kliknięcia za część podwójnego. Standard to 300-500ms.
+        }
     });
 
     // 🔹 PRZESUWANIE PANELU (Twój istniejący kod) - ZOSTAWIAMY
     const header = document.getElementById("myAddonsPanelHeader");
-    let isDragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+    let isPanelDragging = false;
+    let panelOffsetX = 0;
+    let panelOffsetY = 0;
 
     const startPanelDrag = (e) => {
-        isDragging = true;
+        isPanelDragging = true;
         panel.classList.add('dragging');
         const panelRect = panel.getBoundingClientRect();
-        offsetX = e.clientX - panelRect.left;
-        offsetY = e.clientY - panelRect.top;
+        panelOffsetX = e.clientX - panelRect.left;
+        panelOffsetY = e.clientY - panelRect.top;
         document.addEventListener("mousemove", onPanelDrag);
         document.addEventListener("mouseup", stopPanelDrag);
         e.preventDefault();
     };
 
     const onPanelDrag = (e) => {
-        if (!isDragging) return;
-        const newX = e.clientX - offsetX;
-        const newY = e.clientY - offsetY;
+        if (!isPanelDragging) return;
+        const newX = e.clientX - panelOffsetX;
+        const newY = e.clientY - panelOffsetY;
         panel.style.left = newX + "px";
         panel.style.top = newY + "px";
     };
 
     const stopPanelDrag = () => {
-        if (!isDragging) return;
-        isDragging = false;
+        if (!isPanelDragging) return;
+        isPanelDragging = false;
         panel.classList.remove('dragging');
         localStorage.setItem(PANEL_POS_KEY, JSON.stringify({
             top: panel.style.top,
@@ -112,16 +122,12 @@
     };
     header.addEventListener("mousedown", startPanelDrag);
 
-    // 🔹 NOWY KOD: PRZESUWANIE PRZYCISKU TOGGLE Z UŻYCIEM ALT
+    // 🔹 PRZESUWANIE PRZYCISKU TOGGLE (POJEDYNCZE KLIKNIĘCIE I PRZECIĄGNIJ)
     let isToggleDragging = false;
     let toggleOffsetX = 0;
     let toggleOffsetY = 0;
 
     const startToggleDrag = (e) => {
-        // SPRAWDŹ CZY WCIŚNIĘTO ALT (lub Ctrl/Shift)
-        if (!e.altKey) { // Możesz zmienić na e.ctrlKey lub e.shiftKey
-            return; // Jeśli Alt nie jest wciśnięty, wyjdź - to ma być zwykły klik.
-        }
         isToggleDragging = true;
         toggleBtn.classList.add('dragging');
         const toggleRect = toggleBtn.getBoundingClientRect();
@@ -130,7 +136,6 @@
         document.addEventListener("mousemove", onToggleDrag);
         document.addEventListener("mouseup", stopToggleDrag);
         e.preventDefault();
-        e.stopPropagation(); // Zatrzymaj propagację, aby nie wywołać 'click'
     };
 
     const onToggleDrag = (e) => {
