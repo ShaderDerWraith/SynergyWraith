@@ -140,6 +140,23 @@ function setupToggleDrag(toggleBtn) {
     });
 
     function startDragging() {
+    isDragging = true;
+    isClick = false;
+    
+    // Zmień wygląd podczas przeciągania
+    toggleBtn.style.cursor = 'grabbing';
+    toggleBtn.style.transform = 'scale(1.1)';
+    toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
+    toggleBtn.style.border = '3px solid #ffff00';
+    toggleBtn.classList.add('dragging'); // DODAJ KLASĘ
+    
+    // Dodaj nasłuchiwacze
+    document.addEventListener('mousemove', onToggleDrag);
+    document.addEventListener('mouseup', stopToggleDrag);
+    document.addEventListener('mouseleave', stopToggleDrag);
+}
+    
+    function startDragging() {
         isDragging = true;
         isClick = false;
         
