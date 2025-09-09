@@ -2,23 +2,34 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    background: rgba(20, 20, 20, 0.95);
+    background: rgba(20, 20, 20, 0.95) url('https://shaderderwraith.github.io/SynergyWraith/icon.png') center center / 70% no-repeat;
     border: 2px solid #555;
-    border-radius: 8px;
+    border-radius: 50%; /* Kształt koła - wygląda lepiej dla ikon */
     color: #fff;
-    padding: 6px 12px;
+    width: 40px;  /* Ustalamy stały rozmiar */
+    height: 40px; /* Ustalamy stały rozmiar */
+    padding: 0;   /* Usuwamy padding, bo tłem jest obrazek */
     z-index: 100000;
     font-family: Arial, sans-serif;
-    cursor: grab; /* Kursor wskazujący na możliwość przeciągania */
+    cursor: grab;
     user-select: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s ease-in-out; /* Dodajemy animację "przycisku" */
 }
 
-/* Kursor podczas przeciągania przycisku */
+/* Efekt przy najechaniu - lekkie powiększenie */
+#myPanelToggle:hover {
+    transform: scale(1.05);
+}
+
+/* Kursor i efekt podczas przeciągania */
 #myPanelToggle.dragging {
     cursor: grabbing;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8); /* Złoty shadow dla widoczności */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    transform: scale(1.1); /* Powiększenie podczas przeciągania */
 }
 
+/* Reszta stylów pozostaje BEZ ZMIAN */
 #myAddonsPanel {
     position: fixed;
     top: 80px;
