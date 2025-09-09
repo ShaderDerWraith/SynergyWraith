@@ -107,13 +107,32 @@
             html += `
                 <div class="addon" data-addon-id="${id}">
                     <div class="addon-header">
-                        <span class="addon-title">${addon.name}</span>
+                        <div>
+                            <span class="addon-title">${addon.name}</span>
+                            <button class="addon-settings-btn" data-addon-id="${id}" title="Ustawienia dodatku">
+                                ⚙️
+                            </button>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="${id}" data-addon-id="${id}">
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="addon-description">${addon.description}</div>
+                    
+                    <!-- PANEL USTAWIEŃ DODATKU -->
+                    <div class="addon-settings-panel" id="settings-${id}">
+                        <h4>Ustawienia: ${addon.name}</h4>
+                        <div class="settings-row">
+                            <span class="settings-label">Key Bind:</span>
+                            <span class="settings-value">F2</span>
+                        </div>
+                        <div class="settings-row">
+                            <span class="settings-label">Widoczność:</span>
+                            <span class="settings-value">80%</span>
+                        </div>
+                        <!-- Tutaj dodasz więcej ustawień w przyszłości -->
+                    </div>
                 </div>
             `;
         }
@@ -135,14 +154,9 @@
     }
 
     function verifyLicense(licenseKey) {
-        // 🔹 TUTAJ DODAJ SWOJĄ LOGIKĘ WERYFIKACJI
-        // Przykład: wywołanie Twojego API
-        console.log('Weryfikuję klucz licencyjny:', licenseKey);
+        showLicenseMessage('🔐 Weryfikowanie klucza...', 'success');
         
-        // Symulacja weryfikacji (ZASTĄP TYM SWOIM API)
-        setTimeout(() => {
-            const isValid = validateLicenseWithYourSystem(licenseKey);
-            
+        validateLicenseWithYourSystem(licenseKey).then(isValid => {
             if (isValid) {
                 localStorage.setItem(CONFIG.LICENSE_VERIFIED, 'true');
                 localStorage.setItem(CONFIG.LICENSE_KEY, licenseKey);
@@ -152,15 +166,30 @@
                 localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
                 showLicenseMessage('❌ Nieprawidłowy klucz licencyjny', 'error');
             }
-        }, 1000);
+        }).catch(error => {
+            console.error("License validation error:", error);
+            showLicenseMessage('⚠️ Błąd podczas weryfikacji. Spróbuj ponownie.', 'error');
+        });
     }
 
     function validateLicenseWithYourSystem(licenseKey) {
-        // 🔹 ZASTĄP TĄ FUNKCJĘ SWOIM SYSTEMEM WERYFIKACJI
-        // Może to być zapytanie do Twojego API, bazy danych, etc.
-        // Na razie symulacja - zwraca true dla przykładowego klucza
-        const validKeys = ['SYNERGY-2024-ABCD', 'TEST-KEY-1234']; // Tymczasowe
-        return validKeys.includes(licenseKey);
+        // 🔹 TYMACZASOWA WERYFIKACJA - korzysta z symulowanego serwera
+        return new Promise((resolve) => {
+            // Dynamicznie ładujemy nasz symulowany serwer
+            if (window.validateLicense) {
+                // Jeśli funkcja jest już załadowana (np. z license-server.js)
+                window.validateLicense(licenseKey).then(result => {
+                    resolve(result.success);
+                });
+            } else {
+                // Fallback: symulacja lokalna jeśli serwer nie jest dostępny
+                console.warn("License server not loaded, using fallback validation");
+                const validKeys = ['SYNERGY-2024-001', 'SYNERGY-2024-002', 'TEST-KEY-12345'];
+                setTimeout(() => {
+                    resolve(validKeys.includes(licenseKey));
+                }, 500);
+            }
+        });
     }
 
     function showLicenseMessage(message, type) {
@@ -272,6 +301,7 @@
         setupResetButton();
         setupAddonHeaders();
         setupLicenseVerification();
+        setupAddonSettingsButtons();
     }
 
     function setupDoubleClick() {
@@ -384,6 +414,23 @@
             if (e.target.classList.contains('addon-header')) {
                 const addon = e.target.closest('.addon');
                 addon.classList.toggle('expanded');
+            }
+        });
+    }
+
+    function setupAddonSettingsButtons() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('addon-settings-btn')) {
+                const addonId = e.target.dataset.addonId;
+                const settingsPanel = document.getElementById(`settings-${addonId}`);
+                settingsPanel.classList.toggle('visible');
+                
+                // Optional: Zamknij inne otwarte panele
+                document.querySelectorAll('.addon-settings-panel').forEach(panel => {
+                    if (panel.id !== `settings-${addonId}`) {
+                        panel.classList.remove('visible');
+                    }
+                });
             }
         });
     }
