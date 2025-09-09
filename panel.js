@@ -479,7 +479,7 @@
     }
 
     // 🔹 ADDONS LOADING
-        function loadAddonScript(addonId) {
+            function loadAddonScript(addonId) {
         const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
         if (!config[addonId]) {
             console.log(`⏭️ Dodatek ${addonId} jest wyłączony, pomijam ładowanie`);
@@ -492,29 +492,22 @@
         if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
             console.log(`📦 Ładowanie dodatku: ${addonId}`);
             
-            const script = document.createElement('script');
-            script.src = scriptUrl;
-            
-            script.onload = function() {
-                console.log(`✅ Dodatek ${addonId} załadowany`);
-                // Oznacz że dodatek jest załadowany
-                window[addonId + '_loaded'] = true;
+            // 🔹 DODAJ OPOŹNIENIE - nie ładuj od razu
+            setTimeout(() => {
+                const script = document.createElement('script');
+                script.src = scriptUrl;
                 
-                // Sprawdź czy dodatek faktycznie działa
-                checkAddonLoaded(addonId);
-            };
-            
-            script.onerror = function() {
-                console.error(`❌ Nie udało się załadować dodatku: ${addonId}`);
-                // Usuń z konfiguracji jeśli się nie udało
-                const newConfig = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
-                delete newConfig[addonId];
-                safeSetItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(newConfig));
-            };
-            
-            document.head.appendChild(script);
-        } else {
-            console.log(`♻️ Dodatek ${addonId} jest już załadowany`);
+                script.onload = function() {
+                    console.log(`✅ Dodatek ${addonId} załadowany`);
+                    window[addonId + '_loaded'] = true;
+                };
+                
+                script.onerror = function() {
+                    console.error(`❌ Nie udało się załadować dodatku: ${addonId}`);
+                };
+                
+                document.head.appendChild(script);
+            }, 3000); // 🔹 3 sekundy opóźnienia
         }
     }
 
