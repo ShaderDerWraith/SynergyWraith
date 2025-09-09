@@ -73,45 +73,30 @@
     }
 
     function createToggleButton() {
-        // Usuń stary przycisk jeśli istnieje
-        const oldToggle = document.getElementById('swPanelToggle');
-        if (oldToggle) oldToggle.remove();
-        
-        const toggleBtn = document.createElement("div");
-        toggleBtn.id = "swPanelToggle";
-        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
-        toggleBtn.innerHTML = "SW";
-        toggleBtn.style.cssText = `
-            position: fixed !important;
-            top: 70px !important;
-            left: 70px !important;
-            width: 50px !important;
-            height: 50px !important;
-            background: linear-gradient(45deg, #ff0000, #ff3333) !important;
-            border: 3px solid #00ff00 !important;
-            border-radius: 50% !important;
-            cursor: grab !important;
-            z-index: 1000000 !important;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
-            color: white !important;
-            font-weight: bold !important;
-            font-size: 20px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-shadow: 0 0 5px black !important;
-            transition: all 0.2s ease !important;
-            user-select: none !important;
-        `;
-        document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created');
-        
-        // Dodaj przeciąganie przycisku
-        setupToggleDrag(toggleBtn);
-        
-        return toggleBtn;
-    }
+    const oldToggle = document.getElementById('swPanelToggle');
+    if (oldToggle) oldToggle.remove();
+    
+    const toggleBtn = document.createElement("div");
+    toggleBtn.id = "swPanelToggle";
+    toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+    toggleBtn.innerHTML = "SW";
+    
+    // Usunięto style CSS które kolidują z plikiem panel.css
+    document.body.appendChild(toggleBtn);
+    
+    // Dodaj przeciąganie przycisku
+    setupToggleDrag(toggleBtn);
+    
+    return toggleBtn;
+}
 
+    function saveToggleButtonPosition(btn) {
+    const rect = btn.getBoundingClientRect();
+    SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+        left: rect.left + window.scrollX,
+        top: rect.top + window.scrollY
+    });
+}
     function setupToggleDrag(toggleBtn) {
         let isDragging = false;
         let startX, startY;
@@ -190,37 +175,20 @@
             }
         }
 
-        function stopDragging() {
-            isDragging = false;
-            
-            // Przywróć wygląd
-            toggleBtn.style.cursor = 'grab';
-            toggleBtn.style.transform = 'scale(1)';
-            toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-            toggleBtn.style.border = '3px solid #00ff00';
-            toggleBtn.classList.remove('dragging');
-            toggleBtn.classList.add('saved');
-            
-            // Zapisz pozycję
-            SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
-            });
-            
-            console.log('💾 Saved button position:', {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
-            });
-            
-            // Usuń klasę saved po animacji
-            setTimeout(() => {
-                toggleBtn.classList.remove('saved');
-            }, 1500);
-        }
-
-        // Obsługa podwójnego kliknięcia
-        let lastClickTime = 0;
-        let clickCount = 0;
+       function stopDragging() {
+    isDragging = false;
+    
+    toggleBtn.style.cursor = 'grab';
+    toggleBtn.classList.remove('dragging');
+    toggleBtn.classList.add('saved');
+    
+    // Zapisz pozycję używając nowej funkcji
+    saveToggleButtonPosition(toggleBtn);
+    
+    setTimeout(() => {
+        toggleBtn.classList.remove('saved');
+    }, 1500);
+}
         
         function handleClick() {
             const currentTime = new Date().getTime();
@@ -501,12 +469,11 @@
         if (!SW || !SW.GM_getValue) return;
         
         // Załaduj zapisaną pozycję PRZYCISKU
-        const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
-        const toggleBtn = document.getElementById('swPanelToggle');
-        if (toggleBtn && savedBtnPosition) {
-            toggleBtn.style.left = savedBtnPosition.left || '70px';
-            toggleBtn.style.top = savedBtnPosition.top || '70px';
-            console.log('📍 Loaded button position:', savedBtnPosition);
+    const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
+    const toggleBtn = document.getElementById('swPanelToggle');
+    if (toggleBtn && savedBtnPosition) {
+        toggleBtn.style.left = savedBtnPosition.left + 'px';
+        toggleBtn.style.top = savedBtnPosition.top + 'px';
         }
         
         // Załaduj zapisaną pozycję PANELU
