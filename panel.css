@@ -2,7 +2,7 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    background: rgba(20, 20, 20, 0.95) url('https://shaderderwraith.github.io/SynergyWraith/icon.png') center center / 70% no-repeat;
+    background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
     border: 2px solid #555;
     border-radius: 50%; /* Kształt koła - wygląda lepiej dla ikon */
     color: #fff;
