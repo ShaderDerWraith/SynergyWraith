@@ -1,0 +1,83 @@
+/* panel.css - styl panelu dodatków */
+#mp-toggle {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  background: linear-gradient(180deg,#3b3b3b,#2b2b2b);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  cursor: pointer;
+  z-index: 999999;
+  user-select: none;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#mp-panel-v1 {
+  position: fixed;
+  top: 80px;
+  left: 18px;
+  width: 300px;
+  background: rgba(22,22,22,0.98);
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  z-index: 999999;
+  font-family: Arial, Helvetica, sans-serif;
+  display: none;
+  overflow: hidden;
+}
+
+#mp-panel-v1 .mp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  cursor: move; /* pozwala użytkownikowi przeciągać */
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+#mp-panel-v1 .mp-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#mp-panel-v1 .mp-close {
+  background: transparent;
+  border: none;
+  color: #bbb;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+#mp-panel-v1 .mp-body {
+  padding: 10px;
+}
+
+.mp-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-radius: 6px;
+}
+
+.mp-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #58a6ff;
+}
+
+.mp-footer {
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255,255,255,0.02);
+  font-size: 12px;
+  color: #aaa;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
