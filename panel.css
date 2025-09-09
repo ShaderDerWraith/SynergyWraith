@@ -334,6 +334,51 @@ input:checked + .slider:before {
     border: 1px solid #ff3366;
 }
 
+/* 🔹 LICENSE STATUS INDICATOR 🔹 */
+.license-status {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    background: linear-gradient(to right, #2a2a3a, #232330);
+    border: 1px solid #393945;
+    border-radius: 5px;
+    padding: 8px 12px;
+    color: #00ffaa;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 99998;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.license-status.valid {
+    display: block;
+    border-left: 3px solid #00ffaa;
+}
+
+.license-status.invalid {
+    display: block;
+    color: #ff3366;
+    border-left: 3px solid #ff3366;
+}
+
+.license-status.expiring {
+    display: block;
+    color: #ffcc00;
+    border-left: 3px solid #ffcc00;
+}
+
+.license-user {
+    color: #a0a0ff;
+    font-weight: normal;
+}
+
+.license-expiry {
+    font-size: 10px;
+    color: #8899aa;
+    margin-top: 2px;
+}
+
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
