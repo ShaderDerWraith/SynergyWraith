@@ -1,12 +1,6 @@
 // synergy.js - Główny kod panelu
 (function() {
     'use strict';
-    
-    console.log('🔄 synergy.js loaded -', Date.now());
-    
-
-(function() {
-    'use strict';
 
     console.log('🚀 SynergyWraith Panel v1.0 loaded');
 
@@ -14,7 +8,8 @@
     const CONFIG = {
         LICENSE_KEY: "sw_license_key",
         LICENSE_VERIFIED: "sw_license_verified",
-        PANEL_POSITION: "sw_panel_position"
+        PANEL_POSITION: "sw_panel_position",
+        PANEL_VISIBLE: "sw_panel_visible"
     };
 
     // 🔹 Odwołanie do globalnego obiektu
@@ -40,34 +35,35 @@
     }
 
     function createToggleButton() {
-    if (document.getElementById('swPanelToggle')) return;
-    
-    const toggleBtn = document.createElement("div");
-    toggleBtn.id = "swPanelToggle";
-    toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
-    toggleBtn.style.cssText = `
-        position: fixed !important;
-        top: 50px !important;
-        left: 50px !important;
-        width: 50px !important;
-        height: 50px !important;
-        background: linear-gradient(45deg, #ff0000, #ff3333) !important;
-        border: 3px solid #00ff00 !important;
-        border-radius: 50% !important;
-        cursor: pointer !important;
-        z-index: 1000000 !important;
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
-        color: white !important;
-        font-weight: bold !important;
-        font-size: 20px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-shadow: 0 0 5px black !important;
-    `;
-    toggleBtn.textContent = "SW";
-    document.body.appendChild(toggleBtn);
-}
+        if (document.getElementById('swPanelToggle')) return;
+        
+        const toggleBtn = document.createElement("div");
+        toggleBtn.id = "swPanelToggle";
+        toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
+        toggleBtn.style.cssText = `
+            position: fixed !important;
+            top: 50px !important;
+            left: 50px !important;
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(45deg, #ff0000, #ff3333) !important;
+            border: 3px solid #00ff00 !important;
+            border-radius: 50% !important;
+            cursor: pointer !important;
+            z-index: 1000000 !important;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-shadow: 0 0 5px black !important;
+        `;
+        toggleBtn.textContent = "SW";
+        document.body.appendChild(toggleBtn);
+    }
+
     function createMainPanel() {
         if (document.getElementById('swAddonsPanel')) return;
         
@@ -193,7 +189,10 @@
                 });
                 
                 // Pokaż wybraną zakładkę
-                document.getElementById('swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).style.display = 'block';
+                const tabContent = document.getElementById('swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+                if (tabContent) {
+                    tabContent.style.display = 'block';
+                }
                 
                 // Oznacz aktywny przycisk
                 this.style.color = '#00ccff';
@@ -254,7 +253,13 @@
             toggleBtn.addEventListener('dblclick', function() {
                 const panel = document.getElementById('swAddonsPanel');
                 if (panel) {
-                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                    const isVisible = panel.style.display === 'block';
+                    panel.style.display = isVisible ? 'none' : 'block';
+                    
+                    // Zapisz widoczność
+                    if (SW && SW.GM_setValue) {
+                        SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+                    }
                 }
             });
         }
@@ -268,6 +273,7 @@
                         SW.GM_deleteValue(CONFIG.LICENSE_KEY);
                         SW.GM_deleteValue(CONFIG.LICENSE_VERIFIED);
                         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
+                        SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                         alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
                         setTimeout(() => location.reload(), 1000);
                     }
@@ -297,8 +303,10 @@
                     SW.GM_setValue(CONFIG.LICENSE_VERIFIED, 'true');
                 }
                 showMessage('✅ Licencja aktywowana!', 'success');
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
+                if (statusEl) {
+                    statusEl.textContent = 'Aktywna';
+                    statusEl.style.color = '#00ffaa';
+                }
                 loadAddons();
             } else {
                 showMessage('❌ Nieprawidłowy klucz', 'error');
@@ -332,6 +340,9 @@
                         document.head.appendChild(script);
                         console.log('✅ Dodatek kcs-icons załadowany');
                     }
+                },
+                onerror: function(error) {
+                    console.error('❌ Błąd ładowania dodatku:', error);
                 }
             });
         }
@@ -344,21 +355,29 @@
         const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
         const panel = document.getElementById('swAddonsPanel');
         if (panel && savedPosition) {
-            panel.style.left = savedPosition.left;
-            panel.style.top = savedPosition.top;
+            panel.style.left = savedPosition.left || '50px';
+            panel.style.top = savedPosition.top || '120px';
+        }
+        
+        // Załaduj zapisaną widoczność
+        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
+        if (panel) {
+            panel.style.display = isVisible ? 'block' : 'none';
         }
         
         // Załaduj zapisany klucz licencyjny
         const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
-        if (savedKey) {
-            document.getElementById('swLicenseInput').value = savedKey;
+        const licenseInput = document.getElementById('swLicenseInput');
+        if (licenseInput && savedKey) {
+            licenseInput.value = savedKey;
         }
         
         // Sprawdź status licencji
         const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
-        if (isVerified) {
-            document.getElementById('swLicenseStatus').textContent = 'Aktywna';
-            document.getElementById('swLicenseStatus').style.color = '#00ffaa';
+        const statusEl = document.getElementById('swLicenseStatus');
+        if (statusEl && isVerified) {
+            statusEl.textContent = 'Aktywna';
+            statusEl.style.color = '#00ffaa';
         }
     }
 
