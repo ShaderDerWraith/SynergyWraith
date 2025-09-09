@@ -1,4 +1,4 @@
-// license-server.js (TYMCZASOWY - symulacja API)
+// license-server.js
 const VALID_LICENSES = {
     "SYNERGY-2024-001": { active: true, user: "Test User 1", expires: "2024-12-31" },
     "SYNERGY-2024-002": { active: true, user: "Test User 2", expires: "2024-12-31" },
@@ -31,3 +31,7 @@ function validateLicense(key) {
         }, 800);
     });
 }
+
+// 🔹 DODAJ TE LINIJKI - globalna dostępność
+console.log("✅ License server loaded successfully!");
+window.validateLicense = validateLicense;
