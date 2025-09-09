@@ -450,37 +450,33 @@ input:checked + .slider:before {
 
 /* 🔹 TOGGLE BUTTON STYLES 🔹 */
 #swPanelToggle {
-    position: fixed !important;
-    top: 70px !important;
-    left: 70px !important;
-    width: 50px !important;
-    height: 50px !important;
-    background: linear-gradient(45deg, #ff0000, #ff3333) !important;
-    border: 3px solid #00ff00 !important;
-    border-radius: 50% !important;
-    cursor: grab !important;
-    z-index: 1000000 !important;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
-    color: white !important;
-    font-weight: bold !important;
-    font-size: 20px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-shadow: 0 0 5px black !important;
-    transition: all 0.2s ease !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
+    position: fixed;
+    top: 70px;
+    left: 70px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, #ff0000, #ff3333);
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 1000000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 5px black;
+    transition: all 0.2s ease;
+    user-select: none;
 }
 
 #swPanelToggle.dragging {
-    cursor: grabbing !important;
-    transform: scale(1.15) !important;
-    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2) !important;
-    border: 3px solid #ffff00 !important;
-    z-index: 1000001 !important;
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
+    border: 3px solid #ffff00;
 }
 
 #swPanelToggle:hover:not(.dragging) {
