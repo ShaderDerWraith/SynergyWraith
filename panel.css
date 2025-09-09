@@ -1,60 +1,68 @@
+/* 🔹 BASE STYLES 🔹 */
 #myPanelToggle {
     position: fixed;
     top: 10px;
     left: 10px;
     background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
-    border: 2px solid #555;
+    border: 2px solid #444;
     border-radius: 50%;
-    color: #fff;
     width: 40px;
     height: 40px;
     padding: 0;
     z-index: 100000;
-    font-family: Arial, sans-serif;
     cursor: grab;
     user-select: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    transition: transform 0.1s ease-in-out;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    transition: all 0.2s ease;
 }
 
 #myPanelToggle:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(100, 100, 255, 0.4);
 }
 
 #myPanelToggle.dragging {
     cursor: grabbing;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
     transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
 }
 
+/* 🔹 MAIN PANEL 🔹 */
 #myAddonsPanel {
     position: fixed;
     top: 80px;
     left: 20px;
-    background: rgba(20, 20, 20, 0.95);
-    border: 2px solid #555;
+    background: rgba(25, 25, 35, 0.98);
+    border: 1px solid #444;
     border-radius: 8px;
-    color: #fff;
+    color: #e0e0e0;
     padding: 0;
     z-index: 99999;
-    font-family: Arial, sans-serif;
-    width: 250px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 320px;
     display: none;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
 }
 
 #myAddonsPanel.dragging {
     cursor: grabbing;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 5px 30px rgba(100, 100, 255, 0.3);
 }
 
 #myAddonsPanelHeader {
     cursor: grab;
-    background: #444;
-    padding: 6px;
-    border-bottom: 1px solid #555;
+    background: linear-gradient(to right, #2a2a3a, #232330);
+    padding: 12px 15px;
+    border-bottom: 1px solid #393945;
     text-align: center;
     font-weight: bold;
+    font-size: 14px;
+    color: #a0a0ff;
     user-select: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    letter-spacing: 0.5px;
 }
 #myAddonsPanelHeader:active {
     cursor: grabbing;
@@ -64,78 +72,206 @@
     padding: 0;
 }
 
-.addon {
-    margin-bottom: 8px;
-}
-
-.addon label {
-    cursor: pointer;
-    margin-left: 5px;
-}
-
-/* 🔹 STYLES FOR TABS 🔹 */
+/* 🔹 TABS STYLES (like screenshots) 🔹 */
 .tab-container {
     display: flex;
-    border-bottom: 1px solid #555;
-    background-color: #333;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    background: linear-gradient(to bottom, #2c2c3c, #252532);
+    border-bottom: 1px solid #393945;
+    padding: 0 5px;
 }
 
 .tablink {
     flex: 1;
-    background-color: inherit;
+    background: none;
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 10px 16px;
-    transition: 0.3s;
-    color: #ccc;
-    font-weight: bold;
+    padding: 12px 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    color: #8899aa;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid transparent;
 }
 
 .tablink.active {
-    color: #fff;
-    background-color: #555;
-    border-bottom: 3px solid gold;
+    color: #00ccff;
+    border-bottom: 2px solid #00ccff;
+    background: rgba(0, 204, 255, 0.1);
 }
 
 .tablink:hover:not(.active) {
-    background-color: #444;
+    color: #aaccff;
+    border-bottom: 2px solid #8899aa;
 }
 
+/* 🔹 TAB CONTENT 🔹 */
 .tabcontent {
     display: none;
-    padding: 10px;
-    animation: fadeEffect 0.5s;
+    padding: 15px;
+    animation: fadeEffect 0.3s ease;
 }
 
 @keyframes fadeEffect {
-    from {opacity: 0;}
-    to {opacity: 1;}
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .tabcontent h3 {
-    margin-top: 0;
-    color: gold;
-    border-bottom: 1px solid #555;
-    padding-bottom: 5px;
+    margin: 0 0 15px 0;
+    color: #00ccff;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
 }
 
-.tabcontent p {
-    font-size: 0.9em;
-    color: #aaa;
+/* 🔹 ADDONS LIST (like screenshots) 🔹 */
+.addon {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
 }
 
-#reset-settings {
-    margin-top: 15px;
-    padding: 8px 15px;
-    background-color: #d9534f;
-    color: white;
-    border: none;
-    border-radius: 4px;
+.addon:hover {
+    background: rgba(50, 50, 60, 0.8);
+    border-color: #4a4a5a;
+    transform: translateY(-1px);
+}
+
+.addon-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
     cursor: pointer;
 }
+
+.addon-title {
+    font-weight: 600;
+    color: #ccddee;
+    font-size: 13px;
+}
+
+.addon-description {
+    color: #8899aa;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: none;
+}
+
+.addon.expanded .addon-description {
+    display: block;
+}
+
+/* 🔹 SWITCH STYLE (modern toggle) 🔹 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #393945;
+    transition: .3s;
+    border-radius: 18px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ccddee;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #00ccff;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: white;
+}
+
+/* 🔹 STATUS TAB 🔹 */
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #393945;
+}
+
+.status-label {
+    color: #8899aa;
+    font-size: 12px;
+}
+
+.status-value {
+    color: #00ffaa;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* 🔹 SETTINGS TAB 🔹 */
+.settings-item {
+    margin-bottom: 15px;
+}
+
+.settings-label {
+    display: block;
+    color: #ccddee;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* 🔹 BUTTONS 🔹 */
+#reset-settings {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #ff5555, #ff3366);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+
 #reset-settings:hover {
-    background-color: #c9302c;
+    background: linear-gradient(to right, #ff3366, #ff2288);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
 }
