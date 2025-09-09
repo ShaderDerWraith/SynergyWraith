@@ -114,30 +114,148 @@
 
 function setupToggleDrag(toggleBtn) {
     let isDragging = false;
-    let isClick = false;
     let startX, startY;
     let initialLeft, initialTop;
     let dragTimeout;
+    const DRAG_THRESHOLD = 5; // Minimalny dystans w pikselach do rozpoczęcia przeciągania
 
     toggleBtn.addEventListener('mousedown', function(e) {
         if (e.button !== 0) return; // Tylko lewy przycisk myszy
         
-        isClick = true;
         startX = e.clientX;
         startY = e.clientY;
         initialLeft = parseInt(toggleBtn.style.left) || 70;
         initialTop = parseInt(toggleBtn.style.top) || 70;
         
-        // Czekaj na ruch - jeśli użytkownik przesunie mysz, to przeciąganie
-        dragTimeout = setTimeout(() => {
-            if (isClick) {
-                startDragging();
-                isClick = false;
-            }
-        }, 150); // 150ms threshold dla przeciągania
+        // Nasłuchuj ruchu myszy aby wykryć przeciąganie
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mouseleave', onMouseUp);
         
         e.preventDefault();
     });
+
+    function onMouseMove(e) {
+        const deltaX = Math.abs(e.clientX - startX);
+        const deltaY = Math.abs(e.clientY - startY);
+        
+        // Jeśli mysz przemieściła się wystarczająco daleko, rozpocznij przeciąganie
+        if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
+            startDragging();
+        }
+        
+        if (isDragging) {
+            onToggleDrag(e);
+        }
+    }
+
+    function startDragging() {
+        isDragging = true;
+        
+        // Zmień wygląd podczas przeciągania
+        toggleBtn.style.cursor = 'grabbing';
+        toggleBtn.style.transform = 'scale(1.1)';
+        toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
+        toggleBtn.style.border = '3px solid #ffff00';
+        toggleBtn.classList.add('dragging');
+    }
+
+    function onToggleDrag(e) {
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        // Oblicz nową pozycję
+        const newLeft = initialLeft + deltaX;
+        const newTop = initialTop + deltaY;
+        
+        // Ogranicz do obszaru ekranu
+        const maxX = window.innerWidth - toggleBtn.offsetWidth;
+        const maxY = window.innerHeight - toggleBtn.offsetHeight;
+        
+        toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
+        toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
+    }
+
+    function onMouseUp(e) {
+        // Usuń nasłuchiwacze
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('mouseleave', onMouseUp);
+        
+        if (isDragging) {
+            // Zakończ przeciąganie
+            stopDragging();
+        } else {
+            // To było kliknięcie - obsłuż podwójne kliknięcie
+            handleClick();
+        }
+    }
+
+    function stopDragging() {
+        isDragging = false;
+        
+        // Przywróć wygląd
+        toggleBtn.style.cursor = 'grab';
+        toggleBtn.style.transform = 'scale(1)';
+        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+        toggleBtn.style.border = '3px solid #00ff00';
+        toggleBtn.classList.remove('dragging');
+        toggleBtn.classList.add('saved');
+        
+        // Zapisz pozycję
+        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        console.log('💾 Saved button position:', {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        // Usuń klasę saved po animacji
+        setTimeout(() => {
+            toggleBtn.classList.remove('saved');
+        }, 1000);
+    }
+
+    // Obsługa podwójnego kliknięcia
+    let lastClickTime = 0;
+    let clickCount = 0;
+    
+    function handleClick() {
+        const currentTime = new Date().getTime();
+        
+        if (currentTime - lastClickTime < 300) { // 300ms dla podwójnego kliknięcia
+            clickCount++;
+        } else {
+            clickCount = 1;
+        }
+        
+        lastClickTime = currentTime;
+        
+        if (clickCount === 2) {
+            // Podwójny klik - toggle panel
+            const panel = document.getElementById('swAddonsPanel');
+            if (panel) {
+                const isVisible = panel.style.display === 'block';
+                panel.style.display = isVisible ? 'none' : 'block';
+                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+                console.log('🎯 Panel toggled:', !isVisible);
+            }
+            clickCount = 0;
+        }
+        
+        // Reset click count after timeout
+        setTimeout(() => {
+            if (clickCount === 1) {
+                clickCount = 0; // Single click timeout
+            }
+        }, 300);
+    }
+
+    console.log('✅ Advanced toggle drag functionality added');
+}
 
     function startDragging() {
     isDragging = true;
