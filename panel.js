@@ -48,7 +48,7 @@
         window.panel = panel;
     }
 
-    function generatePanelHTML() {
+        function generatePanelHTML() {
         return `
             <div id="myAddonsPanelHeader">SYNERGY WRAITH PANEL</div>
             <div id="myAddonsPanelContent">
@@ -72,6 +72,27 @@
                                placeholder="Wprowadź klucz licencyjny...">
                         <button class="license-button" id="verifyLicense">Aktywuj Dostęp</button>
                         <div id="licenseMessage" class="license-message"></div>
+                    </div>
+                    
+                    <!-- DODAJ TEN BLOK - STATUS LICENCJI -->
+                    <div class="license-status-container">
+                        <div class="license-status-header">Status Licencji</div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Status:</span>
+                            <span class="license-status-value" id="licenseStatusText">Nieaktywna</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Użytkownik:</span>
+                            <span class="license-status-value" id="licenseUserText">-</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Wygasa:</span>
+                            <span class="license-status-value" id="licenseExpiryText">-</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Klucz:</span>
+                            <span class="license-status-value" id="licenseKeyText">-</span>
+                        </div>
                     </div>
                 </div>
 
