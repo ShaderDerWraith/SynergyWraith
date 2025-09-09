@@ -6,6 +6,7 @@
     // 🔹 klucze w localStorage
     const PANEL_POS_KEY = "addons_panel_position";
     const PANEL_VISIBLE_KEY = "addons_panel_visible";
+    const TOGGLE_BTN_POS_KEY = "addons_toggleBtn_position"; // Nowy klucz dla przycisku
 
     // Dodanie przycisku
     const toggleBtn = document.createElement("div");
@@ -26,13 +27,13 @@
     `;
     document.body.appendChild(panel);
 
-    // 🔹 Funkcja do wczytywania i aplikowania zapisanej pozycji
+    // 🔹 Funkcja do wczytywania i aplikowania zapisanej pozycji PANELU
     function loadPanelState() {
-        // Wczytaj zapisany stan widoczności
+        // Wczytaj zapisany stan widoczności panelu
         const savedVisible = localStorage.getItem(PANEL_VISIBLE_KEY);
         panel.style.display = savedVisible === "true" ? "block" : "none";
 
-        // Wczytaj zapisaną pozycję
+        // Wczytaj zapisaną pozycję panelu
         const savedPos = localStorage.getItem(PANEL_POS_KEY);
         if (savedPos) {
             try {
@@ -40,73 +41,116 @@
                 panel.style.top = top;
                 panel.style.left = left;
             } catch (e) {
-                console.error("Błąd wczytywania pozycji:", e);
+                console.error("Błąd wczytywania pozycji panelu:", e);
             }
         }
     }
+
+    // 🔹 Funkcja do wczytywania i aplikowania zapisanej pozycji PRZYCISKU
+    function loadToggleBtnState() {
+        const savedTogglePos = localStorage.getItem(TOGGLE_BTN_POS_KEY);
+        if (savedTogglePos) {
+            try {
+                const { top, left } = JSON.parse(savedTogglePos);
+                toggleBtn.style.top = top;
+                toggleBtn.style.left = left;
+            } catch (e) {
+                console.error("Błąd wczytywania pozycji przycisku:", e);
+            }
+        }
+    }
+
     // Załaduj stan przy starcie
     loadPanelState();
+    loadToggleBtnState(); // Wczytaj pozycję przycisku
 
-    // Obsługa otwierania/zamykania
-    toggleBtn.addEventListener("click", () => {
+    // Obsługa otwierania/zamykania panelu
+    toggleBtn.addEventListener("click", (e) => {
+        // Jeśli właśnie przeciągaliśmy, nie otwieraj/nie zamykaj panelu
+        if (toggleBtn.isDragging) return;
         const isVisible = panel.style.display === "block";
         panel.style.display = isVisible ? "none" : "block";
         localStorage.setItem(PANEL_VISIBLE_KEY, (!isVisible).toString());
     });
 
-    // 🔹 PRZESUWANIE PANELU - POPRAWIONA WERSJA
+    // 🔹 PRZESUWANIE PANELU (Twój istniejący kod)
     const header = document.getElementById("myAddonsPanelHeader");
     let isDragging = false;
     let offsetX = 0;
     let offsetY = 0;
 
-    // Funkcja rozpoczynająca przeciąganie
-    const startDrag = (e) => {
+    const startPanelDrag = (e) => {
         isDragging = true;
         panel.classList.add('dragging');
-
-        // Oblicz offset (różnica między kursorem a górnym legiem rogiem panelu)
         const panelRect = panel.getBoundingClientRect();
         offsetX = e.clientX - panelRect.left;
         offsetY = e.clientY - panelRect.top;
-
-        // Dodaj nasłuchiwacze na cały dokument
-        document.addEventListener("mousemove", onDrag);
-        document.addEventListener("mouseup", stopDrag);
-        e.preventDefault(); // Zapobiega niepożądanemu zaznaczaniu tekstu
+        document.addEventListener("mousemove", onPanelDrag);
+        document.addEventListener("mouseup", stopPanelDrag);
+        e.preventDefault();
     };
 
-    // Funkcja wykonująca się podczas przeciągania
-    const onDrag = (e) => {
+    const onPanelDrag = (e) => {
         if (!isDragging) return;
-
-        // Oblicz nową pozycję (uwzględniając scroll strony)
         const newX = e.clientX - offsetX;
         const newY = e.clientY - offsetY;
-
-        // Zastosuj nową pozycję
         panel.style.left = newX + "px";
         panel.style.top = newY + "px";
     };
 
-    // Funkcja kończąca przeciąganie
-    const stopDrag = () => {
+    const stopPanelDrag = () => {
         if (!isDragging) return;
         isDragging = false;
         panel.classList.remove('dragging');
-
-        // Zapisz nową pozycję
         localStorage.setItem(PANEL_POS_KEY, JSON.stringify({
             top: panel.style.top,
             left: panel.style.left
         }));
+        document.removeEventListener("mousemove", onPanelDrag);
+        document.removeEventListener("mouseup", stopPanelDrag);
+    };
+    header.addEventListener("mousedown", startPanelDrag);
 
-        // Usuń nasłuchiwacze z dokumentu
-        document.removeEventListener("mousemove", onDrag);
-        document.removeEventListener("mouseup", stopDrag);
+    // 🔹 NOWY KOD: PRZESUWANIE PRZYCISKU TOGGLE
+    let isToggleDragging = false;
+    let toggleOffsetX = 0;
+    let toggleOffsetY = 0;
+
+    const startToggleDrag = (e) => {
+        isToggleDragging = true;
+        toggleBtn.isDragging = true; // Flaga zapobiegająca kliknięciu
+        toggleBtn.classList.add('dragging');
+        const toggleRect = toggleBtn.getBoundingClientRect();
+        toggleOffsetX = e.clientX - toggleRect.left;
+        toggleOffsetY = e.clientY - toggleRect.top;
+        document.addEventListener("mousemove", onToggleDrag);
+        document.addEventListener("mouseup", stopToggleDrag);
+        e.preventDefault();
     };
 
-    // Przypisz nasłuchiwacze do nagłówka
-    header.addEventListener("mousedown", startDrag);
+    const onToggleDrag = (e) => {
+        if (!isToggleDragging) return;
+        const newX = e.clientX - toggleOffsetX;
+        const newY = e.clientY - toggleOffsetY;
+        toggleBtn.style.left = newX + "px";
+        toggleBtn.style.top = newY + "px";
+    };
+
+    const stopToggleDrag = () => {
+        if (!isToggleDragging) return;
+        isToggleDragging = false;
+        toggleBtn.isDragging = false;
+        toggleBtn.classList.remove('dragging');
+        // Zapisz pozycję przycisku
+        localStorage.setItem(TOGGLE_BTN_POS_KEY, JSON.stringify({
+            top: toggleBtn.style.top,
+            left: toggleBtn.style.left
+        }));
+        document.removeEventListener("mousemove", onToggleDrag);
+        document.removeEventListener("mouseup", stopToggleDrag);
+    };
+
+    // Przypisz nasłuchiwacz do przycisku
+    toggleBtn.addEventListener("mousedown", startToggleDrag);
 
 })();
