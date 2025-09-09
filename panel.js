@@ -292,20 +292,27 @@
         });
     }
 
-    function loadAddonsForVerifiedUser() {
+        function loadAddonsForVerifiedUser() {
         console.log('🔓 Licencja zweryfikowana - ładuję dodatki...');
         
+        // 🔹 DODAJ DODATEK DO LISTY DOSTĘPNYCH
         AVAILABLE_ADDONS.kcs_icons = {
             name: "KCS i Zwój Ikony",
             description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
             default: true
         };
         
+        // 🔹 REGENERUJ LISTĘ DODATKÓW
         const addonsList = document.getElementById('addons-list');
         if (addonsList) {
             addonsList.innerHTML = generateAddonsList();
-            setupAddonsToggle();
             
+            // 🔹 PONOWNIE INIT EVENT LISTENERÓW
+            setupAddonsToggle();
+            setupAddonHeaders();
+            setupAddonSettingsButtons();
+            
+            // 🔹 WCZYTAJ ZAPISANY STAN DODATKÓW
             const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
             for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
                 const checkbox = document.getElementById(addonId);
@@ -313,7 +320,9 @@
                     const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
                     checkbox.checked = isEnabled;
                     
+                    // 🔹 NATYCHMIAST ZAŁADUJ DODATEK JEŚLI JEST WŁĄCZONY
                     if (isEnabled) {
+                        console.log(`🚀 Ładuję dodatek: ${addonId}`);
                         loadAddonScript(addonId);
                     }
                 }
@@ -323,16 +332,39 @@
         updateLicenseStatus(true);
     }
 
-    function updateLicenseStatus(isValid) {
+        function updateLicenseStatus(isValid) {
+        // 🔹 USUŃ status z lewej strony (floating indicator)
         let statusElement = document.getElementById('licenseStatusIndicator');
-        
-        if (!statusElement) {
-            statusElement = document.createElement('div');
-            statusElement.id = 'licenseStatusIndicator';
-            statusElement.className = 'license-status';
-            document.body.appendChild(statusElement);
+        if (statusElement) {
+            statusElement.remove();
         }
-        
+
+                // 🔹 DEBUG: Sprawdź czy dodatek się załadował
+    function checkAddonLoaded(addonId) {
+        return new Promise((resolve) => {
+            let checkCount = 0;
+            const maxChecks = 10;
+            
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                
+                // Sprawdź czy funkcje dodatku są dostępne
+                if (window[addonId + '_loaded'] || 
+                    document.querySelector(`script[src*="${addonId}.js"]`)) {
+                    clearInterval(checkInterval);
+                    console.log(`✅ Dodatek ${addonId} załadowany pomyślnie`);
+                    resolve(true);
+                }
+                
+                if (checkCount >= maxChecks) {
+                    clearInterval(checkInterval);
+                    console.log(`❌ Dodatek ${addonId} nie załadował się w czasie`);
+                    resolve(false);
+                }
+            }, 500);
+        });
+    }
+        // 🔹 TYLKO aktualizuj status w zakładce
         const statusText = document.getElementById('licenseStatusText');
         const userText = document.getElementById('licenseUserText');
         const expiryText = document.getElementById('licenseExpiryText');
@@ -343,13 +375,6 @@
             const expires = safeGetItem('license_expires', '2024-12-31');
             const key = safeGetItem(CONFIG.LICENSE_KEY, '');
             
-            statusElement.innerHTML = `
-                <div>✅ LICENCJA AKTYWNA</div>
-                <div class="license-user">${user}</div>
-                <div class="license-expiry">Wygasa: ${expires}</div>
-            `;
-            statusElement.className = 'license-status valid';
-            
             if (statusText) {
                 statusText.textContent = 'Aktywna';
                 statusText.className = 'license-status-value license-status-valid';
@@ -359,9 +384,6 @@
             }
             
         } else {
-            statusElement.className = 'license-status invalid';
-            statusElement.innerHTML = '❌ BRAK LICENCJI';
-            
             if (statusText) {
                 statusText.textContent = 'Nieaktywna';
                 statusText.className = 'license-status-value license-status-invalid';
@@ -369,10 +391,6 @@
                 expiryText.textContent = '-';
                 keyText.textContent = '-';
             }
-            
-            setTimeout(() => {
-                statusElement.style.display = 'none';
-            }, 3000);
         }
     }
 
@@ -455,19 +473,42 @@
     }
 
     // 🔹 ADDONS LOADING
-    function loadAddonScript(addonId) {
+        function loadAddonScript(addonId) {
         const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
-        if (!config[addonId]) return;
+        if (!config[addonId]) {
+            console.log(`⏭️ Dodatek ${addonId} jest wyłączony, pomijam ładowanie`);
+            return;
+        }
 
         const baseUrl = `https://shaderderwraith.github.io/SynergyWraith/addons/`;
         const scriptUrl = `${baseUrl}${addonId}.js?t=${Date.now()}`;
         
         if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
+            console.log(`📦 Ładowanie dodatku: ${addonId}`);
+            
             const script = document.createElement('script');
             script.src = scriptUrl;
-            script.onerror = () => console.error(`Nie udało się załadować dodatku: ${addonId}`);
+            
+            script.onload = function() {
+                console.log(`✅ Dodatek ${addonId} załadowany`);
+                // Oznacz że dodatek jest załadowany
+                window[addonId + '_loaded'] = true;
+                
+                // Sprawdź czy dodatek faktycznie działa
+                checkAddonLoaded(addonId);
+            };
+            
+            script.onerror = function() {
+                console.error(`❌ Nie udało się załadować dodatku: ${addonId}`);
+                // Usuń z konfiguracji jeśli się nie udało
+                const newConfig = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
+                delete newConfig[addonId];
+                safeSetItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(newConfig));
+            };
+            
             document.head.appendChild(script);
-            console.log(`✅ Załadowano dodatek: ${addonId}`);
+        } else {
+            console.log(`♻️ Dodatek ${addonId} jest już załadowany`);
         }
     }
 
