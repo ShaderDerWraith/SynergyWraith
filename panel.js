@@ -14,11 +14,15 @@
     };
 
     // 🔹 ADDONS DEFINITION (PUSTE - DODASZ PÓŹNIEJ)
-    const AVAILABLE_ADDONS = {
-        // Tutaj później dodasz swoje dodatki
-        // przykład: 
-        // autoheal: { name: "Auto Heal", description: "Automatyczne leczenie", default: false }
-    };
+    // panel.js - fragment do zmiany
+const AVAILABLE_ADDONS = {
+    kcs_icons: {
+        name: "KCS i Zwój Ikony",
+        description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
+        default: true // Albo false, jeśli chcesz aby było domyślnie wyłączone
+    }
+    // Tutaj później dodasz kolejne dodatki
+};
 
     // 🔹 MAIN INITIALIZATION
     function initPanel() {
