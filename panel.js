@@ -34,3 +34,47 @@ panel.innerHTML = `
     </div>
 `;
 document.body.appendChild(panel);
+
+    // 🔹 LOGIKA ZAKŁADEK
+    function openTab(tabName) {
+        // Ukryj wszystkie zakładki
+        const tabcontent = document.getElementsByClassName("tabcontent");
+        for (let i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        // Usuń klasę "active" ze wszystkich przycisków
+        const tablinks = document.getElementsByClassName("tablink");
+        for (let i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        // Pokaż konkretną zakładkę i aktywuj jej przycisk
+        document.getElementById(tabName).style.display = "block";
+        // Znajdź przycisk, który aktywował tę zakładkę i dodaj mu klasę "active"
+        const activeButton = document.querySelector(`.tablink[data-tab="${tabName}"]`);
+        if (activeButton) {
+            activeButton.className += " active";
+        }
+    }
+
+    // Dodaj nasłuchiwanie kliknięcia na KONTENERZE (tzw. delegacja zdarzeń)
+    document.querySelector('.tab-container').addEventListener('click', function(e) {
+        // Sprawdź, czy kliknięto element z klasą "tablink"
+        if (e.target && e.target.matches('.tablink')) {
+            // Pobierz nazwę zakładki z atrybutu data-tab
+            const tabName = e.target.getAttribute('data-tab');
+            openTab(tabName);
+        }
+    });
+
+    // Obsługa przycisku resetowania w zakładce Ustawienia
+    document.getElementById('reset-settings')?.addEventListener('click', function() {
+        if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia? Pozycje i preferencje zostaną usunięte.')) {
+            localStorage.removeItem('addons_toggleBtn_position');
+            localStorage.removeItem('addons_panel_position');
+            localStorage.removeItem('addons_panel_visible');
+            alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
+            setTimeout(() => { location.reload(); }, 1000);
+        }
+    });
