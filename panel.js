@@ -3,17 +3,18 @@
     'use strict';
     console.log("✅ Panel dodatków załadowany");
 
-    // 🔹 SAFE STORAGE - użyj GM_ functions zamiast localStorage
+    // 🔹 SAFE STORAGE
     function safeSetItem(key, value) {
         try {
             if (typeof GM_setValue !== 'undefined') {
                 GM_setValue(key, value);
+                return true;
             } else {
                 localStorage.setItem(key, value);
+                return true;
             }
-            return true;
         } catch (e) {
-            console.warn('Cannot use storage, using fallback:', e);
+            console.warn('Cannot use storage:', e);
             return false;
         }
     }
@@ -27,7 +28,7 @@
                 return value !== null ? value : defaultValue;
             }
         } catch (e) {
-            console.warn('Cannot read storage, using fallback:', e);
+            console.warn('Cannot read storage:', e);
             return defaultValue;
         }
     }
@@ -36,10 +37,11 @@
         try {
             if (typeof GM_deleteValue !== 'undefined') {
                 GM_deleteValue(key);
+                return true;
             } else {
                 localStorage.removeItem(key);
+                return true;
             }
-            return true;
         } catch (e) {
             console.warn('Cannot remove from storage:', e);
             return false;
@@ -56,18 +58,14 @@
         LICENSE_VERIFIED: "license_verified"
     };
 
-    // 🔹 ADDONS DEFINITION (PUSTE - DODASZ PÓŹNIEJ)
-    const AVAILABLE_ADDONS = {
-        // Tutaj później dodasz swoje dodatki
-    };
+    const AVAILABLE_ADDONS = {};
 
     // 🔹 MAIN INITIALIZATION
-        function initPanel() {
+    function initPanel() {
         console.log("✅ Panel dodatków załadowany");
         console.log("🔍 Debug info:");
         console.log("- License verified:", safeGetItem(CONFIG.LICENSE_VERIFIED, 'false'));
         console.log("- License key:", safeGetItem(CONFIG.LICENSE_KEY, 'none'));
-        console.log("- Available addons:", Object.keys(AVAILABLE_ADDONS).length);
         
         createToggleButton();
         createMainPanel();
@@ -121,7 +119,6 @@
                         <div id="licenseMessage" class="license-message"></div>
                     </div>
                     
-                    <!-- STATUS LICENCJI -->
                     <div class="license-status-container">
                         <div class="license-status-header">Status Licencji</div>
                         <div class="license-status-item">
@@ -188,7 +185,6 @@
                     </div>
                     <div class="addon-description">${addon.description}</div>
                     
-                    <!-- PANEL USTAWIEŃ DODATKU -->
                     <div class="addon-settings-panel" id="settings-${id}">
                         <h4>Ustawienia: ${addon.name}</h4>
                         <div class="settings-row">
@@ -267,7 +263,6 @@
         return new Promise((resolve) => {
             console.log('🔐 Próba weryfikacji klucza:', licenseKey);
             
-            // 🔹 BEZPOŚREDNIA WERYFIKACJA
             const VALID_LICENSES = {
                 "SYNERGY-2024-001": { active: true, user: "Test User 1", expires: "2024-12-31" },
                 "SYNERGY-2024-002": { active: true, user: "Test User 2", expires: "2024-12-31" },
@@ -298,27 +293,23 @@
         });
     }
 
-        function loadAddonsForVerifiedUser() {
+    function loadAddonsForVerifiedUser() {
         console.log('🔓 Licencja zweryfikowana - ładuję dodatki...');
         
-        // 🔹 DODAJ DODATEK DO LISTY DOSTĘPNYCH
         AVAILABLE_ADDONS.kcs_icons = {
             name: "KCS i Zwój Ikony",
             description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
             default: true
         };
         
-        // 🔹 REGENERUJ LISTĘ DODATKÓW
         const addonsList = document.getElementById('addons-list');
         if (addonsList) {
             addonsList.innerHTML = generateAddonsList();
             
-            // 🔹 PONOWNIE INIT EVENT LISTENERÓW
             setupAddonsToggle();
             setupAddonHeaders();
             setupAddonSettingsButtons();
             
-            // 🔹 WCZYTAJ ZAPISANY STAN DODATKÓW
             const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
             for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
                 const checkbox = document.getElementById(addonId);
@@ -326,7 +317,6 @@
                     const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
                     checkbox.checked = isEnabled;
                     
-                    // 🔹 NATYCHMIAST ZAŁADUJ DODATEK JEŚLI JEST WŁĄCZONY
                     if (isEnabled) {
                         console.log(`🚀 Ładuję dodatek: ${addonId}`);
                         loadAddonScript(addonId);
@@ -338,39 +328,7 @@
         updateLicenseStatus(true);
     }
 
-        function updateLicenseStatus(isValid) {
-        // 🔹 USUŃ status z lewej strony (floating indicator)
-        let statusElement = document.getElementById('licenseStatusIndicator');
-        if (statusElement) {
-            statusElement.remove();
-        }
-
-                // 🔹 DEBUG: Sprawdź czy dodatek się załadował
-    function checkAddonLoaded(addonId) {
-        return new Promise((resolve) => {
-            let checkCount = 0;
-            const maxChecks = 10;
-            
-            const checkInterval = setInterval(() => {
-                checkCount++;
-                
-                // Sprawdź czy funkcje dodatku są dostępne
-                if (window[addonId + '_loaded'] || 
-                    document.querySelector(`script[src*="${addonId}.js"]`)) {
-                    clearInterval(checkInterval);
-                    console.log(`✅ Dodatek ${addonId} załadowany pomyślnie`);
-                    resolve(true);
-                }
-                
-                if (checkCount >= maxChecks) {
-                    clearInterval(checkInterval);
-                    console.log(`❌ Dodatek ${addonId} nie załadował się w czasie`);
-                    resolve(false);
-                }
-            }, 500);
-        });
-    }
-        // 🔹 TYLKO aktualizuj status w zakładce
+    function updateLicenseStatus(isValid) {
         const statusText = document.getElementById('licenseStatusText');
         const userText = document.getElementById('licenseUserText');
         const expiryText = document.getElementById('licenseExpiryText');
@@ -479,7 +437,7 @@
     }
 
     // 🔹 ADDONS LOADING
-            function loadAddonScript(addonId) {
+    function loadAddonScript(addonId) {
         const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
         if (!config[addonId]) {
             console.log(`⏭️ Dodatek ${addonId} jest wyłączony, pomijam ładowanie`);
@@ -492,7 +450,6 @@
         if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
             console.log(`📦 Ładowanie dodatku: ${addonId}`);
             
-            // 🔹 DODAJ OPOŹNIENIE - nie ładuj od razu
             setTimeout(() => {
                 const script = document.createElement('script');
                 script.src = scriptUrl;
@@ -507,7 +464,7 @@
                 };
                 
                 document.head.appendChild(script);
-            }, 3000); // 🔹 3 sekundy opóźnienia
+            }, 3000);
         }
     }
 
