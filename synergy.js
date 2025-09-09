@@ -73,45 +73,39 @@
     }
 
     function createToggleButton() {
-    const oldToggle = document.getElementById('swPanelToggle');
-    if (oldToggle) oldToggle.remove();
-    
-    const toggleBtn = document.createElement("div");
-    toggleBtn.id = "swPanelToggle";
-    toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
-    toggleBtn.innerHTML = "SW";
-    
-    // Usunięto style CSS które kolidują z plikiem panel.css
-    document.body.appendChild(toggleBtn);
-    
-    // Dodaj przeciąganie przycisku
-    setupToggleDrag(toggleBtn);
-    
-    return toggleBtn;
-}
+        // Usuń stary przycisk jeśli istnieje
+        const oldToggle = document.getElementById('swPanelToggle');
+        if (oldToggle) oldToggle.remove();
+        
+        const toggleBtn = document.createElement("div");
+        toggleBtn.id = "swPanelToggle";
+        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+        toggleBtn.innerHTML = "SW";
+        document.body.appendChild(toggleBtn);
+        console.log('✅ Toggle button created');
+        
+        // Dodaj przeciąganie przycisku
+        setupToggleDrag(toggleBtn);
+        
+        return toggleBtn;
+    }
 
-    function saveToggleButtonPosition(btn) {
-    const rect = btn.getBoundingClientRect();
-    SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-        left: rect.left + window.scrollX,
-        top: rect.top + window.scrollY
-    });
-}
     function setupToggleDrag(toggleBtn) {
         let isDragging = false;
         let startX, startY;
         let initialLeft, initialTop;
-        const DRAG_THRESHOLD = 5; // Minimalny dystans w pikselach do rozpoczęcia przeciągania
+        const DRAG_THRESHOLD = 5;
+        let clickCount = 0;
+        let clickTimer = null;
 
         toggleBtn.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return; // Tylko lewy przycisk myszy
+            if (e.button !== 0) return;
             
             startX = e.clientX;
             startY = e.clientY;
             initialLeft = parseInt(toggleBtn.style.left) || 70;
             initialTop = parseInt(toggleBtn.style.top) || 70;
             
-            // Nasłuchuj ruchu myszy aby wykryć przeciąganie
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
             document.addEventListener('mouseleave', onMouseUp);
@@ -123,7 +117,6 @@
             const deltaX = Math.abs(e.clientX - startX);
             const deltaY = Math.abs(e.clientY - startY);
             
-            // Jeśli mysz przemieściła się wystarczająco daleko, rozpocznij przeciąganie
             if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
                 startDragging();
             }
@@ -136,23 +129,26 @@
         function startDragging() {
             isDragging = true;
             
-            // Zmień wygląd podczas przeciągania
             toggleBtn.style.cursor = 'grabbing';
             toggleBtn.style.transform = 'scale(1.15)';
             toggleBtn.style.boxShadow = '0 0 30px rgba(255, 50, 50, 1.2)';
             toggleBtn.style.border = '3px solid #ffff00';
             toggleBtn.classList.add('dragging');
+            
+            clickCount = 0;
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            }
         }
 
         function onToggleDrag(e) {
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
             
-            // Oblicz nową pozycję
             const newLeft = initialLeft + deltaX;
             const newTop = initialTop + deltaY;
             
-            // Ogranicz do obszaru ekranu
             const maxX = window.innerWidth - toggleBtn.offsetWidth;
             const maxY = window.innerHeight - toggleBtn.offsetHeight;
             
@@ -161,71 +157,70 @@
         }
 
         function onMouseUp(e) {
-            // Usuń nasłuchiwacze
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             document.removeEventListener('mouseleave', onMouseUp);
             
             if (isDragging) {
-                // Zakończ przeciąganie
                 stopDragging();
             } else {
-                // To było kliknięcie - obsłuż podwójne kliknięcie
                 handleClick();
             }
         }
 
-       function stopDragging() {
-    isDragging = false;
-    
-    toggleBtn.style.cursor = 'grab';
-    toggleBtn.classList.remove('dragging');
-    toggleBtn.classList.add('saved');
-    
-    // Zapisz pozycję używając nowej funkcji
-    saveToggleButtonPosition(toggleBtn);
-    
-    setTimeout(() => {
-        toggleBtn.classList.remove('saved');
-    }, 1500);
-}
-        
-        function handleClick() {
-            const currentTime = new Date().getTime();
+        function stopDragging() {
+            isDragging = false;
             
-            if (currentTime - lastClickTime < 300) { // 300ms dla podwójnego kliknięcia
-                clickCount++;
-            } else {
-                clickCount = 1;
-            }
+            toggleBtn.style.cursor = 'grab';
+            toggleBtn.style.transform = 'scale(1)';
+            toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+            toggleBtn.style.border = '3px solid #00ff00';
+            toggleBtn.classList.remove('dragging');
+            toggleBtn.classList.add('saved');
             
-            lastClickTime = currentTime;
+            SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+                left: toggleBtn.style.left,
+                top: toggleBtn.style.top
+            });
             
-            if (clickCount === 2) {
-                // Podwójny klik - toggle panel
-                const panel = document.getElementById('swAddonsPanel');
-                if (panel) {
-                    const isVisible = panel.style.display === 'block';
-                    panel.style.display = isVisible ? 'none' : 'block';
-                    SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-                    console.log('🎯 Panel toggled:', !isVisible);
-                }
-                clickCount = 0;
-            }
+            console.log('💾 Saved button position:', {
+                left: toggleBtn.style.left,
+                top: toggleBtn.style.top
+            });
             
-            // Reset click count after timeout
             setTimeout(() => {
-                if (clickCount === 1) {
-                    clickCount = 0; // Single click timeout
-                }
-            }, 300);
+                toggleBtn.classList.remove('saved');
+            }, 1500);
+        }
+
+        function handleClick() {
+            clickCount++;
+            
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 300);
+            } else if (clickCount === 2) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                togglePanel();
+            }
+        }
+
+        function togglePanel() {
+            const panel = document.getElementById('swAddonsPanel');
+            if (panel) {
+                const isVisible = panel.style.display === 'block';
+                panel.style.display = isVisible ? 'none' : 'block';
+                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+                console.log('🎯 Panel toggled:', !isVisible);
+            }
         }
 
         console.log('✅ Advanced toggle drag functionality added');
     }
 
     function createMainPanel() {
-        // Usuń stary panel jeśli istnieje
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
         
@@ -311,24 +306,20 @@
             tab.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
                 
-                // Ukryj wszystkie zakładki
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                 });
                 
-                // Usuń aktywną klasę z wszystkich przycisków
                 tabs.forEach(t => {
                     t.style.color = '#8899aa';
                     t.style.borderBottom = 'none';
                 });
                 
-                // Pokaż wybraną zakładkę
                 const tabContent = document.getElementById('swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
                 if (tabContent) {
                     tabContent.style.display = 'block';
                 }
                 
-                // Oznacz aktywny przycisk
                 this.style.color = '#00ccff';
                 this.style.borderBottom = '2px solid #00ccff';
             });
@@ -366,7 +357,6 @@
             isDragging = false;
             panel.style.opacity = '1';
             
-            // Zapisz pozycję
             SW.GM_setValue(CONFIG.PANEL_POSITION, {
                 left: panel.style.left,
                 top: panel.style.top
@@ -379,13 +369,11 @@
     }
 
     function setupEventListeners() {
-        // Weryfikacja licencji
         const verifyBtn = document.getElementById('swVerifyButton');
         if (verifyBtn) {
             verifyBtn.addEventListener('click', verifyLicense);
         }
 
-        // Reset ustawień
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
@@ -468,15 +456,14 @@
     function loadSavedState() {
         if (!SW || !SW.GM_getValue) return;
         
-        // Załaduj zapisaną pozycję PRZYCISKU
-    const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
-    const toggleBtn = document.getElementById('swPanelToggle');
-    if (toggleBtn && savedBtnPosition) {
-        toggleBtn.style.left = savedBtnPosition.left + 'px';
-        toggleBtn.style.top = savedBtnPosition.top + 'px';
+        const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
+        const toggleBtn = document.getElementById('swPanelToggle');
+        if (toggleBtn && savedBtnPosition) {
+            toggleBtn.style.left = savedBtnPosition.left || '70px';
+            toggleBtn.style.top = savedBtnPosition.top || '70px';
+            console.log('📍 Loaded button position:', savedBtnPosition);
         }
         
-        // Załaduj zapisaną pozycję PANELU
         const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
         const panel = document.getElementById('swAddonsPanel');
         if (panel && savedPosition) {
@@ -484,20 +471,17 @@
             panel.style.top = savedPosition.top || '140px';
         }
         
-        // Załaduj zapisaną widoczność
         const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        // Załaduj zapisany klucz licencyjny
         const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
         const licenseInput = document.getElementById('swLicenseInput');
         if (licenseInput && savedKey) {
             licenseInput.value = savedKey;
         }
         
-        // Sprawdź status licencji
         const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
         const statusEl = document.getElementById('swLicenseStatus');
         if (statusEl && isVerified) {
@@ -518,7 +502,6 @@
         }
     }
 
-    // 🔹 Start panelu
     console.log('🎯 Starting panel initialization...');
     initPanel();
     console.log('✅ SynergyWraith panel ready!');
