@@ -1,6 +1,5 @@
 // license-server.js (TYMCZASOWY - symulacja API)
 const VALID_LICENSES = {
-    // 🔹 DODAJ WIĘCEJ TESTOWYCH KLUCZY
     "SYNERGY-2024-001": { active: true, user: "Test User 1", expires: "2024-12-31" },
     "SYNERGY-2024-002": { active: true, user: "Test User 2", expires: "2024-12-31" },
     "SYNERGY-2024-003": { active: true, user: "Test User 3", expires: "2024-12-31" },
