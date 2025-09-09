@@ -1,285 +1,53 @@
-/* 🔹 BASE STYLES 🔹 */
-#myPanelToggle {
+/* panel.css - Minimalne style */
+#swPanelToggle {
     position: fixed;
     top: 10px;
     left: 10px;
-    background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
-    border: 2px solid #444;
-    border-radius: 50%;
     width: 40px;
     height: 40px;
-    padding: 0;
-    z-index: 100000;
-    cursor: grab;
-    user-select: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+    background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center/70% no-repeat;
+    border: 2px solid #444;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.7);
     transition: all 0.2s ease;
 }
 
-#myPanelToggle:hover {
+#swPanelToggle:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(100, 100, 255, 0.4);
 }
 
-#myPanelToggle.dragging {
-    cursor: grabbing;
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-}
-
-/* 🔹 MAIN PANEL 🔹 */
-#myAddonsPanel {
+#swAddonsPanel {
     position: fixed;
     top: 80px;
     left: 20px;
+    width: 320px;
     background: rgba(25, 25, 35, 0.98);
     border: 1px solid #444;
     border-radius: 8px;
     color: #e0e0e0;
-    padding: 0;
-    z-index: 99999;
+    z-index: 999999;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    width: 320px;
-    display: none;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 5px 25px rgba(0,0,0,0.6);
     backdrop-filter: blur(10px);
 }
 
-#myAddonsPanel.dragging {
-    cursor: grabbing;
-    box-shadow: 0 5px 30px rgba(100, 100, 255, 0.3);
-}
-
-#myAddonsPanelHeader {
-    cursor: grab;
+.sw-header {
     background: linear-gradient(to right, #2a2a3a, #232330);
     padding: 12px 15px;
     border-bottom: 1px solid #393945;
     text-align: center;
     font-weight: bold;
-    font-size: 14px;
     color: #a0a0ff;
-    user-select: none;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    letter-spacing: 0.5px;
-}
-#myAddonsPanelHeader:active {
-    cursor: grabbing;
 }
 
-#myAddonsPanelContent {
-    padding: 0;
-}
-
-/* 🔹 TABS STYLES 🔹 */
-.tab-container {
-    display: flex;
-    background: linear-gradient(to bottom, #2c2c3c, #252532);
-    border-bottom: 1px solid #393945;
-    padding: 0 5px;
-}
-
-.tablink {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 12px 5px;
-    margin: 0 5px;
-    transition: all 0.2s ease;
-    color: #8899aa;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid transparent;
-}
-
-.tablink.active {
-    color: #00ccff;
-    border-bottom: 2px solid #00ccff;
-    background: rgba(0, 204, 255, 0.1);
-}
-
-.tablink:hover:not(.active) {
-    color: #aaccff;
-    border-bottom: 2px solid #8899aa;
-}
-
-/* 🔹 TAB CONTENT 🔹 */
-.tabcontent {
-    display: none;
+.sw-tab-content {
     padding: 15px;
-    animation: fadeEffect 0.3s ease;
 }
 
-@keyframes fadeEffect {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.tabcontent h3 {
-    margin: 0 0 15px 0;
-    color: #00ccff;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid #393945;
-    padding-bottom: 8px;
-}
-
-/* 🔹 ADDONS LIST 🔹 */
-.addon {
-    background: rgba(40, 40, 50, 0.6);
-    border: 1px solid #393945;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 10px;
-    transition: all 0.2s ease;
-}
-
-.addon:hover {
-    background: rgba(50, 50, 60, 0.8);
-    border-color: #4a4a5a;
-    transform: translateY(-1px);
-}
-
-.addon-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    cursor: pointer;
-}
-
-.addon-header > div {
-    display: flex;
-    align-items: center;
-}
-
-.addon-title {
-    font-weight: 600;
-    color: #ccddee;
-    font-size: 13px;
-}
-
-.addon-description {
-    color: #8899aa;
-    font-size: 11px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    display: none;
-}
-
-.addon.expanded .addon-description {
-    display: block;
-}
-
-/* 🔹 SETTINGS GEAR ICON 🔹 */
-.addon-settings-btn {
-    background: none;
-    border: none;
-    color: #8899aa;
-    cursor: pointer;
-    padding: 2px 5px;
-    margin-left: 8px;
-    font-size: 12px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-}
-
-.addon-settings-btn:hover {
-    color: #00ccff;
-    background: rgba(0, 204, 255, 0.1);
-}
-
-.addon-settings-panel {
-    display: none;
-    margin-top: 10px;
-    padding: 10px;
-    background: rgba(30, 30, 40, 0.8);
-    border: 1px solid #393945;
-    border-radius: 5px;
-}
-
-.addon-settings-panel.visible {
-    display: block;
-}
-
-.settings-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.settings-label {
-    font-size: 11px;
-    color: #ccddee;
-}
-
-.settings-value {
-    font-size: 11px;
-    color: #00ffaa;
-}
-
-/* 🔹 SWITCH STYLE 🔹 */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 36px;
-    height: 18px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #393945;
-    transition: .3s;
-    border-radius: 18px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: #ccddee;
-    transition: .3s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: #00ccff;
-}
-
-input:checked + .slider:before {
-    transform: translateX(18px);
-    background-color: white;
-}
-
-/* 🔹 LICENSE SYSTEM 🔹 */
-.license-container {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.license-input {
+.sw-license-input {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
@@ -287,178 +55,9 @@ input:checked + .slider:before {
     border: 1px solid #393945;
     border-radius: 5px;
     color: #ccddee;
-    font-size: 12px;
 }
 
-.license-input:focus {
+.sw-license-input:focus {
     outline: none;
     border-color: #00ccff;
-    box-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
-}
-
-.license-button {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(to right, #00ccff, #0099ff);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    transition: all 0.2s ease;
-}
-
-.license-button:hover {
-    background: linear-gradient(to right, #0099ff, #0077cc);
-    transform: translateY(-1px);
-}
-
-.license-message {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    text-align: center;
-}
-
-.license-success {
-    background: rgba(0, 255, 170, 0.1);
-    color: #00ffaa;
-    border: 1px solid #00ffaa;
-}
-
-.license-error {
-    background: rgba(255, 50, 100, 0.1);
-    color: #ff3366;
-    border: 1px solid #ff3366;
-}
-
-/* 🔹 LICENSE STATUS IN TAB 🔹 */
-.license-status-container {
-    background: rgba(40, 40, 50, 0.6);
-    border: 1px solid #393945;
-    border-radius: 6px;
-    padding: 15px;
-    margin-top: 20px;
-}
-
-.license-status-header {
-    color: #00ccff;
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #393945;
-    padding-bottom: 8px;
-    text-align: center;
-}
-
-.license-status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 12px;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(57, 57, 69, 0.5);
-}
-
-.license-status-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.license-status-label {
-    color: #8899aa;
-    font-weight: 600;
-}
-
-.license-status-value {
-    font-weight: 600;
-    text-align: right;
-    max-width: 60%;
-    word-break: break-all;
-}
-
-.license-status-valid {
-    color: #00ffaa !important;
-}
-
-.license-status-invalid {
-    color: #ff3366 !important;
-}
-
-/* 🔹 SETTINGS TAB 🔹 */
-.settings-item {
-    margin-bottom: 15px;
-}
-
-.settings-label {
-    display: block;
-    color: #ccddee;
-    font-size: 12px;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-
-/* 🔹 BUTTONS 🔹 */
-#reset-settings {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(to right, #ff5555, #ff3366);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.2s ease;
-    margin-top: 10px;
-}
-
-#reset-settings:hover {
-    background: linear-gradient(to right, #ff3366, #ff2288);
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
-}
-
-/* 🔹 RESPONSYWNOŚĆ 🔹 */
-@media (max-width: 400px) {
-    #myAddonsPanel {
-        width: 300px;
-        left: 10px;
-    }
-    
-    .tablink {
-        padding: 10px 5px;
-        font-size: 11px;
-    }
-    
-    .license-status-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
-    }
-    
-    .license-status-value {
-        max-width: 100%;
-        text-align: left;
-    }
-}
-
-/* 🔹 LOADING STATES 🔹 */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.loading::after {
-    content: "⏳";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 20px;
 }
