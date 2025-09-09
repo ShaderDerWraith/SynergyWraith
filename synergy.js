@@ -2,27 +2,25 @@
 (function() {
     'use strict';
 
-    // 🔹 Odwołanie do globalnego obiektu
-    const SW = window.synergyWraith;
-    
-    if (!SW) {
-        console.error('❌ SynergyWraith nie został zainicjalizowany');
-        return;
-    }
-
-    console.log('🚀 SynergyWraith Panel v1.0');
+    console.log('🚀 SynergyWraith Panel v1.0 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
-        PANEL_POS_KEY: "sw_panel_position",
-        PANEL_VISIBLE_KEY: "sw_panel_visible",
         LICENSE_KEY: "sw_license_key",
         LICENSE_VERIFIED: "sw_license_verified"
     };
 
+    // 🔹 Odwołanie do globalnego obiektu
+    const SW = window.synergyWraith;
+    
+    if (!SW) {
+        console.error('❌ SynergyWraith not initialized');
+        return;
+    }
+
     // 🔹 Główne funkcje
     function initPanel() {
-        console.log('✅ Inicjalizacja panelu...');
+        console.log('✅ Initializing panel...');
         
         createToggleButton();
         createMainPanel();
@@ -30,12 +28,9 @@
         setupEventListeners();
         
         checkLicenseOnStart();
-        console.log('🎯 Panel gotowy');
     }
 
     function createToggleButton() {
-        if (document.getElementById("swPanelToggle")) return;
-        
         const toggleBtn = document.createElement("div");
         toggleBtn.id = "swPanelToggle";
         toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
@@ -57,8 +52,6 @@
     }
 
     function createMainPanel() {
-        if (document.getElementById("swAddonsPanel")) return;
-        
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
         panel.style.cssText = `
@@ -117,7 +110,7 @@
 
         showMessage('🔐 Weryfikowanie...', 'info');
         
-        // Symulacja weryfikacji - tutaj wstaw swoją logikę
+        // Symulacja weryfikacji
         setTimeout(() => {
             const validKeys = ["TEST-KEY-123", "SYNERGY-2024", "DEV-ACCESS", "SYNERGY-2024-001"];
             if (validKeys.includes(licenseKey)) {
@@ -148,20 +141,22 @@
 
     function loadAddons() {
         console.log('🔓 Ładowanie dodatków...');
-        // Tutaj dodaj ładowanie swoich dodatków
         loadAddonScript('kcs-icons');
     }
 
     function loadAddonScript(addonName) {
-        const script = document.createElement('script');
-        script.src = `https://shaderderwraith.github.io/SynergyWraith/addons/${addonName}.js?v=${Date.now()}`;
-        script.onload = function() {
-            console.log(`✅ Dodatek ${addonName} załadowany`);
-        };
-        script.onerror = function() {
-            console.error(`❌ Błąd ładowania dodatku: ${addonName}`);
-        };
-        document.head.appendChild(script);
+        SW.GM_xmlhttpRequest({
+            method: 'GET',
+            url: `https://shaderderwraith.github.io/SynergyWraith/addons/${addonName}.js?v=${Date.now()}`,
+            onload: function(response) {
+                if (response.status === 200) {
+                    const script = document.createElement('script');
+                    script.textContent = response.responseText;
+                    document.head.appendChild(script);
+                    console.log(`✅ Dodatek ${addonName} załadowany`);
+                }
+            }
+        });
     }
 
     function checkLicenseOnStart() {
@@ -184,32 +179,19 @@
     }
 
     function setupEventListeners() {
-        // Podwójne kliknięcie na przycisku
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn) {
             toggleBtn.addEventListener('dblclick', function() {
                 const panel = document.getElementById('swAddonsPanel');
                 if (panel) {
                     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-                    SW.GM_setValue(CONFIG.PANEL_VISIBLE_KEY, panel.style.display === 'block');
                 }
             });
         }
     }
 
-    // 🔹 Start panelu gdy DOM jest gotowy
-    function checkDOMReady() {
-        if (document.body) {
-            initPanel();
-        } else {
-            setTimeout(checkDOMReady, 100);
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', checkDOMReady);
-    } else {
-        checkDOMReady();
-    }
+    // 🔹 Start panelu
+    initPanel();
+    console.log('🎯 SynergyWraith panel ready!');
 
 })();
