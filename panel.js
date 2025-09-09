@@ -3,63 +3,147 @@
     'use strict';
     console.log("✅ Panel dodatków załadowany");
 
-    // 🔹 klucze w localStorage
-    const PANEL_POS_KEY = "addons_panel_position";
-    const PANEL_VISIBLE_KEY = "addons_panel_visible";
-    const TOGGLE_BTN_POS_KEY = "addons_toggleBtn_position";
+    // 🔹 CONFIGURATION
+    const CONFIG = {
+        PANEL_POS_KEY: "addons_panel_position",
+        PANEL_VISIBLE_KEY: "addons_panel_visible",
+        TOGGLE_BTN_POS_KEY: "addons_toggleBtn_position",
+        ADDONS_CONFIG_KEY: "addons_config"
+    };
 
-    // Dodanie przycisku
-    const toggleBtn = document.createElement("div");
-    toggleBtn.id = "myPanelToggle";
-    toggleBtn.textContent = ""; // Ikona będzie teraz tłem CSS
-    toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel.";
-    document.body.appendChild(toggleBtn);
+    // 🔹 ADDONS DEFINITION (EASY TO ADD NEW ONES)
+    const AVAILABLE_ADDONS = {
+        autoheal: {
+            name: "Auto Heal",
+            description: "Automatycznie leczy postać gdy zdrowie spadnie poniżej ustalonego progu",
+            default: false
+        },
+        xpbar: {
+            name: "XP Bar",
+            description: "Pokazuje pasek doświadczenia i szacowany czas do następnego poziomu",
+            default: true
+        },
+        fastfight: {
+            name: "Fast Fight",
+            description: "Przyspiesza animacje walki i automatycznie kontynuuje walkę",
+            default: false
+        },
+        lootnotifier: {
+            name: "Loot Notifier",
+            description: "Pokazuje powiadomienia o rzadkich przedmiotach",
+            default: true
+        }
+    };
 
-    // Dodanie panelu
-    const panel = document.createElement("div");
-    panel.id = "myAddonsPanel";
-    panel.innerHTML = `
-        <div id="myAddonsPanelHeader">Mój zestaw dodatków</div>
-        <div id="myAddonsPanelContent">
-            <!-- Pasek zakładek -->
-            <div class="tab-container">
-                <button class="tablink active" data-tab="addons">Dodatki</button>
-                <button class="tablink" data-tab="status">Status</button>
-                <button class="tablink" data-tab="settings">Ustawienia</button>
+    // 🔹 MAIN INITIALIZATION
+    function initPanel() {
+        createToggleButton();
+        createMainPanel();
+        loadSavedState();
+        setupEventListeners();
+        setupTabs();
+    }
+
+    // 🔹 CREATE ELEMENTS
+    function createToggleButton() {
+        const toggleBtn = document.createElement("div");
+        toggleBtn.id = "myPanelToggle";
+        toggleBtn.textContent = "";
+        toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel.";
+        document.body.appendChild(toggleBtn);
+        window.toggleBtn = toggleBtn;
+    }
+
+    function createMainPanel() {
+        const panel = document.createElement("div");
+        panel.id = "myAddonsPanel";
+        panel.innerHTML = generatePanelHTML();
+        document.body.appendChild(panel);
+        window.panel = panel;
+    }
+
+    function generatePanelHTML() {
+        return `
+            <div id="myAddonsPanelHeader">SYNERGY WRAITH PANEL</div>
+            <div id="myAddonsPanelContent">
+                <div class="tab-container">
+                    <button class="tablink active" data-tab="addons">Dodatki</button>
+                    <button class="tablink" data-tab="status">Status</button>
+                    <button class="tablink" data-tab="settings">Ustawienia</button>
+                </div>
+
+                <div id="addons" class="tabcontent" style="display:block;">
+                    <h3>Aktywne Moduły</h3>
+                    ${generateAddonsList()}
+                </div>
+
+                <div id="status" class="tabcontent">
+                    <h3>Status Gry</h3>
+                    <div class="status-item">
+                        <span class="status-label">Poziom:</span>
+                        <span class="status-value" id="status-level">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">HP:</span>
+                        <span class="status-value" id="status-hp">-/-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Mana:</span>
+                        <span class="status-value" id="status-mana">-/-</span>
+                    </div>
+                </div>
+
+                <div id="settings" class="tabcontent">
+                    <h3>Ustawienia Panelu</h3>
+                    <div class="settings-item">
+                        <label class="settings-label">Zablokuj pozycję przycisku</label>
+                        <label class="switch">
+                            <input type="checkbox" id="lockPosition">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <label class="settings-label">Pokazuj powiadomienia</label>
+                        <label class="switch">
+                            <input type="checkbox" id="showNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button id="reset-settings">Resetuj Ustawienia</button>
+                </div>
             </div>
+        `;
+    }
 
-            <!-- Zawartość zakładek -->
-            <div id="addons" class="tabcontent" style="display:block;">
-                <h3>Aktywne dodatki</h3>
-                <div class="addon"><input type="checkbox" id="autoheal"> <label for="autoheal">AutoHeal</label></div>
-                <div class="addon"><input type="checkbox" id="xpbar"> <label for="xpbar">XP Bar</label></div>
-                <div class="addon"><input type="checkbox" id="fastfight"> <label for="fastfight">FastFight</label></div>
-            </div>
+    function generateAddonsList() {
+        let html = '';
+        for (const [id, addon] of Object.entries(AVAILABLE_ADDONS)) {
+            html += `
+                <div class="addon" data-addon-id="${id}">
+                    <div class="addon-header">
+                        <span class="addon-title">${addon.name}</span>
+                        <label class="switch">
+                            <input type="checkbox" id="${id}" data-addon-id="${id}">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="addon-description">${addon.description}</div>
+                </div>
+            `;
+        }
+        return html;
+    }
 
-            <div id="status" class="tabcontent">
-                <h3>Status gry</h3>
-                <p>Tu będzie informacja o HP, MANIE, poziomie itp.</p>
-                <div id="status-content"></div>
-            </div>
+    // 🔹 STATE MANAGEMENT
+    function loadSavedState() {
+        loadPanelPosition();
+        loadToggleButtonPosition();
+        loadAddonsConfig();
+        loadPanelVisibility();
+    }
 
-            <div id="settings" class="tabcontent">
-                <h3>Ustawienia panelu</h3>
-                <div class="addon"><input type="checkbox" id="lockPosition"> <label for="lockPosition">Zablokuj pozycję przycisku</label></div>
-                <div class="addon"><input type="checkbox" id="showNotifications"> <label for="showNotifications">Powiadomienia</label></div>
-                <button id="reset-settings">Resetuj ustawienia</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(panel);
-
-    // 🔹 Funkcja do wczytywania i aplikowania zapisanej pozycji PANELU
-    function loadPanelState() {
-        // Wczytaj zapisany stan widoczności panelu
-        const savedVisible = localStorage.getItem(PANEL_VISIBLE_KEY);
-        panel.style.display = savedVisible === "true" ? "block" : "none";
-
-        // Wczytaj zapisaną pozycję panelu
-        const savedPos = localStorage.getItem(PANEL_POS_KEY);
+    function loadPanelPosition() {
+        const savedPos = localStorage.getItem(CONFIG.PANEL_POS_KEY);
         if (savedPos) {
             try {
                 const { top, left } = JSON.parse(savedPos);
@@ -71,12 +155,11 @@
         }
     }
 
-    // 🔹 Funkcja do wczytywania i aplikowania zapisanej pozycji PRZYCISKU
-    function loadToggleBtnState() {
-        const savedTogglePos = localStorage.getItem(TOGGLE_BTN_POS_KEY);
-        if (savedTogglePos) {
+    function loadToggleButtonPosition() {
+        const savedPos = localStorage.getItem(CONFIG.TOGGLE_BTN_POS_KEY);
+        if (savedPos) {
             try {
-                const { top, left } = JSON.parse(savedTogglePos);
+                const { top, left } = JSON.parse(savedPos);
                 toggleBtn.style.top = top;
                 toggleBtn.style.left = left;
             } catch (e) {
@@ -85,134 +168,210 @@
         }
     }
 
-    // Załaduj stan przy starcie
-    loadPanelState();
-    loadToggleBtnState();
-
-    // 🔹 OBSŁUGA PODWÓJNEGO KLIKNIĘCIA (otwieranie/zamykanie panelu)
-    let clickTimer = null;
-    toggleBtn.addEventListener('click', (e) => {
-        if (clickTimer !== null) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-            const isVisible = panel.style.display === "block";
-            panel.style.display = isVisible ? "none" : "block";
-            localStorage.setItem(PANEL_VISIBLE_KEY, (!isVisible).toString());
-        } else {
-            clickTimer = setTimeout(() => {
-                clickTimer = null;
-            }, 300);
-        }
-    });
-
-    // 🔹 PRZESUWANIE PANELU
-    const header = document.getElementById("myAddonsPanelHeader");
-    let isPanelDragging = false;
-    let panelOffsetX = 0;
-    let panelOffsetY = 0;
-
-    const startPanelDrag = (e) => {
-        isPanelDragging = true;
-        panel.classList.add('dragging');
-        const panelRect = panel.getBoundingClientRect();
-        panelOffsetX = e.clientX - panelRect.left;
-        panelOffsetY = e.clientY - panelRect.top;
-        document.addEventListener("mousemove", onPanelDrag);
-        document.addEventListener("mouseup", stopPanelDrag);
-        e.preventDefault();
-    };
-
-    const onPanelDrag = (e) => {
-        if (!isPanelDragging) return;
-        const newX = e.clientX - panelOffsetX;
-        const newY = e.clientY - panelOffsetY;
-        panel.style.left = newX + "px";
-        panel.style.top = newY + "px";
-    };
-
-    const stopPanelDrag = () => {
-        if (!isPanelDragging) return;
-        isPanelDragging = false;
-        panel.classList.remove('dragging');
-        localStorage.setItem(PANEL_POS_KEY, JSON.stringify({
-            top: panel.style.top,
-            left: panel.style.left
-        }));
-        document.removeEventListener("mousemove", onPanelDrag);
-        document.removeEventListener("mouseup", stopPanelDrag);
-    };
-    header.addEventListener("mousedown", startPanelDrag);
-
-    // 🔹 PRZESUWANIE PRZYCISKU TOGGLE
-    let isToggleDragging = false;
-    let toggleOffsetX = 0;
-    let toggleOffsetY = 0;
-
-    const startToggleDrag = (e) => {
-        isToggleDragging = true;
-        toggleBtn.classList.add('dragging');
-        const toggleRect = toggleBtn.getBoundingClientRect();
-        toggleOffsetX = e.clientX - toggleRect.left;
-        toggleOffsetY = e.clientY - toggleRect.top;
-        document.addEventListener("mousemove", onToggleDrag);
-        document.addEventListener("mouseup", stopToggleDrag);
-        e.preventDefault();
-    };
-
-    const onToggleDrag = (e) => {
-        if (!isToggleDragging) return;
-        const newX = e.clientX - toggleOffsetX;
-        const newY = e.clientY - toggleOffsetY;
-        toggleBtn.style.left = newX + "px";
-        toggleBtn.style.top = newY + "px";
-    };
-
-    const stopToggleDrag = () => {
-        if (!isToggleDragging) return;
-        isToggleDragging = false;
-        toggleBtn.classList.remove('dragging');
-        localStorage.setItem(TOGGLE_BTN_POS_KEY, JSON.stringify({
-            top: toggleBtn.style.top,
-            left: toggleBtn.style.left
-        }));
-        document.removeEventListener("mousemove", onToggleDrag);
-        document.removeEventListener("mouseup", stopToggleDrag);
-    };
-
-    toggleBtn.addEventListener("mousedown", startToggleDrag);
-
-    // 🔹 LOGIKA ZAKŁADEK
-    function openTab(tabName) {
-        const tabcontent = document.getElementsByClassName("tabcontent");
-        for (let i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        const tablinks = document.getElementsByClassName("tablink");
-        for (let i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(tabName).style.display = "block";
-        const activeButton = document.querySelector(`.tablink[data-tab="${tabName}"]`);
-        if (activeButton) {
-            activeButton.className += " active";
+    function loadAddonsConfig() {
+        const savedConfig = localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY);
+        const config = savedConfig ? JSON.parse(savedConfig) : {};
+        
+        for (const [id, addon] of Object.entries(AVAILABLE_ADDONS)) {
+            const isEnabled = config[id] !== undefined ? config[id] : addon.default;
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.checked = isEnabled;
+                if (isEnabled) {
+                    loadAddonScript(id);
+                }
+            }
         }
     }
 
-    document.querySelector('.tab-container').addEventListener('click', function(e) {
-        if (e.target && e.target.matches('.tablink')) {
-            const tabName = e.target.getAttribute('data-tab');
-            openTab(tabName);
-        }
-    });
+    function loadPanelVisibility() {
+        const savedVisible = localStorage.getItem(CONFIG.PANEL_VISIBLE_KEY);
+        panel.style.display = savedVisible === "true" ? "block" : "none";
+    }
 
-    document.getElementById('reset-settings')?.addEventListener('click', function() {
-        if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia? Pozycje i preferencje zostaną usunięte.')) {
-            localStorage.removeItem('addons_toggleBtn_position');
-            localStorage.removeItem('addons_panel_position');
-            localStorage.removeItem('addons_panel_visible');
-            alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
-            setTimeout(() => { location.reload(); }, 1000);
+    // 🔹 ADDONS LOADING (MODULAR SYSTEM)
+    function loadAddonScript(addonId) {
+        const baseUrl = `https://shaderderwraith.github.io/SynergyWraith/addons/`;
+        const scriptUrl = `${baseUrl}${addonId}.js?t=${Date.now()}`;
+        
+        if (!document.querySelector(`script[src="${scriptUrl}"]`)) {
+            const script = document.createElement('script');
+            script.src = scriptUrl;
+            script.onerror = () => console.error(`Nie udało się załadować dodatku: ${addonId}`);
+            document.head.appendChild(script);
+            console.log(`✅ Załadowano dodatek: ${addonId}`);
         }
-    });
+    }
+
+    // 🔹 EVENT HANDLERS
+    function setupEventListeners() {
+        setupDoubleClick();
+        setupPanelDrag();
+        setupToggleButtonDrag();
+        setupAddonsToggle();
+        setupResetButton();
+        setupAddonHeaders();
+    }
+
+    function setupDoubleClick() {
+        let clickTimer = null;
+        toggleBtn.addEventListener('click', () => {
+            if (clickTimer !== null) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                togglePanel();
+            } else {
+                clickTimer = setTimeout(() => clickTimer = null, 300);
+            }
+        });
+    }
+
+    function togglePanel() {
+        const isVisible = panel.style.display === "block";
+        panel.style.display = isVisible ? "none" : "block";
+        localStorage.setItem(CONFIG.PANEL_VISIBLE_KEY, (!isVisible).toString());
+    }
+
+    function setupPanelDrag() {
+        const header = document.getElementById("myAddonsPanelHeader");
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        header.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            panel.classList.add('dragging');
+            const rect = panel.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            document.addEventListener("mousemove", onPanelDrag);
+            document.addEventListener("mouseup", stopPanelDrag);
+            e.preventDefault();
+        });
+
+        function onPanelDrag(e) {
+            if (!isDragging) return;
+            panel.style.left = (e.clientX - offsetX) + "px";
+            panel.style.top = (e.clientY - offsetY) + "px";
+        }
+
+        function stopPanelDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            panel.classList.remove('dragging');
+            localStorage.setItem(CONFIG.PANEL_POS_KEY, JSON.stringify({
+                top: panel.style.top,
+                left: panel.style.left
+            }));
+            document.removeEventListener("mousemove", onPanelDrag);
+            document.removeEventListener("mouseup", stopPanelDrag);
+        }
+    }
+
+    function setupToggleButtonDrag() {
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        toggleBtn.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            toggleBtn.classList.add('dragging');
+            const rect = toggleBtn.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            document.addEventListener("mousemove", onToggleDrag);
+            document.addEventListener("mouseup", stopToggleDrag);
+            e.preventDefault();
+        });
+
+        function onToggleDrag(e) {
+            if (!isDragging) return;
+            toggleBtn.style.left = (e.clientX - offsetX) + "px";
+            toggleBtn.style.top = (e.clientY - offsetY) + "px";
+        }
+
+        function stopToggleDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            toggleBtn.classList.remove('dragging');
+            localStorage.setItem(CONFIG.TOGGLE_BTN_POS_KEY, JSON.stringify({
+                top: toggleBtn.style.top,
+                left: toggleBtn.style.left
+            }));
+            document.removeEventListener("mousemove", onToggleDrag);
+            document.removeEventListener("mouseup", stopToggleDrag);
+        }
+    }
+
+    function setupAddonsToggle() {
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('input[type="checkbox"][data-addon-id]')) {
+                const addonId = e.target.dataset.addonId;
+                const isEnabled = e.target.checked;
+                
+                // Save to config
+                const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+                config[addonId] = isEnabled;
+                localStorage.setItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
+                
+                // Load or unload addon
+                if (isEnabled) {
+                    loadAddonScript(addonId);
+                } else {
+                    console.log(`❌ Wyłączono dodatek: ${addonId}`);
+                    // Tutaj możesz dodać logikę usuwania dodatku
+                }
+            }
+        });
+    }
+
+    function setupAddonHeaders() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('addon-header')) {
+                const addon = e.target.closest('.addon');
+                addon.classList.toggle('expanded');
+            }
+        });
+    }
+
+    function setupResetButton() {
+        document.getElementById('reset-settings')?.addEventListener('click', () => {
+            if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                localStorage.clear();
+                alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+    }
+
+    // 🔹 TAB SYSTEM
+    function setupTabs() {
+        document.querySelector('.tab-container').addEventListener('click', (e) => {
+            if (e.target.matches('.tablink')) {
+                openTab(e.target.dataset.tab);
+            }
+        });
+    }
+
+    function openTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tabcontent').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tablink').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab and activate button
+        document.getElementById(tabName).style.display = 'block';
+        document.querySelector(`.tablink[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    // 🔹 START THE PANEL
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPanel);
+    } else {
+        initPanel();
+    }
 
 })();
