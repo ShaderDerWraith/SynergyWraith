@@ -136,13 +136,21 @@
         "Katakumby Antycznego Gniewu - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-drakolisz.gif"
     };
 
-    const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
+     const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
     const ICON_CLASS_NAME = 'kcs-monster-icon';
+
+    // 🔹 OZNACZ ŻE DODATEK SIĘ ZAŁADOWAŁ
+    window.kcs_icons_loaded = true;
+    console.log("🎯 Dodatek KCS Icons zainicjalizowany, czekam na załadowanie gry...");
 
     function getCache() {
         try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            return cached ? JSON.parse(cached) : {};
+            if (typeof GM_getValue !== 'undefined') {
+                return GM_getValue(CACHE_KEY, {});
+            } else {
+                const cached = localStorage.getItem(CACHE_KEY);
+                return cached ? JSON.parse(cached) : {};
+            }
         } catch (e) {
             console.error("[KCS Icons] Error reading cache:", e);
             return {};
@@ -151,7 +159,11 @@
 
     function saveCache(cache) {
         try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+            if (typeof GM_setValue !== 'undefined') {
+                GM_setValue(CACHE_KEY, cache);
+            } else {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+            }
         } catch (e) {
             console.error("[KCS Icons] Error saving cache:", e);
         }
@@ -170,234 +182,202 @@
     function addMonsterIcon(itemElement, monsterImgUrl) {
         if (!itemElement) return;
 
-        // Sprawdź czy to KCS lub Zwój
-        const itemName = itemElement.getAttribute('data-name') || itemElement.title || '';
-        if (!itemName.includes('Kamień Czerwonego Smoka') && 
-            !itemName.includes('Zwój Czerwonego Smoka') &&
-            !itemName.includes('Ulotny zwój czerwonego smoka')) {
-            return;
-        }
-
         let existingIcon = itemElement.querySelector(`.${ICON_CLASS_NAME}`);
         if (existingIcon) {
-            if (existingIcon.style.backgroundImage.includes(monsterImgUrl)) {
+            if (existingIcon.src === monsterImgUrl) {
                 return;
             }
             existingIcon.remove();
         }
 
-        const img = document.createElement('div');
-        img.className = ICON_CLASS_NAME;
-        img.style.cssText = `
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 32px;
-            height: 32px;
-            background: url('${monsterImgUrl}') center/cover;
-            border-radius: 3px;
-            border: 1px solid rgba(0, 0, 0, 0.3);
-            z-index: 5;
-            pointer-events: none;
-        `;
-
+        const img = document.createElement('img');
+        img.src = monsterImgUrl;
+        img.classList.add(ICON_CLASS_NAME);
+        img.style.position = 'absolute';
+        img.style.bottom = '2px';
+        img.style.right = '2px';
+        img.style.width = '32px';
+        img.style.height = '32px';
+        img.style.zIndex = '5';
+        img.style.pointerEvents = 'none';
+        img.style.borderRadius = '3px';
+        img.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+        
         itemElement.style.position = 'relative';
         itemElement.appendChild(img);
     }
 
+    // 🔹 GŁÓWNA FUNKCJA INICJALIZUJĄCA - CZEKA NA ZAŁADOWANIE GRY
     function initKCSAddon() {
-        console.log("🚀 Inicjalizacja dodatku KCS Icons");
+        console.log("🎮 Sprawdzam czy gra jest załadowana...");
 
-        function findItemsWithRetry(attempt = 0) {
-            const selectors = [
-                '.item', 
-                '[class*="item"]',
-                '.eq-item',
-                '[data-type="item"]',
-                '.inventory-item',
-                '.item-container'
+        // Funkcja sprawdzająca czy gra jest gotowa
+        function checkGameReady() {
+            // Sprawdź różne selektory używane przez grę Margonem
+            const gameSelectors = [
+                '.items', '.inventory', '.eq', '.item-list',
+                '#eq', '#items', '#inventory',
+                '[class*="item"]', '[class*="eq"]'
             ];
 
-            let items = [];
-            selectors.forEach(selector => {
-                try {
-                    const found = document.querySelectorAll(selector);
-                    if (found.length > 0) {
-                        items = [...items, ...Array.from(found)];
+            for (const selector of gameSelectors) {
+                if (document.querySelector(selector)) {
+                    console.log("🎯 Gra załadowana! Inicjalizacja dodatku...");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Spróbuj znaleźć elementy gry
+        if (checkGameReady()) {
+            startKCSAddon();
+        } else {
+            // Czekaj na załadowanie gry
+            console.log("⏳ Gra nie jest jeszcze gotowa, czekam...");
+            let attempts = 0;
+            const maxAttempts = 20; // 10 sekund
+
+            const waitInterval = setInterval(() => {
+                attempts++;
+                if (checkGameReady()) {
+                    clearInterval(waitInterval);
+                    startKCSAddon();
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(waitInterval);
+                    console.log("❌ Gra nie załadowała się w wymaganym czasie");
+                }
+            }, 500);
+        }
+    }
+
+    function startKCSAddon() {
+        console.log("🚀 Rozpoczynam działanie dodatku KCS Icons");
+
+        const tooltipObserver = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE && 
+                            (node.classList.contains('tip-wrapper') || node.classList.contains('tooltip'))) {
+                            processTooltip(node);
+                        }
+                    });
+                }
+            }
+        });
+
+        function processTooltip(tooltipNode) {
+            const itemDivInTooltip = tooltipNode.querySelector('.item-head .item, .item-container, [class*="item"]');
+            if (!itemDivInTooltip) return;
+
+            const itemNameElement = tooltipNode.querySelector('.item-name, .name, [class*="name"]');
+            if (!itemNameElement) return;
+
+            const itemName = itemNameElement.textContent;
+            if (!(itemName.includes("Kamień Czerwonego Smoka") || 
+                  itemName.includes("Zwój Czerwonego Smoka") || 
+                  itemName.includes("Ulotny zwój czerwonego smoka"))) {
+                return;
+            }
+
+            let itemId = null;
+            for (const cls of itemDivInTooltip.classList) {
+                if (cls.startsWith('item-id-')) {
+                    itemId = cls.substring('item-id-'.length);
+                    break;
+                }
+            }
+            if (!itemId) return;
+
+            const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7, .item-description, .item-properties');
+            if (!mapTextElement) return;
+
+            const rawMapText = mapTextElement.textContent;
+            const parsedMapName = getMapNameFromTooltipText(rawMapText);
+
+            if (parsedMapName && monsterMappings[parsedMapName]) {
+                const monsterImgUrl = monsterMappings[parsedMapName];
+                const inventoryItem = document.querySelector(`.item.item-id-${itemId}, [class*="item-id-${itemId}"]`);
+                if (inventoryItem) {
+                    addMonsterIcon(inventoryItem, monsterImgUrl);
+                    const cache = getCache();
+                    if (cache[itemId] !== monsterImgUrl) {
+                        cache[itemId] = monsterImgUrl;
+                        saveCache(cache);
                     }
-                } catch (e) {
-                    console.warn(`Selector ${selector} failed:`, e);
                 }
-            });
-
-            // Filtruj tylko KCS i Zwoje
-            const kcsItems = items.filter(item => {
-                try {
-                    const name = item.getAttribute('data-name') || item.title || item.textContent || '';
-                    return name.includes('Kamień Czerwonego Smoka') || 
-                           name.includes('Zwój Czerwonego Smoka') ||
-                           name.includes('Ulotny zwój czerwonego smoka');
-                } catch (e) {
-                    return false;
-                }
-            });
-
-            if (kcsItems.length > 0) {
-                console.log(`✅ Znaleziono ${kcsItems.length} KCS/Zwojów`);
-                applyIconsFromCache(kcsItems);
-                setupObservers();
-            } else if (attempt < 10) {
-                setTimeout(() => findItemsWithRetry(attempt + 1), 500);
-            } else {
-                console.log("❌ Nie znaleziono KCS/Zwojów po 10 próbach");
             }
         }
 
-        function applyIconsFromCache(items) {
+        function applyIconsFromCache() {
             const cache = getCache();
             if (Object.keys(cache).length === 0) return;
 
-            items.forEach(item => {
-                try {
-                    const itemId = item.getAttribute('data-id') || 
-                                 item.getAttribute('data-item-id') ||
-                                 item.className.match(/item-(\d+)/)?.[1] ||
-                                 item.id.match(/\d+/)?.[0];
-                    
-                    if (itemId && cache[itemId]) {
-                        addMonsterIcon(item, cache[itemId]);
+            // Szukaj itemów używając różnych selektorów
+            const itemSelectors = [
+                '.item', '.inventory-item', '.eq-item',
+                '[class*="item"]', '[data-type="item"]'
+            ];
+
+            let allItems = [];
+            itemSelectors.forEach(selector => {
+                const items = document.querySelectorAll(selector);
+                if (items.length > 0) {
+                    allItems = [...allItems, ...items];
+                }
+            });
+
+            allItems.forEach(itemElement => {
+                let itemId = null;
+                for (const cls of itemElement.classList) {
+                    if (cls.startsWith('item-id-')) {
+                        itemId = cls.substring('item-id-'.length);
+                        break;
                     }
-                } catch (e) {
-                    console.warn("Error applying icon from cache:", e);
+                }
+                if (itemId && cache[itemId]) {
+                    addMonsterIcon(itemElement, cache[itemId]);
                 }
             });
         }
 
-        function setupObservers() {
-            // Observer dla tooltipów
-            const tooltipObserver = new MutationObserver((mutations) => {
-                mutations.forEach(mutation => {
-                    if (mutation.addedNodes.length > 0) {
-                        mutation.addedNodes.forEach(node => {
-                            if (node.nodeType === 1) {
-                                const tooltip = node.classList.contains('tooltip') ? node : 
-                                              node.querySelector('.tooltip, .item-tooltip, .tip');
-                                if (tooltip) processTooltip(tooltip);
+        const dynamicItemObserver = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    let newItemsFound = false;
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.matches('.item, .inventory-item, .eq-item, [class*="item"]') || 
+                                node.querySelector('.item, .inventory-item, .eq-item, [class*="item"]')) {
+                                newItemsFound = true;
                             }
-                        });
-                    }
-                });
-            });
-
-            tooltipObserver.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-
-            // Observer dla dynamicznie dodawanych itemów
-            const itemsObserver = new MutationObserver((mutations) => {
-                mutations.forEach(mutation => {
-                    if (mutation.addedNodes.length > 0) {
-                        const newItems = [];
-                        mutation.addedNodes.forEach(node => {
-                            if (node.nodeType === 1) {
-                                const selectors = ['.item', '[class*="item"]', '.eq-item', '[data-type="item"]'];
-                                selectors.forEach(selector => {
-                                    const items = node.querySelectorAll(selector);
-                                    items.forEach(item => {
-                                        try {
-                                            const name = item.getAttribute('data-name') || item.title || '';
-                                            if (name.includes('Kamień Czerwonego Smoka') || 
-                                                name.includes('Zwój Czerwonego Smoka') ||
-                                                name.includes('Ulotny zwój czerwonego smoka')) {
-                                                newItems.push(item);
-                                            }
-                                        } catch (e) {
-                                            // Ignore errors
-                                        }
-                                    });
-                                });
-                            }
-                        });
-                        if (newItems.length > 0) {
-                            applyIconsFromCache(newItems);
                         }
+                    });
+                    if (newItemsFound) {
+                        applyIconsFromCache();
                     }
-                });
-            });
-
-            itemsObserver.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        }
-
-        function processTooltip(tooltip) {
-            try {
-                const itemNameElem = tooltip.querySelector('.item-name, [class*="name"], .name');
-                if (!itemNameElem) return;
-
-                const itemName = itemNameElem.textContent;
-                if (!itemName.includes('Kamień Czerwonego Smoka') && 
-                    !itemName.includes('Zwój Czerwonego Smoka') &&
-                    !itemName.includes('Ulotny zwój czerwonego smoka')) {
-                    return;
                 }
-
-                const mapSection = tooltip.querySelector('.item-desc, .item-properties, [class*="tip"], .description');
-                if (!mapSection) return;
-
-                const mapText = mapSection.textContent;
-                const mapName = getMapNameFromTooltipText(mapText);
-                if (!mapName || !monsterMappings[mapName]) return;
-
-                // Znajdź item w ekwipunku
-                const items = document.querySelectorAll('.item, [class*="item"], .eq-item, [data-type="item"]');
-                items.forEach(item => {
-                    try {
-                        const itemName = item.getAttribute('data-name') || item.title || '';
-                        if (itemName.includes('Kamień Czerwonego Smoka') || 
-                            itemName.includes('Zwój Czerwonego Smoka') ||
-                            itemName.includes('Ulotny zwój czerwonego smoka')) {
-                            
-                            const itemId = item.getAttribute('data-id') || 
-                                         item.getAttribute('data-item-id') ||
-                                         item.className.match(/item-(\d+)/)?.[1];
-                            
-                            if (itemId) {
-                                addMonsterIcon(item, monsterMappings[mapName]);
-                                const cache = getCache();
-                                cache[itemId] = monsterMappings[mapName];
-                                saveCache(cache);
-                            }
-                        }
-                    } catch (e) {
-                        console.warn("Error processing item:", e);
-                    }
-                });
-            } catch (e) {
-                console.warn("Error processing tooltip:", e);
             }
-        }
+        });
 
-        // Rozpocznij szukanie itemów
-        findItemsWithRetry();
+        // Start observers
+        tooltipObserver.observe(document.body, { childList: true, subtree: true });
+        dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
+
+        // Initial apply
+        applyIconsFromCache();
+
+        console.log("✅ Dodatek KCS Icons został pomyślnie uruchomiony");
     }
 
-    // Czekaj aż gra się w pełni załaduje
-    function waitForGame() {
-        if ((typeof window.hero !== 'undefined' || typeof window.g !== 'undefined') && 
-            (document.querySelector('.equipment') || document.querySelector('.inventory') || document.querySelector('.items'))) {
-            setTimeout(initKCSAddon, 2000); // Dodatkowe 2 sekundy opóźnienia dla pewności
-        } else {
-            setTimeout(waitForGame, 1000);
-        }
-    }
-
+    // 🔹 CZEKAJ NA PEŁNE ZAŁADOWANIE STRONY
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', waitForGame);
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initKCSAddon, 2000); // Dodatkowe 2 sekundy opóźnienia
+        });
     } else {
-        waitForGame();
+        setTimeout(initKCSAddon, 1000); // 1 sekunda opóźnienia jeśli DOM już załadowany
     }
 
 })();
