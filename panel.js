@@ -161,9 +161,12 @@
     }
 
     // 🔹 LICENSE SYSTEM
-    function checkLicenseOnStart() {
+        function checkLicenseOnStart() {
         const isVerified = localStorage.getItem(CONFIG.LICENSE_VERIFIED) === 'true';
         const savedKey = localStorage.getItem(CONFIG.LICENSE_KEY);
+        
+        // 🔹 INICJALIZUJ STATUS W ZAKŁADCE
+        updateLicenseStatus(isVerified);
         
         if (isVerified && savedKey) {
             console.log('📋 Licencja zweryfikowana, sprawdzam aktualność...');
@@ -181,8 +184,6 @@
             });
         } else if (savedKey) {
             verifyLicense(savedKey);
-        } else {
-            updateLicenseStatus(false);
         }
     }
 
@@ -236,31 +237,42 @@
         });
     }
 
-    function loadAddonsForVerifiedUser() {
+        function loadAddonsForVerifiedUser() {
         console.log('🔓 Licencja zweryfikowana - ładuję dodatki...');
         
+        // 🔹 DODAJ DODATEK DO LISTY
         AVAILABLE_ADDONS.kcs_icons = {
             name: "KCS i Zwój Ikony",
             description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
-            default: true
+            default: true // 🔹 Domyślnie włączony
         };
         
+        // 🔹 REGENERUJ LISTĘ DODATKÓW
         const addonsList = document.getElementById('addons-list');
         if (addonsList) {
             addonsList.innerHTML = generateAddonsList();
-            setupAddonsToggle();
-        }
-        
-        const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
-        for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
-            const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
-            if (isEnabled) {
-                loadAddonScript(addonId);
+            setupAddonsToggle(); // Ponowna inicjalizacja event listenerów
+            
+            // 🔹 PRZYWRÓĆ STAN DODATKÓW Z LOCALSTORAGE
+            const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+            for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
+                const checkbox = document.getElementById(addonId);
+                if (checkbox) {
+                    // 🔹 Użyj zapisanego stanu lub domyślnego
+                    const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
+                    checkbox.checked = isEnabled;
+                    
+                    // 🔹 AUTOMATYCZNIE ZAŁADUJ JEŚLI WŁĄCZONY
+                    if (isEnabled) {
+                        loadAddonScript(addonId);
+                    }
+                }
             }
         }
+        
+        updateLicenseStatus(true);
     }
-
-    function updateLicenseStatus(isValid) {
+        function updateLicenseStatus(isValid) {
         let statusElement = document.getElementById('licenseStatusIndicator');
         
         if (!statusElement) {
@@ -270,9 +282,16 @@
             document.body.appendChild(statusElement);
         }
         
+        // 🔹 AKTUALIZUJ STATUS W ZAKŁADCE
+        const statusText = document.getElementById('licenseStatusText');
+        const userText = document.getElementById('licenseUserText');
+        const expiryText = document.getElementById('licenseExpiryText');
+        const keyText = document.getElementById('licenseKeyText');
+        
         if (isValid) {
-            const user = localStorage.getItem('license_user') || 'Użytkownik';
+            const user = localStorage.getItem('license_user') || 'Unknown User';
             const expires = localStorage.getItem('license_expires') || '2024-12-31';
+            const key = localStorage.getItem(CONFIG.LICENSE_KEY) || '';
             
             statusElement.innerHTML = `
                 <div>✅ LICENCJA AKTYWNA</div>
@@ -280,28 +299,34 @@
                 <div class="license-expiry">Wygasa: ${expires}</div>
             `;
             statusElement.className = 'license-status valid';
+            
+            // Aktualizuj zakładkę Status
+            if (statusText) {
+                statusText.textContent = 'Aktywna';
+                statusText.className = 'license-status-value license-status-valid';
+                userText.textContent = user;
+                expiryText.textContent = expires;
+                keyText.textContent = key.substring(0, 4) + '...' + key.substring(key.length - 4);
+            }
+            
         } else {
             statusElement.className = 'license-status invalid';
             statusElement.innerHTML = '❌ BRAK LICENCJI';
+            
+            // Aktualizuj zakładkę Status
+            if (statusText) {
+                statusText.textContent = 'Nieaktywna';
+                statusText.className = 'license-status-value license-status-invalid';
+                userText.textContent = '-';
+                expiryText.textContent = '-';
+                keyText.textContent = '-';
+            }
+            
             setTimeout(() => {
                 statusElement.style.display = 'none';
             }, 3000);
         }
     }
-
-    function showLicenseMessage(message, type) {
-        const messageElement = document.getElementById('licenseMessage');
-        messageElement.textContent = message;
-        messageElement.className = `license-message license-${type}`;
-        
-        if (type === 'success') {
-            setTimeout(() => {
-                messageElement.textContent = '';
-                messageElement.className = 'license-message';
-            }, 3000);
-        }
-    }
-
     // 🔹 STATE MANAGEMENT
     function loadSavedState() {
         loadPanelPosition();
@@ -341,17 +366,18 @@
         }
     }
 
-    function loadAddonsConfig() {
+        function loadAddonsConfig() {
         if (Object.keys(AVAILABLE_ADDONS).length === 0) return;
         
-        const savedConfig = localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY);
-        const config = savedConfig ? JSON.parse(savedConfig) : {};
+        const savedConfig = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
         
         for (const [id, addon] of Object.entries(AVAILABLE_ADDONS)) {
-            const isEnabled = config[id] !== undefined ? config[id] : addon.default;
             const checkbox = document.getElementById(id);
             if (checkbox) {
+                // 🔹 UŻYJ ZAPISANEGO STANU LUB DOMYŚLNEGO
+                const isEnabled = savedConfig[id] !== undefined ? savedConfig[id] : addon.default;
                 checkbox.checked = isEnabled;
+                
                 if (isEnabled) {
                     loadAddonScript(id);
                 }
@@ -481,23 +507,28 @@
         }
     }
 
-    function setupAddonsToggle() {
+        function setupAddonsToggle() {
         document.addEventListener('change', (e) => {
             if (e.target.matches('input[type="checkbox"][data-addon-id]')) {
                 const addonId = e.target.dataset.addonId;
                 const isEnabled = e.target.checked;
                 
+                // 🔹 ZAPISZ STAN DO LOCALSTORAGE
                 const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
                 config[addonId] = isEnabled;
                 localStorage.setItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
                 
+                console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`);
+                
                 if (isEnabled) {
                     loadAddonScript(addonId);
+                } else {
+                    console.log(`❌ Wyłączono dodatek: ${addonId}`);
+                    // Tutaj możesz dodać logikę czyszczenia dodatku
                 }
             }
         });
     }
-
     function setupAddonHeaders() {
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('addon-header')) {
