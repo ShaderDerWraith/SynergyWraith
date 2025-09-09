@@ -2,71 +2,18 @@
     position: fixed;
     top: 10px;
     left: 10px;
+    /* ZMIEŃ URL PONIŻEJ: */
     background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
     border: 2px solid #555;
-    border-radius: 50%; /* Kształt koła - wygląda lepiej dla ikon */
+    border-radius: 50%;
     color: #fff;
-    width: 40px;  /* Ustalamy stały rozmiar */
-    height: 40px; /* Ustalamy stały rozmiar */
-    padding: 0;   /* Usuwamy padding, bo tłem jest obrazek */
+    width: 40px;
+    height: 40px;
+    padding: 0;
     z-index: 100000;
     font-family: Arial, sans-serif;
     cursor: grab;
     user-select: none;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    transition: transform 0.1s ease-in-out; /* Dodajemy animację "przycisku" */
-}
-
-/* Efekt przy najechaniu - lekkie powiększenie */
-#myPanelToggle:hover {
-    transform: scale(1.05);
-}
-
-/* Kursor i efekt podczas przeciągania */
-#myPanelToggle.dragging {
-    cursor: grabbing;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-    transform: scale(1.1); /* Powiększenie podczas przeciągania */
-}
-
-/* Reszta stylów pozostaje BEZ ZMIAN */
-#myAddonsPanel {
-    position: fixed;
-    top: 80px;
-    left: 20px;
-    background: rgba(20, 20, 20, 0.95);
-    border: 2px solid #555;
-    border-radius: 8px;
-    color: #fff;
-    padding: 0;
-    z-index: 99999;
-    font-family: Arial, sans-serif;
-    width: 250px;
-    display: none;
-}
-
-#myAddonsPanel.dragging {
-    cursor: grabbing;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-}
-
-#myAddonsPanelHeader {
-    cursor: grab;
-    background: #444;
-    padding: 6px;
-    border-bottom: 1px solid #555;
-    text-align: center;
-    font-weight: bold;
-    user-select: none;
-}
-#myAddonsPanelHeader:active {
-    cursor: grabbing;
-}
-
-#myAddonsPanelContent {
-    padding: 10px;
-}
-
-.addon {
-    margin-bottom: 8px;
+    transition: transform 0.1s ease-in-out;
 }
