@@ -17,3 +17,81 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     transition: transform 0.1s ease-in-out;
 }
+/* 🔹 STYLES FOR TABS 🔹 */
+.tab-container {
+    display: flex;
+    border-bottom: 1px solid #555;
+    background-color: #333;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.tablink {
+    flex: 1;
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    transition: 0.3s;
+    color: #ccc;
+    font-weight: bold;
+}
+
+/* Styl aktywnej zakładki */
+.tablink.active {
+    color: #fff;
+    background-color: #555;
+    border-bottom: 3px solid gold;
+}
+
+/* Efekt najechania na nieaktywną zakładkę */
+.tablink:hover:not(.active) {
+    background-color: #444;
+}
+
+/* Zawartość zakładek */
+.tabcontent {
+    display: none;
+    padding: 10px;
+    animation: fadeEffect 0.5s;
+}
+
+/* Animacja pojawiania się zakładki */
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Poprawki dla lepszego wyglądu zawartości */
+.tabcontent h3 {
+    margin-top: 0;
+    color: gold;
+    border-bottom: 1px solid #555;
+    padding-bottom: 5px;
+}
+
+.tabcontent p {
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+/* Styl dla przycisku resetowania */
+#reset-settings {
+    margin-top: 15px;
+    padding: 8px 15px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+#reset-settings:hover {
+    background-color: #c9302c;
+}
+
+/* Poprawki dla checkboxów - lepsze etykiety */
+.addon label {
+    cursor: pointer;
+    margin-left: 5px;
+}
