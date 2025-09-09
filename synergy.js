@@ -276,7 +276,7 @@
 
             <div class="sw-tab-content" id="swTabAddons" style="padding: 15px; display: block;">
                 <h3 style="color: #00ccff; margin-top: 0;">Aktywne Dodatki</h3>
-                <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                <div style="background: rgba(40, 40, 50, 0.6; border: 1px solid #393945; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-weight: 600; color: #ccddee;">KCS i Zwój Ikony</span>
                         <label style="position: relative; display: inline-block; width: 36px; height: 18px;">
@@ -312,6 +312,7 @@
                 <button id="swResetButton" style="width: 100%; padding: 10px; background: linear-gradient(to right, #ff5555, #ff3366); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
                     Resetuj Ustawienia
                 </button>
+                <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
             </div>
         `;
         
@@ -399,12 +400,32 @@
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
                 if (confirm('Czy na pewno chcesz zresetować ustawienia?')) {
-                    SW.GM_deleteValue(CONFIG.LICENSE_KEY);
-                    SW.GM_deleteValue(CONFIG.LICENSE_VERIFIED);
+                    // Zachowaj klucz licencji i status weryfikacji
+                    const licenseKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
+                    const licenseVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED);
+                    
+                    // Usuń tylko ustawienia pozycji i widoczności
                     SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                     SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                     SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-                    alert('Ustawienia zresetowane. Odśwież stronę.');
+                    
+                    // Przywróć klucz licencji i status jeśli istnieją
+                    if (licenseKey) {
+                        SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
+                    }
+                    if (licenseVerified) {
+                        SW.GM_setValue(CONFIG.LICENSE_VERIFIED, licenseVerified);
+                    }
+                    
+                    // Pokaż komunikat w panelu zamiast alertu
+                    const resetMessage = document.getElementById('swResetMessage');
+                    if (resetMessage) {
+                        resetMessage.textContent = 'Ustawienia zresetowane. Proszę odświeżyć grę, aby zmiany zostały zastosowane.';
+                        resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
+                        resetMessage.style.color = '#00ccff';
+                        resetMessage.style.border = '1px solid #00ccff';
+                        resetMessage.style.display = 'block';
+                    }
                 }
             });
         }
@@ -427,7 +448,7 @@
             const validKeys = ["TEST-KEY-123", "SYNERGY-2024", "DEV-ACCESS", "SYNERGY-2024-001"];
             if (validKeys.includes(licenseKey)) {
                 SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, 'true');
+                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
                 showMessage('✅ Licencja aktywowana!', 'success');
                 if (statusEl) {
                     statusEl.textContent = 'Aktywna';
@@ -477,37 +498,54 @@
     function loadSavedState() {
         if (!SW || !SW.GM_getValue) return;
         
+        // Załaduj zapisaną pozycję PRZYCISKU
         const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn && savedBtnPosition) {
-            toggleBtn.style.left = savedBtnPosition.left || '70px';
-            toggleBtn.style.top = savedBtnPosition.top || '70px';
+            toggleBtn.style.left = savedBtnPosition.left;
+            toggleBtn.style.top = savedBtnPosition.top;
             console.log('📍 Loaded button position:', savedBtnPosition);
+        } else if (toggleBtn) {
+            // Ustaw domyślną pozycję tylko jeśli nie ma zapisanej
+            toggleBtn.style.left = '70px';
+            toggleBtn.style.top = '70px';
         }
         
+        // Załaduj zapisaną pozycję PANELU
         const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
         const panel = document.getElementById('swAddonsPanel');
         if (panel && savedPosition) {
-            panel.style.left = savedPosition.left || '70px';
-            panel.style.top = savedPosition.top || '140px';
+            panel.style.left = savedPosition.left;
+            panel.style.top = savedPosition.top;
+        } else if (panel) {
+            panel.style.left = '70px';
+            panel.style.top = '140px';
         }
         
-        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
+        // Załaduj zapisaną widoczność
+        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
+        // Załaduj zapisany klucz licencyjny
         const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
         const licenseInput = document.getElementById('swLicenseInput');
         if (licenseInput && savedKey) {
             licenseInput.value = savedKey;
         }
         
-        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+        // Sprawdź status licencji
+        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
         const statusEl = document.getElementById('swLicenseStatus');
-        if (statusEl && isVerified) {
-            statusEl.textContent = 'Aktywna';
-            statusEl.style.color = '#00ffaa';
+        if (statusEl) {
+            if (isVerified) {
+                statusEl.textContent = 'Aktywna';
+                statusEl.style.color = '#00ffaa';
+            } else {
+                statusEl.textContent = 'Nieaktywna';
+                statusEl.style.color = '#ff3366';
+            }
         }
         
         console.log('✅ Saved state loaded');
@@ -515,7 +553,7 @@
 
     function checkLicenseOnStart() {
         if (SW && SW.GM_getValue) {
-            const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+            const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
             if (isVerified) {
                 console.log('📋 Licencja zweryfikowana, ładuję dodatki...');
                 loadAddons();
