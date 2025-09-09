@@ -461,3 +461,80 @@ input:checked + .slider:before {
     transform: translateY(-1px);
     box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
 }
+/* 🔹 POPRAWKI POZYCJONOWANIA STATUSU LICENCJI 🔹 */
+#status .license-status-container {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+#status .license-status-header {
+    color: #00ccff;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    text-align: center;
+}
+
+#status .license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(57, 57, 69, 0.5);
+}
+
+#status .license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+#status .license-status-label {
+    color: #8899aa;
+    font-weight: 600;
+}
+
+#status .license-status-value {
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+#status .license-status-valid {
+    color: #00ffaa !important;
+}
+
+#status .license-status-invalid {
+    color: #ff3366 !important;
+}
+
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
+@media (max-width: 400px) {
+    #myAddonsPanel {
+        width: 300px;
+        left: 10px;
+    }
+    
+    .tablink {
+        padding: 10px 5px;
+        font-size: 11px;
+    }
+    
+    #status .license-status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+    
+    #status .license-status-value {
+        max-width: 100%;
+        text-align: left;
+    }
+}
