@@ -80,7 +80,14 @@
         const toggleBtn = document.createElement("div");
         toggleBtn.id = "swPanelToggle";
         toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
-        toggleBtn.innerHTML = "SW";
+        
+        // Użyj obrazka zamiast tekstu
+        toggleBtn.innerHTML = `
+            <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg" 
+                 alt="SW" 
+                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        `;
+        
         document.body.appendChild(toggleBtn);
         console.log('✅ Toggle button created');
         
