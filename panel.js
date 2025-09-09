@@ -607,4 +607,134 @@
                 config[addonId] = isEnabled;
                 safeSetItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
                 
-                console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'W
+                console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`);
+                
+                if (isEnabled) {
+                    loadAddonScript(addonId);
+                }
+            }
+        });
+    }
+
+    function setupAddonHeaders() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('addon-header')) {
+                const addon = e.target.closest('.addon');
+                if (addon) {
+                    addon.classList.toggle('expanded');
+                }
+            }
+        });
+    }
+
+    function setupAddonSettingsButtons() {
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('addon-settings-btn')) {
+                const addonId = e.target.dataset.addonId;
+                const settingsPanel = document.getElementById(`settings-${addonId}`);
+                if (settingsPanel) {
+                    settingsPanel.classList.toggle('visible');
+                    
+                    document.querySelectorAll('.addon-settings-panel').forEach(panel => {
+                        if (panel.id !== `settings-${addonId}`) {
+                            panel.classList.remove('visible');
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function setupLicenseVerification() {
+        const verifyBtn = document.getElementById('verifyLicense');
+        const licenseInput = document.getElementById('licenseKeyInput');
+        
+        if (verifyBtn && licenseInput) {
+            verifyBtn.addEventListener('click', () => {
+                const licenseKey = licenseInput.value.trim();
+                if (licenseKey) {
+                    verifyLicense(licenseKey);
+                } else {
+                    showLicenseMessage('❌ Wprowadź klucz licencyjny', 'error');
+                }
+            });
+
+            licenseInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    verifyBtn.click();
+                }
+            });
+        }
+    }
+
+    function setupResetButton() {
+        const resetBtn = document.getElementById('reset-settings');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    const keys = [
+                        CONFIG.PANEL_POS_KEY,
+                        CONFIG.PANEL_VISIBLE_KEY,
+                        CONFIG.TOGGLE_BTN_POS_KEY,
+                        CONFIG.ADDONS_CONFIG_KEY,
+                        CONFIG.LICENSE_KEY,
+                        CONFIG.LICENSE_VERIFIED,
+                        'license_user',
+                        'license_expires'
+                    ];
+                    
+                    keys.forEach(key => safeRemoveItem(key));
+                    
+                    alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+        }
+    }
+
+    // 🔹 TAB SYSTEM
+    function setupTabs() {
+        const tabContainer = document.querySelector('.tab-container');
+        if (tabContainer) {
+            tabContainer.addEventListener('click', (e) => {
+                if (e.target.matches('.tablink')) {
+                    openTab(e.target.dataset.tab);
+                }
+            });
+        }
+    }
+
+    function openTab(tabName) {
+        document.querySelectorAll('.tabcontent').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        
+        document.querySelectorAll('.tablink').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const tab = document.getElementById(tabName);
+        const tabButton = document.querySelector(`.tablink[data-tab="${tabName}"]`);
+        
+        if (tab) tab.style.display = 'block';
+        if (tabButton) tabButton.classList.add('active');
+    }
+
+    // 🔹 START THE PANEL
+    function checkDOMReady() {
+        if (document.body) {
+            console.log("📋 DOM gotowy, inicjalizuję panel...");
+            initPanel();
+        } else {
+            setTimeout(checkDOMReady, 100);
+        }
+    }
+
+    // Zaczekaj na załadowanie DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkDOMReady);
+    } else {
+        checkDOMReady();
+    }
+
+})();
