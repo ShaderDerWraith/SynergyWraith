@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SynergyWraith - Panel Dodatków
-// @version      1.6  // ZMIEŃ WERSJĘ
+// @version      1.7
 // @description  Zaawansowany panel dodatków do Margonem
 // @author       ShaderDerWraith
 // @updateURL    https://shaderderwraith.github.io/SynergyWraith/synergywraith.user.js
@@ -18,19 +18,19 @@
 // @grant        GM_getValue
 // @grant        GM_deleteValue
 // @grant        GM_listValues
-// @connect      shaderderwraith.github.io
 // @connect      raw.githubusercontent.com
+// @connect      github.com
 // @run-at       document-body
 // ==/UserScript==
 
 (function () {
     'use strict';
     
-    console.log('🚀 SynergyWraith loader started - v1.6');
+    console.log('🚀 SynergyWraith loader started - v1.7');
     
-    // 🔹 DODAJ TIMESTAMP dla cache busting
+    // 🔹 UŻYJ RAW GITHUB URL zamiast GitHub Pages
+    const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/';
     const TIMESTAMP = Date.now();
-    const BASE_URL = 'https://shaderderwraith.github.io/SynergyWraith/';
     
     // 🔹 Globalny obiekt
     const synergyWraith = {};
@@ -46,33 +46,33 @@
     
     synergyWraith.GM_xmlhttpRequest = GM_xmlhttpRequest;
 
-    // 🔹 Ładuj CSS z cache busting
+    // 🔹 Ładuj CSS
     function loadCSS() {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BASE_URL + 'panel.css?v=' + TIMESTAMP,  // DODAJ TIMESTAMP
+            url: BASE_URL + 'panel.css?v=' + TIMESTAMP,
             onload: function(response) {
                 if (response.status === 200) {
                     const style = document.createElement('style');
                     style.textContent = response.responseText;
                     document.head.appendChild(style);
-                    console.log('✅ CSS loaded with cache busting');
+                    console.log('✅ CSS loaded from RAW GitHub');
                 }
             }
         });
     }
 
-    // 🔹 Ładuj JS z cache busting
+    // 🔹 Ładuj JS
     function loadJS() {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BASE_URL + 'synergy.js?v=' + TIMESTAMP,  // DODAJ TIMESTAMP
+            url: BASE_URL + 'synergy.js?v=' + TIMESTAMP,
             onload: function(response) {
                 if (response.status === 200) {
                     const script = document.createElement('script');
                     script.textContent = response.responseText;
                     document.head.appendChild(script);
-                    console.log('✅ JS loaded with cache busting');
+                    console.log('✅ JS loaded from RAW GitHub');
                 }
             }
         });
@@ -80,12 +80,11 @@
 
     // 🔹 Start ładowania
     function init() {
-        console.log('🎯 Loading with cache busting:', TIMESTAMP);
+        console.log('🎯 Loading from RAW GitHub');
         loadCSS();
         loadJS();
     }
 
-    // 🔹 Czekaj na gotowość DOM
     if (document.body) {
         init();
     } else {
