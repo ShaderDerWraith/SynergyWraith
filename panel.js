@@ -3,6 +3,49 @@
     'use strict';
     console.log("✅ Panel dodatków załadowany");
 
+    // 🔹 SAFE STORAGE - użyj GM_ functions zamiast localStorage
+    function safeSetItem(key, value) {
+        try {
+            if (typeof GM_setValue !== 'undefined') {
+                GM_setValue(key, value);
+            } else {
+                localStorage.setItem(key, value);
+            }
+            return true;
+        } catch (e) {
+            console.warn('Cannot use storage, using fallback:', e);
+            return false;
+        }
+    }
+
+    function safeGetItem(key, defaultValue = null) {
+        try {
+            if (typeof GM_getValue !== 'undefined') {
+                return GM_getValue(key, defaultValue);
+            } else {
+                const value = localStorage.getItem(key);
+                return value !== null ? value : defaultValue;
+            }
+        } catch (e) {
+            console.warn('Cannot read storage, using fallback:', e);
+            return defaultValue;
+        }
+    }
+
+    function safeRemoveItem(key) {
+        try {
+            if (typeof GM_deleteValue !== 'undefined') {
+                GM_deleteValue(key);
+            } else {
+                localStorage.removeItem(key);
+            }
+            return true;
+        } catch (e) {
+            console.warn('Cannot remove from storage:', e);
+            return false;
+        }
+    }
+
     // 🔹 CONFIGURATION
     const CONFIG = {
         PANEL_POS_KEY: "addons_panel_position",
@@ -16,8 +59,6 @@
     // 🔹 ADDONS DEFINITION (PUSTE - DODASZ PÓŹNIEJ)
     const AVAILABLE_ADDONS = {
         // Tutaj później dodasz swoje dodatki
-        // przykład: 
-        // autoheal: { name: "Auto Heal", description: "Automatyczne leczenie", default: false }
     };
 
     // 🔹 MAIN INITIALIZATION
@@ -48,7 +89,7 @@
         window.panel = panel;
     }
 
-        function generatePanelHTML() {
+    function generatePanelHTML() {
         return `
             <div id="myAddonsPanelHeader">SYNERGY WRAITH PANEL</div>
             <div id="myAddonsPanelContent">
@@ -74,7 +115,7 @@
                         <div id="licenseMessage" class="license-message"></div>
                     </div>
                     
-                    <!-- DODAJ TEN BLOK - STATUS LICENCJI -->
+                    <!-- STATUS LICENCJI -->
                     <div class="license-status-container">
                         <div class="license-status-header">Status Licencji</div>
                         <div class="license-status-item">
@@ -152,7 +193,6 @@
                             <span class="settings-label">Widoczność:</span>
                             <span class="settings-value">80%</span>
                         </div>
-                        <!-- Tutaj dodasz więcej ustawień w przyszłości -->
                     </div>
                 </div>
             `;
@@ -161,16 +201,14 @@
     }
 
     // 🔹 LICENSE SYSTEM
-            function checkLicenseOnStart() {
-        const isVerified = localStorage.getItem(CONFIG.LICENSE_VERIFIED) === 'true';
-        const savedKey = localStorage.getItem(CONFIG.LICENSE_KEY);
+    function checkLicenseOnStart() {
+        const isVerified = safeGetItem(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+        const savedKey = safeGetItem(CONFIG.LICENSE_KEY, '');
         
-        // 🔹 INICJALIZUJ STATUS W ZAKŁADCE
         updateLicenseStatus(isVerified);
         
         if (isVerified && savedKey) {
             console.log('📋 Licencja zweryfikowana, sprawdzam...');
-            // 🔹 UPROSZCZONA WERYFIKACJA - tylko sprawdź czy klucz istnieje
             validateLicenseWithYourSystem(savedKey).then(result => {
                 if (result.success) {
                     console.log('✅ Licencja nadal aktualna');
@@ -178,7 +216,7 @@
                     loadAddonsForVerifiedUser();
                 } else {
                     console.log('❌ Licencja wygasła');
-                    localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
+                    safeRemoveItem(CONFIG.LICENSE_VERIFIED);
                     updateLicenseStatus(false);
                 }
             });
@@ -186,7 +224,8 @@
             verifyLicense(savedKey);
         }
     }
-            function verifyLicense(licenseKey) {
+
+    function verifyLicense(licenseKey) {
         console.log('🔐 Rozpoczynam weryfikację klucza:', licenseKey);
         showLicenseMessage('🔐 Weryfikowanie klucza...', 'success');
         
@@ -195,10 +234,10 @@
             
             if (result.success) {
                 console.log('✅ Licencja poprawna!');
-                localStorage.setItem(CONFIG.LICENSE_VERIFIED, 'true');
-                localStorage.setItem(CONFIG.LICENSE_KEY, licenseKey);
-                localStorage.setItem('license_user', result.user || 'Unknown User');
-                localStorage.setItem('license_expires', result.expires || '2024-12-31');
+                safeSetItem(CONFIG.LICENSE_VERIFIED, 'true');
+                safeSetItem(CONFIG.LICENSE_KEY, licenseKey);
+                safeSetItem('license_user', result.user || 'Unknown User');
+                safeSetItem('license_expires', result.expires || '2024-12-31');
                 
                 showLicenseMessage('✅ Licencja aktywowana pomyślnie!', 'success');
                 updateLicenseStatus(true);
@@ -206,9 +245,9 @@
                 
             } else {
                 console.log('❌ Licencja nieprawidłowa');
-                localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
-                localStorage.removeItem('license_user');
-                localStorage.removeItem('license_expires');
+                safeRemoveItem(CONFIG.LICENSE_VERIFIED);
+                safeRemoveItem('license_user');
+                safeRemoveItem('license_expires');
                 updateLicenseStatus(false);
                 showLicenseMessage('❌ Nieprawidłowy klucz licencyjny', 'error');
             }
@@ -218,11 +257,11 @@
         });
     }
 
-            function validateLicenseWithYourSystem(licenseKey) {
+    function validateLicenseWithYourSystem(licenseKey) {
         return new Promise((resolve) => {
             console.log('🔐 Próba weryfikacji klucza:', licenseKey);
             
-            // 🔹 BEZPOŚREDNIA WERYFIKACJA - NIE wymaga zewnętrznego pliku
+            // 🔹 BEZPOŚREDNIA WERYFIKACJA
             const VALID_LICENSES = {
                 "SYNERGY-2024-001": { active: true, user: "Test User 1", expires: "2024-12-31" },
                 "SYNERGY-2024-002": { active: true, user: "Test User 2", expires: "2024-12-31" },
@@ -232,7 +271,6 @@
                 "BETA-TESTER-888":  { active: true, user: "Beta Tester", expires: "2024-12-31" }
             };
             
-            // Symuluj opóźnienie sieciowe
             setTimeout(() => {
                 const licenseInfo = VALID_LICENSES[licenseKey];
                 if (licenseInfo && licenseInfo.active) {
@@ -254,32 +292,27 @@
         });
     }
 
-        function loadAddonsForVerifiedUser() {
+    function loadAddonsForVerifiedUser() {
         console.log('🔓 Licencja zweryfikowana - ładuję dodatki...');
         
-        // 🔹 DODAJ DODATEK DO LISTY
         AVAILABLE_ADDONS.kcs_icons = {
             name: "KCS i Zwój Ikony",
             description: "Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka",
-            default: true // 🔹 Domyślnie włączony
+            default: true
         };
         
-        // 🔹 REGENERUJ LISTĘ DODATKÓW
         const addonsList = document.getElementById('addons-list');
         if (addonsList) {
             addonsList.innerHTML = generateAddonsList();
-            setupAddonsToggle(); // Ponowna inicjalizacja event listenerów
+            setupAddonsToggle();
             
-            // 🔹 PRZYWRÓĆ STAN DODATKÓW Z LOCALSTORAGE
-            const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+            const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
             for (const [addonId, addon] of Object.entries(AVAILABLE_ADDONS)) {
                 const checkbox = document.getElementById(addonId);
                 if (checkbox) {
-                    // 🔹 Użyj zapisanego stanu lub domyślnego
                     const isEnabled = config[addonId] !== undefined ? config[addonId] : addon.default;
                     checkbox.checked = isEnabled;
                     
-                    // 🔹 AUTOMATYCZNIE ZAŁADUJ JEŚLI WŁĄCZONY
                     if (isEnabled) {
                         loadAddonScript(addonId);
                     }
@@ -289,7 +322,8 @@
         
         updateLicenseStatus(true);
     }
-        function updateLicenseStatus(isValid) {
+
+    function updateLicenseStatus(isValid) {
         let statusElement = document.getElementById('licenseStatusIndicator');
         
         if (!statusElement) {
@@ -299,16 +333,15 @@
             document.body.appendChild(statusElement);
         }
         
-        // 🔹 AKTUALIZUJ STATUS W ZAKŁADCE
         const statusText = document.getElementById('licenseStatusText');
         const userText = document.getElementById('licenseUserText');
         const expiryText = document.getElementById('licenseExpiryText');
         const keyText = document.getElementById('licenseKeyText');
         
         if (isValid) {
-            const user = localStorage.getItem('license_user') || 'Unknown User';
-            const expires = localStorage.getItem('license_expires') || '2024-12-31';
-            const key = localStorage.getItem(CONFIG.LICENSE_KEY) || '';
+            const user = safeGetItem('license_user', 'Unknown User');
+            const expires = safeGetItem('license_expires', '2024-12-31');
+            const key = safeGetItem(CONFIG.LICENSE_KEY, '');
             
             statusElement.innerHTML = `
                 <div>✅ LICENCJA AKTYWNA</div>
@@ -317,7 +350,6 @@
             `;
             statusElement.className = 'license-status valid';
             
-            // Aktualizuj zakładkę Status
             if (statusText) {
                 statusText.textContent = 'Aktywna';
                 statusText.className = 'license-status-value license-status-valid';
@@ -330,7 +362,6 @@
             statusElement.className = 'license-status invalid';
             statusElement.innerHTML = '❌ BRAK LICENCJI';
             
-            // Aktualizuj zakładkę Status
             if (statusText) {
                 statusText.textContent = 'Nieaktywna';
                 statusText.className = 'license-status-value license-status-invalid';
@@ -344,6 +375,22 @@
             }, 3000);
         }
     }
+
+    function showLicenseMessage(message, type) {
+        const messageElement = document.getElementById('licenseMessage');
+        if (messageElement) {
+            messageElement.textContent = message;
+            messageElement.className = `license-message license-${type}`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                    messageElement.className = 'license-message';
+                }, 3000);
+            }
+        }
+    }
+
     // 🔹 STATE MANAGEMENT
     function loadSavedState() {
         loadPanelPosition();
@@ -351,14 +398,15 @@
         loadAddonsConfig();
         loadPanelVisibility();
         
-        const savedKey = localStorage.getItem(CONFIG.LICENSE_KEY);
+        const savedKey = safeGetItem(CONFIG.LICENSE_KEY, '');
         if (savedKey) {
-            document.getElementById('licenseKeyInput').value = savedKey;
+            const input = document.getElementById('licenseKeyInput');
+            if (input) input.value = savedKey;
         }
     }
 
     function loadPanelPosition() {
-        const savedPos = localStorage.getItem(CONFIG.PANEL_POS_KEY);
+        const savedPos = safeGetItem(CONFIG.PANEL_POS_KEY, '');
         if (savedPos) {
             try {
                 const { top, left } = JSON.parse(savedPos);
@@ -371,7 +419,7 @@
     }
 
     function loadToggleButtonPosition() {
-        const savedPos = localStorage.getItem(CONFIG.TOGGLE_BTN_POS_KEY);
+        const savedPos = safeGetItem(CONFIG.TOGGLE_BTN_POS_KEY, '');
         if (savedPos) {
             try {
                 const { top, left } = JSON.parse(savedPos);
@@ -383,15 +431,14 @@
         }
     }
 
-        function loadAddonsConfig() {
+    function loadAddonsConfig() {
         if (Object.keys(AVAILABLE_ADDONS).length === 0) return;
         
-        const savedConfig = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+        const savedConfig = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
         
         for (const [id, addon] of Object.entries(AVAILABLE_ADDONS)) {
             const checkbox = document.getElementById(id);
             if (checkbox) {
-                // 🔹 UŻYJ ZAPISANEGO STANU LUB DOMYŚLNEGO
                 const isEnabled = savedConfig[id] !== undefined ? savedConfig[id] : addon.default;
                 checkbox.checked = isEnabled;
                 
@@ -403,13 +450,13 @@
     }
 
     function loadPanelVisibility() {
-        const savedVisible = localStorage.getItem(CONFIG.PANEL_VISIBLE_KEY);
+        const savedVisible = safeGetItem(CONFIG.PANEL_VISIBLE_KEY, '');
         panel.style.display = savedVisible === "true" ? "block" : "none";
     }
 
     // 🔹 ADDONS LOADING
     function loadAddonScript(addonId) {
-        const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+        const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
         if (!config[addonId]) return;
 
         const baseUrl = `https://shaderderwraith.github.io/SynergyWraith/addons/`;
@@ -452,7 +499,7 @@
     function togglePanel() {
         const isVisible = panel.style.display === "block";
         panel.style.display = isVisible ? "none" : "block";
-        localStorage.setItem(CONFIG.PANEL_VISIBLE_KEY, (!isVisible).toString());
+        safeSetItem(CONFIG.PANEL_VISIBLE_KEY, (!isVisible).toString());
     }
 
     function setupPanelDrag() {
@@ -481,7 +528,7 @@
             if (!isDragging) return;
             isDragging = false;
             panel.classList.remove('dragging');
-            localStorage.setItem(CONFIG.PANEL_POS_KEY, JSON.stringify({
+            safeSetItem(CONFIG.PANEL_POS_KEY, JSON.stringify({
                 top: panel.style.top,
                 left: panel.style.left
             }));
@@ -515,7 +562,7 @@
             if (!isDragging) return;
             isDragging = false;
             toggleBtn.classList.remove('dragging');
-            localStorage.setItem(CONFIG.TOGGLE_BTN_POS_KEY, JSON.stringify({
+            safeSetItem(CONFIG.TOGGLE_BTN_POS_KEY, JSON.stringify({
                 top: toggleBtn.style.top,
                 left: toggleBtn.style.left
             }));
@@ -524,28 +571,25 @@
         }
     }
 
-        function setupAddonsToggle() {
+    function setupAddonsToggle() {
         document.addEventListener('change', (e) => {
             if (e.target.matches('input[type="checkbox"][data-addon-id]')) {
                 const addonId = e.target.dataset.addonId;
                 const isEnabled = e.target.checked;
                 
-                // 🔹 ZAPISZ STAN DO LOCALSTORAGE
-                const config = JSON.parse(localStorage.getItem(CONFIG.ADDONS_CONFIG_KEY) || '{}');
+                const config = JSON.parse(safeGetItem(CONFIG.ADDONS_CONFIG_KEY, '{}'));
                 config[addonId] = isEnabled;
-                localStorage.setItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
+                safeSetItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
                 
                 console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`);
                 
                 if (isEnabled) {
                     loadAddonScript(addonId);
-                } else {
-                    console.log(`❌ Wyłączono dodatek: ${addonId}`);
-                    // Tutaj możesz dodać logikę czyszczenia dodatku
                 }
             }
         });
     }
+
     function setupAddonHeaders() {
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('addon-header')) {
@@ -560,51 +604,76 @@
             if (e.target.classList.contains('addon-settings-btn')) {
                 const addonId = e.target.dataset.addonId;
                 const settingsPanel = document.getElementById(`settings-${addonId}`);
-                settingsPanel.classList.toggle('visible');
-                
-                document.querySelectorAll('.addon-settings-panel').forEach(panel => {
-                    if (panel.id !== `settings-${addonId}`) {
-                        panel.classList.remove('visible');
-                    }
-                });
+                if (settingsPanel) {
+                    settingsPanel.classList.toggle('visible');
+                    
+                    document.querySelectorAll('.addon-settings-panel').forEach(panel => {
+                        if (panel.id !== `settings-${addonId}`) {
+                            panel.classList.remove('visible');
+                        }
+                    });
+                }
             }
         });
     }
 
     function setupLicenseVerification() {
-        document.getElementById('verifyLicense').addEventListener('click', () => {
-            const licenseKey = document.getElementById('licenseKeyInput').value.trim();
-            if (licenseKey) {
-                verifyLicense(licenseKey);
-            } else {
-                showLicenseMessage('❌ Wprowadź klucz licencyjny', 'error');
-            }
-        });
+        const verifyBtn = document.getElementById('verifyLicense');
+        const licenseInput = document.getElementById('licenseKeyInput');
+        
+        if (verifyBtn && licenseInput) {
+            verifyBtn.addEventListener('click', () => {
+                const licenseKey = licenseInput.value.trim();
+                if (licenseKey) {
+                    verifyLicense(licenseKey);
+                } else {
+                    showLicenseMessage('❌ Wprowadź klucz licencyjny', 'error');
+                }
+            });
 
-        document.getElementById('licenseKeyInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('verifyLicense').click();
-            }
-        });
+            licenseInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    verifyBtn.click();
+                }
+            });
+        }
     }
 
     function setupResetButton() {
-        document.getElementById('reset-settings')?.addEventListener('click', () => {
-            if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
-                localStorage.clear();
-                alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
-                setTimeout(() => location.reload(), 1000);
-            }
-        });
+        const resetBtn = document.getElementById('reset-settings');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    const keys = [
+                        CONFIG.PANEL_POS_KEY,
+                        CONFIG.PANEL_VISIBLE_KEY,
+                        CONFIG.TOGGLE_BTN_POS_KEY,
+                        CONFIG.ADDONS_CONFIG_KEY,
+                        CONFIG.LICENSE_KEY,
+                        CONFIG.LICENSE_VERIFIED,
+                        'license_user',
+                        'license_expires'
+                    ];
+                    
+                    keys.forEach(key => safeRemoveItem(key));
+                    
+                    alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+        }
     }
 
     // 🔹 TAB SYSTEM
     function setupTabs() {
-        document.querySelector('.tab-container').addEventListener('click', (e) => {
-            if (e.target.matches('.tablink')) {
-                openTab(e.target.dataset.tab);
-            }
-        });
+        const tabContainer = document.querySelector('.tab-container');
+        if (tabContainer) {
+            tabContainer.addEventListener('click', (e) => {
+                if (e.target.matches('.tablink')) {
+                    openTab(e.target.dataset.tab);
+                }
+            });
+        }
     }
 
     function openTab(tabName) {
@@ -616,8 +685,11 @@
             btn.classList.remove('active');
         });
         
-        document.getElementById(tabName).style.display = 'block';
-        document.querySelector(`.tablink[data-tab="${tabName}"]`).classList.add('active');
+        const tab = document.getElementById(tabName);
+        const tabButton = document.querySelector(`.tablink[data-tab="${tabName}"]`);
+        
+        if (tab) tab.style.display = 'block';
+        if (tabButton) tabButton.classList.add('active');
     }
 
     // 🔹 START THE PANEL
