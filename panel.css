@@ -447,3 +447,18 @@ input:checked + .slider:before {
         text-align: left;
     }
 }
+
+/* 🔹 LOADING STATES 🔹 */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: "⏳";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+}
