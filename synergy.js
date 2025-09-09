@@ -72,37 +72,44 @@
     }
 
     function createToggleButton() {
-        // Usuń stary przycisk jeśli istnieje
-        const oldToggle = document.getElementById('swPanelToggle');
-        if (oldToggle) oldToggle.remove();
-        
-        const toggleBtn = document.createElement("div");
-        toggleBtn.id = "swPanelToggle";
-        toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
-        toggleBtn.style.cssText = `
-            position: fixed !important;
-            top: 70px !important;
-            left: 70px !important;
-            width: 50px !important;
-            height: 50px !important;
-            background: linear-gradient(45deg, #ff0000, #ff3333) !important;
-            border: 3px solid #00ff00 !important;
-            border-radius: 50% !important;
-            cursor: pointer !important;
-            z-index: 1000000 !important;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
-            color: white !important;
-            font-weight: bold !important;
-            font-size: 20px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-shadow: 0 0 5px black !important;
-        `;
-        toggleBtn.textContent = "SW";
-        document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created');
-    }
+    // Usuń stary przycisk jeśli istnieje
+    const oldToggle = document.getElementById('swPanelToggle');
+    if (oldToggle) oldToggle.remove();
+    
+    const toggleBtn = document.createElement("div");
+    toggleBtn.id = "swPanelToggle";
+    toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+    toggleBtn.innerHTML = "SW";
+    toggleBtn.style.cssText = `
+        position: fixed !important;
+        top: 70px !important;
+        left: 70px !important;
+        width: 50px !important;
+        height: 50px !important;
+        background: linear-gradient(45deg, #ff0000, #ff3333) !important;
+        border: 3px solid #00ff00 !important;
+        border-radius: 50% !important;
+        cursor: grab !important;
+        z-index: 1000000 !important;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-shadow: 0 0 5px black !important;
+        transition: transform 0.2s ease !important;
+        user-select: none !important;
+    `;
+    document.body.appendChild(toggleBtn);
+    console.log('✅ Toggle button created');
+    
+    // Dodaj przeciąganie przycisku
+    setupToggleDrag(toggleBtn);
+    
+    return toggleBtn;
+}
 
     function createMainPanel() {
         // Usuń stary panel jeśli istnieje
