@@ -26,7 +26,7 @@
 
     const GLOBAL = true;
     const CACHE_TOKEN = 'sw_cache_token';
-    
+
     // 🔹 Globalny obiekt dla panelu
     const synergyWraith = {};
     window.synergyWraith = synergyWraith;
@@ -46,7 +46,7 @@
                 return defaultValue;
             }
         };
-        
+
         synergyWraith.GM_setValue = function (key, value) {
             try {
                 localStorage.setItem(key, JSON.stringify(value));
@@ -55,7 +55,7 @@
                 return false;
             }
         };
-        
+
         synergyWraith.GM_deleteValue = function (key) {
             try {
                 localStorage.removeItem(key);
@@ -64,7 +64,7 @@
                 return false;
             }
         };
-        
+
         synergyWraith.GM_listValues = function () {
             try {
                 return Object.keys(localStorage);
