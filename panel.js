@@ -62,7 +62,13 @@
     };
 
     // 🔹 MAIN INITIALIZATION
-    function initPanel() {
+        function initPanel() {
+        console.log("✅ Panel dodatków załadowany");
+        console.log("🔍 Debug info:");
+        console.log("- License verified:", safeGetItem(CONFIG.LICENSE_VERIFIED, 'false'));
+        console.log("- License key:", safeGetItem(CONFIG.LICENSE_KEY, 'none'));
+        console.log("- Available addons:", Object.keys(AVAILABLE_ADDONS).length);
+        
         createToggleButton();
         createMainPanel();
         loadSavedState();
