@@ -432,7 +432,7 @@ input:checked + .slider:before {
     font-weight: 600;
 }
 
-/* 🔹 BUTTONS 🔹 */
+/* 🔹 BUTTONs 🔹 */
 #reset-settings {
     width: 100%;
     padding: 10px;
