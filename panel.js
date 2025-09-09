@@ -187,14 +187,20 @@
         }
     }
 
-    function verifyLicense(licenseKey) {
+        function verifyLicense(licenseKey) {
+        console.log('🔐 Rozpoczynam weryfikację klucza:', licenseKey);
         showLicenseMessage('🔐 Weryfikowanie klucza...', 'success');
         
+        // 🔹 DODAJ DEBUG - sprawdź czy serwer jest dostępny
+        console.log('📡 License server available:', typeof window.validateLicense === 'function');
+        
         validateLicenseWithYourSystem(licenseKey).then(result => {
+            console.log('📋 Wynik weryfikacji:', result);
+            
             if (result.success) {
+                console.log('✅ Licencja poprawna!');
                 localStorage.setItem(CONFIG.LICENSE_VERIFIED, 'true');
                 localStorage.setItem(CONFIG.LICENSE_KEY, licenseKey);
-                
                 localStorage.setItem('license_user', result.user || 'Unknown User');
                 localStorage.setItem('license_expires', result.expires || '2024-12-31');
                 
@@ -203,6 +209,7 @@
                 loadAddonsForVerifiedUser();
                 
             } else {
+                console.log('❌ Licencja nieprawidłowa');
                 localStorage.removeItem(CONFIG.LICENSE_VERIFIED);
                 localStorage.removeItem('license_user');
                 localStorage.removeItem('license_expires');
@@ -210,31 +217,47 @@
                 showLicenseMessage('❌ Nieprawidłowy klucz licencyjny', 'error');
             }
         }).catch(error => {
-            console.error("License validation error:", error);
+            console.error('💥 Błąd podczas weryfikacji:', error);
             showLicenseMessage('⚠️ Błąd podczas weryfikacji. Spróbuj ponownie.', 'error');
         });
     }
 
-    function validateLicenseWithYourSystem(licenseKey) {
+        function validateLicenseWithYourSystem(licenseKey) {
         return new Promise((resolve) => {
-            if (window.validateLicense) {
+            console.log('🔐 Próba weryfikacji klucza:', licenseKey);
+            
+            // SPRAWDŹ CZY SERWER JEST DOSTĘPNY
+            if (typeof window.validateLicense === 'function') {
+                console.log('📡 Using license server...');
                 window.validateLicense(licenseKey).then(result => {
                     resolve(result);
-                }).catch(() => {
-                    resolve({ success: false, message: "Server error" });
+                }).catch(error => {
+                    console.warn('❌ License server error, using fallback:', error);
+                    resolve(fallbackValidation(licenseKey));
                 });
             } else {
-                const validKeys = ['SYNERGY-2024-001', 'SYNERGY-2024-002', 'SYNERGY-2024-003', 
-                                 'TEST-KEY-12345', 'DEV-ACCESS-777', 'BETA-TESTER-888'];
-                setTimeout(() => {
-                    resolve({
-                        success: validKeys.includes(licenseKey),
-                        user: "Fallback User",
-                        expires: "2024-12-31"
-                    });
-                }, 500);
+                console.log('🔄 License server not available, using fallback');
+                resolve(fallbackValidation(licenseKey));
             }
         });
+    }
+
+    // 🔹 DODAJ NOWĄ FUNKCJĘ FALLBACK
+    function fallbackValidation(licenseKey) {
+        const validKeys = [
+            'SYNERGY-2024-001', 'SYNERGY-2024-002', 'SYNERGY-2024-003',
+            'TEST-KEY-12345', 'DEV-ACCESS-777', 'BETA-TESTER-888'
+        ];
+        
+        const isValid = validKeys.includes(licenseKey);
+        console.log('🔄 Fallback validation result:', isValid);
+        
+        return {
+            success: isValid,
+            user: isValid ? "Fallback User" : "Invalid",
+            expires: "2024-12-31",
+            key: licenseKey
+        };
     }
 
         function loadAddonsForVerifiedUser() {
