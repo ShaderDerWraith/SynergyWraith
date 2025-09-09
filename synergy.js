@@ -96,15 +96,17 @@
         let initialLeft, initialTop;
         let clickCount = 0;
         let clickTimer = null;
+        let animationFrame = null;
+        let currentX = parseInt(toggleBtn.style.left) || 70;
+        let currentY = parseInt(toggleBtn.style.top) || 70;
 
         toggleBtn.addEventListener('mousedown', function(e) {
-            console.log('mousedown on toggle button');
             if (e.button !== 0) return;
             
             startX = e.clientX;
             startY = e.clientY;
-            initialLeft = parseInt(toggleBtn.style.left) || 70;
-            initialTop = parseInt(toggleBtn.style.top) || 70;
+            initialLeft = currentX;
+            initialTop = currentY;
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -114,14 +116,34 @@
         });
 
         function onMouseMove(e) {
-            console.log('mousemove');
             if (!isDragging) {
-                // Rozpocznij przeciąganie natychmiast po ruchu myszy
                 startDragging();
             }
             
             if (isDragging) {
-                onToggleDrag(e);
+                // Anuluj poprzednią animację jeśli istnieje
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                }
+                
+                // Oblicz nową pozycję
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                const newLeft = initialLeft + deltaX;
+                const newTop = initialTop + deltaY;
+                
+                const maxX = window.innerWidth - toggleBtn.offsetWidth;
+                const maxY = window.innerHeight - toggleBtn.offsetHeight;
+                
+                currentX = Math.max(0, Math.min(newLeft, maxX));
+                currentY = Math.max(0, Math.min(newTop, maxY));
+                
+                // Użyj requestAnimationFrame dla płynności
+                animationFrame = requestAnimationFrame(() => {
+                    toggleBtn.style.left = currentX + 'px';
+                    toggleBtn.style.top = currentY + 'px';
+                });
             }
         }
 
@@ -141,24 +163,17 @@
             }
         }
 
-        function onToggleDrag(e) {
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            
-            const newLeft = initialLeft + deltaX;
-            const newTop = initialTop + deltaY;
-            
-            const maxX = window.innerWidth - toggleBtn.offsetWidth;
-            const maxY = window.innerHeight - toggleBtn.offsetHeight;
-            
-            toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
-            toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
-        }
-
         function onMouseUp(e) {
+            // Usuń nasłuchiwacze
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             document.removeEventListener('mouseleave', onMouseUp);
+            
+            // Anuluj animację jeśli istnieje
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
             
             if (isDragging) {
                 stopDragging();
@@ -178,13 +193,13 @@
             toggleBtn.classList.add('saved');
             
             SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
+                left: currentX + 'px',
+                top: currentY + 'px'
             });
             
             console.log('💾 Saved button position:', {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
+                left: currentX + 'px',
+                top: currentY + 'px'
             });
             
             setTimeout(() => {
@@ -246,7 +261,7 @@
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
             </div>
             
-            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532; border-bottom: 1px solid #393945; padding: 0 5px;">
+            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
                 <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
