@@ -341,4 +341,123 @@ input:checked + .slider:before {
     left: 10px;
     background: linear-gradient(to right, #2a2a3a, #232330);
     border: 1px solid #393945;
-    border-radius: 5
+    border-radius: 5px;
+    padding: 8px 12px;
+    color: #00ffaa;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 99998;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.license-status.valid {
+    display: block;
+    border-left: 3px solid #00ffaa;
+}
+
+.license-status.invalid {
+    display: block;
+    color: #ff3366;
+    border-left: 3px solid #ff3366;
+}
+
+.license-status.expiring {
+    display: block;
+    color: #ffcc00;
+    border-left: 3px solid #ffcc00;
+}
+
+.license-user {
+    color: #a0a0ff;
+    font-weight: normal;
+}
+
+.license-expiry {
+    font-size: 10px;
+    color: #8899aa;
+    margin-top: 2px;
+}
+
+/* 🔹 LICENSE STATUS IN TAB 🔹 */
+.license-status-container {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.license-status-header {
+    color: #00ccff;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 5px;
+}
+
+.license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.license-status-label {
+    color: #8899aa;
+}
+
+.license-status-value {
+    color: #00ffaa;
+    font-weight: 600;
+}
+
+.license-status-valid {
+    color: #00ffaa !important;
+}
+
+.license-status-invalid {
+    color: #ff3366 !important;
+}
+
+.license-status-expiring {
+    color: #ffcc00 !important;
+}
+
+/* 🔹 SETTINGS TAB 🔹 */
+.settings-item {
+    margin-bottom: 15px;
+}
+
+.settings-label {
+    display: block;
+    color: #ccddee;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* 🔹 BUTTONS 🔹 */
+#reset-settings {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #ff5555, #ff3366);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+
+#reset-settings:hover {
+    background: linear-gradient(to right, #ff3366, #ff2288);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
+}
