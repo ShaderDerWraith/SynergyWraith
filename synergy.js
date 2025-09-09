@@ -1,6 +1,12 @@
 // synergy.js - Główny kod panelu
 (function() {
     'use strict';
+    
+    console.log('🔄 synergy.js loaded -', Date.now());
+    
+
+(function() {
+    'use strict';
 
     console.log('🚀 SynergyWraith Panel v1.0 loaded');
 
