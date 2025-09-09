@@ -112,3 +112,37 @@
 #swPanelToggle.saving {
     animation: savePulse 1s ease-in-out;
 }
+
+/* Improved drag styles */
+#swPanelToggle {
+    transition: all 0.2s ease !important;
+}
+
+#swPanelToggle.dragging {
+    cursor: grabbing !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 0 25px rgba(255, 100, 100, 1) !important;
+    border: 3px solid #ffff00 !important;
+}
+
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 25px rgba(255, 50, 50, 1) !important;
+}
+
+/* Double click animation */
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease !important;
+}
+
+/* Save indication */
+@keyframes saveIndicator {
+    0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); }
+    50% { box-shadow: 0 0 30px rgba(0, 255, 0, 1); }
+    100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.9); }
+}
+
+#swPanelToggle.saved {
+    animation: saveIndicator 1s ease-in-out;
+}
