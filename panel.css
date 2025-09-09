@@ -2,7 +2,6 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    /* ZMIEŃ URL PONIŻEJ: */
     background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
     border: 2px solid #555;
     border-radius: 50%;
@@ -17,6 +16,63 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
     transition: transform 0.1s ease-in-out;
 }
+
+#myPanelToggle:hover {
+    transform: scale(1.05);
+}
+
+#myPanelToggle.dragging {
+    cursor: grabbing;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    transform: scale(1.1);
+}
+
+#myAddonsPanel {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    background: rgba(20, 20, 20, 0.95);
+    border: 2px solid #555;
+    border-radius: 8px;
+    color: #fff;
+    padding: 0;
+    z-index: 99999;
+    font-family: Arial, sans-serif;
+    width: 250px;
+    display: none;
+}
+
+#myAddonsPanel.dragging {
+    cursor: grabbing;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
+
+#myAddonsPanelHeader {
+    cursor: grab;
+    background: #444;
+    padding: 6px;
+    border-bottom: 1px solid #555;
+    text-align: center;
+    font-weight: bold;
+    user-select: none;
+}
+#myAddonsPanelHeader:active {
+    cursor: grabbing;
+}
+
+#myAddonsPanelContent {
+    padding: 0; /* Zmienione na 0, bo zakładki mają własny padding */
+}
+
+.addon {
+    margin-bottom: 8px;
+}
+
+.addon label {
+    cursor: pointer;
+    margin-left: 5px;
+}
+
 /* 🔹 STYLES FOR TABS 🔹 */
 .tab-container {
     display: flex;
@@ -38,32 +94,27 @@
     font-weight: bold;
 }
 
-/* Styl aktywnej zakładki */
 .tablink.active {
     color: #fff;
     background-color: #555;
     border-bottom: 3px solid gold;
 }
 
-/* Efekt najechania na nieaktywną zakładkę */
 .tablink:hover:not(.active) {
     background-color: #444;
 }
 
-/* Zawartość zakładek */
 .tabcontent {
     display: none;
     padding: 10px;
     animation: fadeEffect 0.5s;
 }
 
-/* Animacja pojawiania się zakładki */
 @keyframes fadeEffect {
     from {opacity: 0;}
     to {opacity: 1;}
 }
 
-/* Poprawki dla lepszego wyglądu zawartości */
 .tabcontent h3 {
     margin-top: 0;
     color: gold;
@@ -76,7 +127,6 @@
     color: #aaa;
 }
 
-/* Styl dla przycisku resetowania */
 #reset-settings {
     margin-top: 15px;
     padding: 8px 15px;
@@ -88,10 +138,4 @@
 }
 #reset-settings:hover {
     background-color: #c9302c;
-}
-
-/* Poprawki dla checkboxów - lepsze etykiety */
-.addon label {
-    cursor: pointer;
-    margin-left: 5px;
 }
