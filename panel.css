@@ -155,6 +155,11 @@
     cursor: pointer;
 }
 
+.addon-header > div {
+    display: flex;
+    align-items: center;
+}
+
 .addon-title {
     font-weight: 600;
     color: #ccddee;
@@ -171,6 +176,54 @@
 
 .addon.expanded .addon-description {
     display: block;
+}
+
+/* 🔹 SETTINGS GEAR ICON 🔹 */
+.addon-settings-btn {
+    background: none;
+    border: none;
+    color: #8899aa;
+    cursor: pointer;
+    padding: 2px 5px;
+    margin-left: 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.addon-settings-btn:hover {
+    color: #00ccff;
+    background: rgba(0, 204, 255, 0.1);
+}
+
+.addon-settings-panel {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(30, 30, 40, 0.8);
+    border: 1px solid #393945;
+    border-radius: 5px;
+}
+
+.addon-settings-panel.visible {
+    display: block;
+}
+
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.settings-label {
+    font-size: 11px;
+    color: #ccddee;
+}
+
+.settings-value {
+    font-size: 11px;
+    color: #00ffaa;
 }
 
 /* 🔹 SWITCH STYLE (modern toggle) 🔹 */
@@ -218,26 +271,6 @@ input:checked + .slider {
 input:checked + .slider:before {
     transform: translateX(18px);
     background-color: white;
-}
-
-/* 🔹 STATUS TAB 🔹 */
-.status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #393945;
-}
-
-.status-label {
-    color: #8899aa;
-    font-size: 12px;
-}
-
-.status-value {
-    color: #00ffaa;
-    font-weight: 600;
-    font-size: 12px;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
