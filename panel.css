@@ -240,6 +240,67 @@ input:checked + .slider:before {
     font-size: 12px;
 }
 
+/* 🔹 LICENSE SYSTEM 🔹 */
+.license-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.license-input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 5px;
+    color: #ccddee;
+    font-size: 12px;
+}
+
+.license-input:focus {
+    outline: none;
+    border-color: #00ccff;
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+}
+
+.license-button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #00ccff, #0099ff);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.license-button:hover {
+    background: linear-gradient(to right, #0099ff, #0077cc);
+    transform: translateY(-1px);
+}
+
+.license-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.license-success {
+    background: rgba(0, 255, 170, 0.1);
+    color: #00ffaa;
+    border: 1px solid #00ffaa;
+}
+
+.license-error {
+    background: rgba(255, 50, 100, 0.1);
+    color: #ff3366;
+    border: 1px solid #ff3366;
+}
+
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
