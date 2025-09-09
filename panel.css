@@ -72,7 +72,7 @@
     padding: 0;
 }
 
-/* 🔹 TABS STYLES (like screenshots) 🔹 */
+/* 🔹 TABS STYLES 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #2c2c3c, #252532);
@@ -131,7 +131,7 @@
     padding-bottom: 8px;
 }
 
-/* 🔹 ADDONS LIST (like screenshots) 🔹 */
+/* 🔹 ADDONS LIST 🔹 */
 .addon {
     background: rgba(40, 40, 50, 0.6);
     border: 1px solid #393945;
@@ -226,7 +226,7 @@
     color: #00ffaa;
 }
 
-/* 🔹 SWITCH STYLE (modern toggle) 🔹 */
+/* 🔹 SWITCH STYLE 🔹 */
 .switch {
     position: relative;
     display: inline-block;
@@ -334,51 +334,6 @@ input:checked + .slider:before {
     border: 1px solid #ff3366;
 }
 
-/* 🔹 LICENSE STATUS INDICATOR 🔹 */
-.license-status {
-    position: fixed;
-    top: 60px;
-    left: 10px;
-    background: linear-gradient(to right, #2a2a3a, #232330);
-    border: 1px solid #393945;
-    border-radius: 5px;
-    padding: 8px 12px;
-    color: #00ffaa;
-    font-size: 11px;
-    font-weight: bold;
-    z-index: 99998;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    display: none;
-}
-
-.license-status.valid {
-    display: block;
-    border-left: 3px solid #00ffaa;
-}
-
-.license-status.invalid {
-    display: block;
-    color: #ff3366;
-    border-left: 3px solid #ff3366;
-}
-
-.license-status.expiring {
-    display: block;
-    color: #ffcc00;
-    border-left: 3px solid #ffcc00;
-}
-
-.license-user {
-    color: #a0a0ff;
-    font-weight: normal;
-}
-
-.license-expiry {
-    font-size: 10px;
-    color: #8899aa;
-    margin-top: 2px;
-}
-
 /* 🔹 LICENSE STATUS IN TAB 🔹 */
 .license-status-container {
     background: rgba(40, 40, 50, 0.6);
@@ -392,26 +347,37 @@ input:checked + .slider:before {
     color: #00ccff;
     font-size: 13px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #393945;
-    padding-bottom: 5px;
+    padding-bottom: 8px;
+    text-align: center;
 }
 
 .license-status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(57, 57, 69, 0.5);
+}
+
+.license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
 .license-status-label {
     color: #8899aa;
+    font-weight: 600;
 }
 
 .license-status-value {
-    color: #00ffaa;
     font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
 }
 
 .license-status-valid {
@@ -420,10 +386,6 @@ input:checked + .slider:before {
 
 .license-status-invalid {
     color: #ff3366 !important;
-}
-
-.license-status-expiring {
-    color: #ffcc00 !important;
 }
 
 /* 🔹 SETTINGS TAB 🔹 */
@@ -461,59 +423,6 @@ input:checked + .slider:before {
     transform: translateY(-1px);
     box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
 }
-/* 🔹 POPRAWKI POZYCJONOWANIA STATUSU LICENCJI 🔹 */
-#status .license-status-container {
-    background: rgba(40, 40, 50, 0.6);
-    border: 1px solid #393945;
-    border-radius: 6px;
-    padding: 15px;
-    margin-top: 20px;
-}
-
-#status .license-status-header {
-    color: #00ccff;
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #393945;
-    padding-bottom: 8px;
-    text-align: center;
-}
-
-#status .license-status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    font-size: 12px;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(57, 57, 69, 0.5);
-}
-
-#status .license-status-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-#status .license-status-label {
-    color: #8899aa;
-    font-weight: 600;
-}
-
-#status .license-status-value {
-    font-weight: 600;
-    text-align: right;
-    max-width: 60%;
-    word-break: break-all;
-}
-
-#status .license-status-valid {
-    color: #00ffaa !important;
-}
-
-#status .license-status-invalid {
-    color: #ff3366 !important;
-}
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 400px) {
@@ -527,13 +436,13 @@ input:checked + .slider:before {
         font-size: 11px;
     }
     
-    #status .license-status-item {
+    .license-status-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 3px;
     }
     
-    #status .license-status-value {
+    .license-status-value {
         max-width: 100%;
         text-align: left;
     }
