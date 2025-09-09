@@ -61,3 +61,32 @@
     outline: none;
     border-color: #00ccff;
 }
+
+/* Lepsza widoczność przycisku */
+#swPanelToggle {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8) !important;
+    border: 3px solid #00ff00 !important;
+    transition: all 0.3s ease !important;
+}
+
+#swPanelToggle:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 0 25px rgba(255, 0, 0, 1) !important;
+}
+
+/* Lepsza widoczność panelu */
+#swAddonsPanel {
+    border: 2px solid #00ccff !important;
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.4) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Style dla zakładek */
+.sw-tab {
+    transition: all 0.3s ease !important;
+}
+
+.sw-tab:hover {
+    background: rgba(0, 204, 255, 0.1) !important;
+    color: #00ccff !important;
+}
