@@ -1,75 +1,106 @@
 /* 🔹 BASE STYLES 🔹 */
-#myPanelToggle {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: rgba(20, 20, 20, 0.95) url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg') center center / 70% no-repeat;
-    border: 2px solid #444;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    z-index: 100000;
-    cursor: grab;
-    user-select: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-    transition: all 0.2s ease;
+#swPanelToggle {
+    position: fixed !important;
+    top: 70px !important;
+    left: 70px !important;
+    width: 50px !important;
+    height: 50px !important;
+    background: linear-gradient(45deg, #ff0000, #ff3333) !important;
+    border: 3px solid #00ff00 !important;
+    border-radius: 50% !important;
+    cursor: grab !important;
+    z-index: 1000000 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-shadow: 0 0 5px black !important;
+    transition: all 0.2s ease !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
 }
 
-#myPanelToggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(100, 100, 255, 0.4);
+#swPanelToggle.dragging {
+    cursor: grabbing !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2) !important;
+    border: 3px solid #ffff00 !important;
+    z-index: 1000001 !important;
 }
 
-#myPanelToggle.dragging {
-    cursor: grabbing;
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.08) !important;
+    box-shadow: 0 0 25px rgba(255, 30, 30, 1) !important;
+    cursor: grab !important;
+}
+
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05) !important;
+    transition: transform 0.1s ease !important;
+}
+
+/* Save indication animation */
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+    50% { 
+        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
+        border-color: #00ff00;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+}
+
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out !important;
+}
+
+/* Prevent text selection during drag */
+#swPanelToggle.dragging::selection {
+    background: transparent !important;
+}
+
+#swPanelToggle.dragging::-moz-selection {
+    background: transparent !important;
 }
 
 /* 🔹 MAIN PANEL 🔹 */
-#myAddonsPanel {
+#swAddonsPanel {
     position: fixed;
-    top: 80px;
-    left: 20px;
-    background: rgba(25, 25, 35, 0.98);
-    border: 1px solid #444;
-    border-radius: 8px;
-    color: #e0e0e0;
-    padding: 0;
-    z-index: 99999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    width: 320px;
-    display: none;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+    top: 140px;
+    left: 70px;
+    width: 350px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 3px solid #00ccff;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 999999;
+    box-shadow: 0 0 30px rgba(0, 204, 255, 0.6);
     backdrop-filter: blur(10px);
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-#myAddonsPanel.dragging {
-    cursor: grabbing;
-    box-shadow: 0 5px 30px rgba(100, 100, 255, 0.3);
-}
-
-#myAddonsPanelHeader {
-    cursor: grab;
+#swPanelHeader {
     background: linear-gradient(to right, #2a2a3a, #232330);
-    padding: 12px 15px;
-    border-bottom: 1px solid #393945;
+    padding: 12px;
     text-align: center;
-    font-weight: bold;
-    font-size: 14px;
-    color: #a0a0ff;
-    user-select: none;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    letter-spacing: 0.5px;
-}
-#myAddonsPanelHeader:active {
-    cursor: grabbing;
+    border-bottom: 1px solid #393945;
+    cursor: grab;
 }
 
-#myAddonsPanelContent {
-    padding: 0;
+.sw-tab-content {
+    padding: 15px;
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -426,7 +457,7 @@ input:checked + .slider:before {
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 400px) {
-    #myAddonsPanel {
+    #swAddonsPanel {
         width: 300px;
         left: 10px;
     }
@@ -446,120 +477,4 @@ input:checked + .slider:before {
         max-width: 100%;
         text-align: left;
     }
-}
-
-/* 🔹 TOGGLE BUTTON STYLES 🔹 */
-#swPanelToggle {
-    position: fixed;
-    top: 70px;
-    left: 70px;
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(45deg, #ff0000, #ff3333);
-    border: 3px solid #00ff00;
-    border-radius: 50%;
-    cursor: grab;
-    z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 0 5px black;
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-#swPanelToggle.dragging {
-    cursor: grabbing;
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
-    border: 3px solid #ffff00;
-}
-
-#swPanelToggle:hover:not(.dragging) {
-    transform: scale(1.08) !important;
-    box-shadow: 0 0 25px rgba(255, 30, 30, 1) !important;
-    cursor: grab !important;
-}
-
-#swPanelToggle:active:not(.dragging) {
-    transform: scale(1.05) !important;
-    transition: transform 0.1s ease !important;
-}
-
-/* Save indication animation */
-@keyframes savePulse {
-    0% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
-    }
-    50% { 
-        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
-        border-color: #00ff00;
-        transform: scale(1.05);
-    }
-    100% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
-    }
-}
-
-#swPanelToggle.saved {
-    animation: savePulse 1.5s ease-in-out !important;
-}
-
-/* Prevent text selection during drag */
-#swPanelToggle.dragging::selection {
-    background: transparent !important;
-}
-
-#swPanelToggle.dragging::-moz-selection {
-    background: transparent !important;
-}
-
-/* 🔹 PANEL STYLES 🔹 */
-#swAddonsPanel {
-    position: fixed;
-    top: 140px;
-    left: 70px;
-    width: 350px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border: 3px solid #00ccff;
-    border-radius: 10px;
-    color: #ffffff;
-    z-index: 999999;
-    box-shadow: 0 0 30px rgba(0, 204, 255, 0.6);
-    backdrop-filter: blur(10px);
-    display: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#swPanelHeader {
-    background: linear-gradient(to right, #2a2a3a, #232330);
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #393945;
-    cursor: grab;
-}
-
-.sw-tab-content {
-    padding: 15px;
-}
-
-/* 🔹 LOADING STATES 🔹 */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-.loading::after {
-    content: "⏳";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 20px;
 }
