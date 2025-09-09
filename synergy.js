@@ -6,11 +6,12 @@
 
     // 🔹 Konfiguracja
     const CONFIG = {
-        LICENSE_KEY: "sw_license_key",
-        LICENSE_VERIFIED: "sw_license_verified",
-        PANEL_POSITION: "sw_panel_position",
-        PANEL_VISIBLE: "sw_panel_visible"
-    };
+    LICENSE_KEY: "sw_license_key",
+    LICENSE_VERIFIED: "sw_license_verified", 
+    PANEL_POSITION: "sw_panel_position",
+    PANEL_VISIBLE: "sw_panel_visible",
+    TOGGLE_BTN_POSITION: "sw_toggle_button_position" // DODAJ TEN KLUCZ
+};
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
@@ -111,6 +112,106 @@
     return toggleBtn;
 }
 
+    function setupToggleDrag(toggleBtn) {
+    let isDragging = false;
+    let startX, startY;
+    let initialLeft, initialTop;
+
+    toggleBtn.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return; // Tylko lewy przycisk myszy
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // Zapisz początkową pozycję
+        initialLeft = parseInt(toggleBtn.style.left) || 70;
+        initialTop = parseInt(toggleBtn.style.top) || 70;
+        
+        // Zmień wygląd podczas przeciągania
+        toggleBtn.style.cursor = 'grabbing';
+        toggleBtn.style.transform = 'scale(1.1)';
+        toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
+        toggleBtn.style.border = '3px solid #ffff00';
+        
+        // Dodaj nasłuchiwacze
+        document.addEventListener('mousemove', onToggleDrag);
+        document.addEventListener('mouseup', stopToggleDrag);
+        document.addEventListener('mouseleave', stopToggleDrag);
+        
+        e.preventDefault();
+    });
+
+    function onToggleDrag(e) {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        // Oblicz nową pozycję
+        const newLeft = initialLeft + deltaX;
+        const newTop = initialTop + deltaY;
+        
+        // Ogranicz do obszaru ekranu
+        const maxX = window.innerWidth - toggleBtn.offsetWidth;
+        const maxY = window.innerHeight - toggleBtn.offsetHeight;
+        
+        toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
+        toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
+    }
+
+    function stopToggleDrag() {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        
+        // Przywróć wygląd
+        toggleBtn.style.cursor = 'grab';
+        toggleBtn.style.transform = 'scale(1)';
+        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+        toggleBtn.style.border = '3px solid #00ff00';
+        
+        // Zapisz pozycję
+        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        console.log('💾 Saved button position:', {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        // Usuń nasłuchiwacze
+        document.removeEventListener('mousemove', onToggleDrag);
+        document.removeEventListener('mouseup', stopToggleDrag);
+        document.removeEventListener('mouseleave', stopToggleDrag);
+    }
+
+    // Podwójny klik do otwierania panelu
+    let clickTimer = null;
+    toggleBtn.addEventListener('click', function(e) {
+        if (isDragging) return; // Ignoruj kliknięcia podczas przeciągania
+        
+        if (clickTimer !== null) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+            // Double click - toggle panel
+            const panel = document.getElementById('swAddonsPanel');
+            if (panel) {
+                const isVisible = panel.style.display === 'block';
+                panel.style.display = isVisible ? 'none' : 'block';
+                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+            }
+        } else {
+            clickTimer = setTimeout(() => {
+                clickTimer = null;
+            }, 300);
+        }
+    });
+
+    console.log('✅ Toggle drag functionality added');
+}
     function createMainPanel() {
         // Usuń stary panel jeśli istnieje
         const oldPanel = document.getElementById('swAddonsPanel');
@@ -361,36 +462,43 @@
     }
 
     function loadSavedState() {
-        // Załaduj zapisaną pozycję
-        const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
-        const panel = document.getElementById('swAddonsPanel');
-        if (panel && savedPosition) {
-            panel.style.left = savedPosition.left || '70px';
-            panel.style.top = savedPosition.top || '140px';
-        }
-        
-        // Załaduj zapisaną widoczność
-        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
-        if (panel) {
-            panel.style.display = isVisible ? 'block' : 'none';
-        }
-        
-        // Załaduj zapisany klucz licencyjny
-        const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
-        const licenseInput = document.getElementById('swLicenseInput');
-        if (licenseInput && savedKey) {
-            licenseInput.value = savedKey;
-        }
-        
-        // Sprawdź status licencji
-        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
-        const statusEl = document.getElementById('swLicenseStatus');
-        if (statusEl && isVerified) {
-            statusEl.textContent = 'Aktywna';
-            statusEl.style.color = '#00ffaa';
-        }
-        console.log('✅ Saved state loaded');
+    // Załaduj zapisaną pozycję PRZYCISKU
+    const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
+    const toggleBtn = document.getElementById('swPanelToggle');
+    if (toggleBtn && savedBtnPosition) {
+        toggleBtn.style.left = savedBtnPosition.left || '70px';
+        toggleBtn.style.top = savedBtnPosition.top || '70px';
+        console.log('📍 Loaded button position:', savedBtnPosition);
     }
+    
+    // Reszta funkcji (panel position, license, etc.) pozostaje bez zmian
+    const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
+    const panel = document.getElementById('swAddonsPanel');
+    if (panel && savedPosition) {
+        panel.style.left = savedPosition.left || '70px';
+        panel.style.top = savedPosition.top || '140px';
+    }
+    
+    const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
+    if (panel) {
+        panel.style.display = isVisible ? 'block' : 'none';
+    }
+    
+    const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
+    const licenseInput = document.getElementById('swLicenseInput');
+    if (licenseInput && savedKey) {
+        licenseInput.value = savedKey;
+    }
+    
+    const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+    const statusEl = document.getElementById('swLicenseStatus');
+    if (statusEl && isVerified) {
+        statusEl.textContent = 'Aktywna';
+        statusEl.style.color = '#00ffaa';
+    }
+    
+    console.log('✅ Saved state loaded');
+}
 
     function checkLicenseOnStart() {
         const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
