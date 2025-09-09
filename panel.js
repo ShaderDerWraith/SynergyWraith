@@ -6,12 +6,13 @@
     // 🔹 klucze w localStorage
     const PANEL_POS_KEY = "addons_panel_position";
     const PANEL_VISIBLE_KEY = "addons_panel_visible";
-    const TOGGLE_BTN_POS_KEY = "addons_toggleBtn_position"; // Nowy klucz dla przycisku
+    const TOGGLE_BTN_POS_KEY = "addons_toggleBtn_position";
 
     // Dodanie przycisku
     const toggleBtn = document.createElement("div");
     toggleBtn.id = "myPanelToggle";
     toggleBtn.textContent = "⚙️ Dodatki";
+    toggleBtn.title = "Kliknij, aby otworzyć/ukryć panel. Przytrzymaj Alt i przeciągnij, aby przenieść."; // Podpowiedź
     document.body.appendChild(toggleBtn);
 
     // Dodanie panelu
@@ -62,18 +63,18 @@
 
     // Załaduj stan przy starcie
     loadPanelState();
-    loadToggleBtnState(); // Wczytaj pozycję przycisku
+    loadToggleBtnState();
 
-    // Obsługa otwierania/zamykania panelu
+    // Obsługa otwierania/zamykania panelu (ZWYKŁY KLIK)
     toggleBtn.addEventListener("click", (e) => {
-        // Jeśli właśnie przeciągaliśmy, nie otwieraj/nie zamykaj panelu
-        if (toggleBtn.isDragging) return;
+        // Jeśli to był element formularza wewnątrz przycisku (teoretycznie), zignoruj
+        if (e.target !== toggleBtn) return;
         const isVisible = panel.style.display === "block";
         panel.style.display = isVisible ? "none" : "block";
         localStorage.setItem(PANEL_VISIBLE_KEY, (!isVisible).toString());
     });
 
-    // 🔹 PRZESUWANIE PANELU (Twój istniejący kod)
+    // 🔹 PRZESUWANIE PANELU (Twój istniejący kod) - ZOSTAWIAMY
     const header = document.getElementById("myAddonsPanelHeader");
     let isDragging = false;
     let offsetX = 0;
@@ -111,14 +112,17 @@
     };
     header.addEventListener("mousedown", startPanelDrag);
 
-    // 🔹 NOWY KOD: PRZESUWANIE PRZYCISKU TOGGLE
+    // 🔹 NOWY KOD: PRZESUWANIE PRZYCISKU TOGGLE Z UŻYCIEM ALT
     let isToggleDragging = false;
     let toggleOffsetX = 0;
     let toggleOffsetY = 0;
 
     const startToggleDrag = (e) => {
+        // SPRAWDŹ CZY WCIŚNIĘTO ALT (lub Ctrl/Shift)
+        if (!e.altKey) { // Możesz zmienić na e.ctrlKey lub e.shiftKey
+            return; // Jeśli Alt nie jest wciśnięty, wyjdź - to ma być zwykły klik.
+        }
         isToggleDragging = true;
-        toggleBtn.isDragging = true; // Flaga zapobiegająca kliknięciu
         toggleBtn.classList.add('dragging');
         const toggleRect = toggleBtn.getBoundingClientRect();
         toggleOffsetX = e.clientX - toggleRect.left;
@@ -126,6 +130,7 @@
         document.addEventListener("mousemove", onToggleDrag);
         document.addEventListener("mouseup", stopToggleDrag);
         e.preventDefault();
+        e.stopPropagation(); // Zatrzymaj propagację, aby nie wywołać 'click'
     };
 
     const onToggleDrag = (e) => {
@@ -139,7 +144,6 @@
     const stopToggleDrag = () => {
         if (!isToggleDragging) return;
         isToggleDragging = false;
-        toggleBtn.isDragging = false;
         toggleBtn.classList.remove('dragging');
         // Zapisz pozycję przycisku
         localStorage.setItem(TOGGLE_BTN_POS_KEY, JSON.stringify({
