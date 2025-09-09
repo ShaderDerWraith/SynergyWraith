@@ -11,8 +11,8 @@
     // Dodanie przycisku
     const toggleBtn = document.createElement("div");
     toggleBtn.id = "myPanelToggle";
-    toggleBtn.textContent = "⚙️ Dodatki";
-    toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel."; // Nowa podpowiedź
+    toggleBtn.textContent = ""; // Ikona będzie teraz tłem CSS
+    toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel.";
     document.body.appendChild(toggleBtn);
 
     // Dodanie panelu
