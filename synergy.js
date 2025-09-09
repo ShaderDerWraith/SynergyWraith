@@ -6,12 +6,12 @@
 
     // 🔹 Konfiguracja
     const CONFIG = {
-    LICENSE_KEY: "sw_license_key",
-    LICENSE_VERIFIED: "sw_license_verified", 
-    PANEL_POSITION: "sw_panel_position",
-    PANEL_VISIBLE: "sw_panel_visible",
-    TOGGLE_BTN_POSITION: "sw_toggle_button_position" // DODAJ TEN KLUCZ
-};
+        LICENSE_KEY: "sw_license_key",
+        LICENSE_VERIFIED: "sw_license_verified",
+        PANEL_POSITION: "sw_panel_position",
+        PANEL_VISIBLE: "sw_panel_visible",
+        TOGGLE_BTN_POSITION: "sw_toggle_button_position"
+    };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
@@ -50,7 +50,7 @@
             },
             GM_xmlhttpRequest: ({ method, url, onload, onerror }) => {
                 fetch(url, { method })
-                    .then(response => onload({ status: response.status, responseText: response.text() }))
+                    .then(response => response.text().then(text => onload({ status: response.status, responseText: text })))
                     .catch(onerror);
             }
         };
@@ -73,399 +73,189 @@
     }
 
     function createToggleButton() {
-    // Usuń stary przycisk jeśli istnieje
-    const oldToggle = document.getElementById('swPanelToggle');
-    if (oldToggle) oldToggle.remove();
-    
-    const toggleBtn = document.createElement("div");
-    toggleBtn.id = "swPanelToggle";
-    toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
-    toggleBtn.innerHTML = "SW";
-    toggleBtn.style.cssText = `
-        position: fixed !important;
-        top: 70px !important;
-        left: 70px !important;
-        width: 50px !important;
-        height: 50px !important;
-        background: linear-gradient(45deg, #ff0000, #ff3333) !important;
-        border: 3px solid #00ff00 !important;
-        border-radius: 50% !important;
-        cursor: grab !important;
-        z-index: 1000000 !important;
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
-        color: white !important;
-        font-weight: bold !important;
-        font-size: 20px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        text-shadow: 0 0 5px black !important;
-        transition: transform 0.2s ease !important;
-        user-select: none !important;
-    `;
-    document.body.appendChild(toggleBtn);
-    console.log('✅ Toggle button created');
-    
-    // Dodaj przeciąganie przycisku
-    setupToggleDrag(toggleBtn);
-    
-    return toggleBtn;
-}
-
-function setupToggleDrag(toggleBtn) {
-    let isDragging = false;
-    let startX, startY;
-    let initialLeft, initialTop;
-    let dragTimeout;
-    const DRAG_THRESHOLD = 5; // Minimalny dystans w pikselach do rozpoczęcia przeciągania
-
-    toggleBtn.addEventListener('mousedown', function(e) {
-        if (e.button !== 0) return; // Tylko lewy przycisk myszy
+        // Usuń stary przycisk jeśli istnieje
+        const oldToggle = document.getElementById('swPanelToggle');
+        if (oldToggle) oldToggle.remove();
         
-        startX = e.clientX;
-        startY = e.clientY;
-        initialLeft = parseInt(toggleBtn.style.left) || 70;
-        initialTop = parseInt(toggleBtn.style.top) || 70;
+        const toggleBtn = document.createElement("div");
+        toggleBtn.id = "swPanelToggle";
+        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+        toggleBtn.innerHTML = "SW";
+        toggleBtn.style.cssText = `
+            position: fixed !important;
+            top: 70px !important;
+            left: 70px !important;
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(45deg, #ff0000, #ff3333) !important;
+            border: 3px solid #00ff00 !important;
+            border-radius: 50% !important;
+            cursor: grab !important;
+            z-index: 1000000 !important;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-shadow: 0 0 5px black !important;
+            transition: all 0.2s ease !important;
+            user-select: none !important;
+        `;
+        document.body.appendChild(toggleBtn);
+        console.log('✅ Toggle button created');
         
-        // Nasłuchuj ruchu myszy aby wykryć przeciąganie
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-        document.addEventListener('mouseleave', onMouseUp);
+        // Dodaj przeciąganie przycisku
+        setupToggleDrag(toggleBtn);
         
-        e.preventDefault();
-    });
-
-    function onMouseMove(e) {
-        const deltaX = Math.abs(e.clientX - startX);
-        const deltaY = Math.abs(e.clientY - startY);
-        
-        // Jeśli mysz przemieściła się wystarczająco daleko, rozpocznij przeciąganie
-        if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
-            startDragging();
-        }
-        
-        if (isDragging) {
-            onToggleDrag(e);
-        }
+        return toggleBtn;
     }
 
-    function startDragging() {
-        isDragging = true;
-        
-        // Zmień wygląd podczas przeciągania
-        toggleBtn.style.cursor = 'grabbing';
-        toggleBtn.style.transform = 'scale(1.1)';
-        toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
-        toggleBtn.style.border = '3px solid #ffff00';
-        toggleBtn.classList.add('dragging');
-    }
+    function setupToggleDrag(toggleBtn) {
+        let isDragging = false;
+        let startX, startY;
+        let initialLeft, initialTop;
+        const DRAG_THRESHOLD = 5; // Minimalny dystans w pikselach do rozpoczęcia przeciągania
 
-    function onToggleDrag(e) {
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        
-        // Oblicz nową pozycję
-        const newLeft = initialLeft + deltaX;
-        const newTop = initialTop + deltaY;
-        
-        // Ogranicz do obszaru ekranu
-        const maxX = window.innerWidth - toggleBtn.offsetWidth;
-        const maxY = window.innerHeight - toggleBtn.offsetHeight;
-        
-        toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
-        toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
-    }
-
-    function onMouseUp(e) {
-        // Usuń nasłuchiwacze
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('mouseleave', onMouseUp);
-        
-        if (isDragging) {
-            // Zakończ przeciąganie
-            stopDragging();
-        } else {
-            // To było kliknięcie - obsłuż podwójne kliknięcie
-            handleClick();
-        }
-    }
-
-    function stopDragging() {
-        isDragging = false;
-        
-        // Przywróć wygląd
-        toggleBtn.style.cursor = 'grab';
-        toggleBtn.style.transform = 'scale(1)';
-        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-        toggleBtn.style.border = '3px solid #00ff00';
-        toggleBtn.classList.remove('dragging');
-        toggleBtn.classList.add('saved');
-        
-        // Zapisz pozycję
-        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        console.log('💾 Saved button position:', {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        // Usuń klasę saved po animacji
-        setTimeout(() => {
-            toggleBtn.classList.remove('saved');
-        }, 1000);
-    }
-
-    // Obsługa podwójnego kliknięcia
-    let lastClickTime = 0;
-    let clickCount = 0;
-    
-    function handleClick() {
-        const currentTime = new Date().getTime();
-        
-        if (currentTime - lastClickTime < 300) { // 300ms dla podwójnego kliknięcia
-            clickCount++;
-        } else {
-            clickCount = 1;
-        }
-        
-        lastClickTime = currentTime;
-        
-        if (clickCount === 2) {
-            // Podwójny klik - toggle panel
-            const panel = document.getElementById('swAddonsPanel');
-            if (panel) {
-                const isVisible = panel.style.display === 'block';
-                panel.style.display = isVisible ? 'none' : 'block';
-                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-                console.log('🎯 Panel toggled:', !isVisible);
-            }
-            clickCount = 0;
-        }
-        
-        // Reset click count after timeout
-        setTimeout(() => {
-            if (clickCount === 1) {
-                clickCount = 0; // Single click timeout
-            }
-        }, 300);
-    }
-
-    console.log('✅ Advanced toggle drag functionality added');
-}
-
-    function startDragging() {
-    isDragging = true;
-    isClick = false;
-    
-    // Zmień wygląd podczas przeciągania
-    toggleBtn.style.cursor = 'grabbing';
-    toggleBtn.style.transform = 'scale(1.1)';
-    toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
-    toggleBtn.style.border = '3px solid #ffff00';
-    toggleBtn.classList.add('dragging'); // DODAJ KLASĘ
-    
-    // Dodaj nasłuchiwacze
-    document.addEventListener('mousemove', onToggleDrag);
-    document.addEventListener('mouseup', stopToggleDrag);
-    document.addEventListener('mouseleave', stopToggleDrag);
-}
-    
-    function startDragging() {
-        isDragging = true;
-        isClick = false;
-        
-        // Zmień wygląd podczas przeciągania
-        toggleBtn.style.cursor = 'grabbing';
-        toggleBtn.style.transform = 'scale(1.1)';
-        toggleBtn.style.boxShadow = '0 0 25px rgba(255, 100, 100, 1)';
-        toggleBtn.style.border = '3px solid #ffff00';
-        
-        // Dodaj nasłuchiwacze
-        document.addEventListener('mousemove', onToggleDrag);
-        document.addEventListener('mouseup', stopToggleDrag);
-        document.addEventListener('mouseleave', stopToggleDrag);
-    }
-
-    function onToggleDrag(e) {
-        if (!isDragging) return;
-        
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        
-        // Oblicz nową pozycję
-        const newLeft = initialLeft + deltaX;
-        const newTop = initialTop + deltaY;
-        
-        // Ogranicz do obszaru ekranu
-        const maxX = window.innerWidth - toggleBtn.offsetWidth;
-        const maxY = window.innerHeight - toggleBtn.offsetHeight;
-        
-        toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
-        toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
-    }
-
-    function stopToggleDrag() {
-    if (dragTimeout) clearTimeout(dragTimeout);
-    
-    if (!isDragging && !isClick) return;
-    
-    if (isDragging) {
-        // Zakończ przeciąganie
-        isDragging = false;
-        
-        // Przywróć wygląd
-        toggleBtn.style.cursor = 'grab';
-        toggleBtn.style.transform = 'scale(1)';
-        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-        toggleBtn.style.border = '3px solid #00ff00';
-        toggleBtn.classList.remove('dragging'); // USUŃ KLASĘ
-        toggleBtn.classList.add('saved'); // DODAJ ANIMACJĘ ZAPISU
-        
-        // Zapisz pozycję
-        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        console.log('💾 Saved button position:', {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        // Usuń klasę saved po animacji
-        setTimeout(() => {
-            toggleBtn.classList.remove('saved');
-        }, 1000);
-    }
-    
-    // Usuń nasłuchiwacze
-    document.removeEventListener('mousemove', onToggleDrag);
-    document.removeEventListener('mouseup', stopToggleDrag);
-    document.removeEventListener('mouseleave', stopToggleDrag);
-    
-    isClick = false;
-}
-        
-        // Usuń nasłuchiwacze
-        document.removeEventListener('mousemove', onToggleDrag);
-        document.removeEventListener('mouseup', stopToggleDrag);
-        document.removeEventListener('mouseleave', stopToggleDrag);
-        
-        isClick = false;
-    }
-
-    // Obsługa podwójnego kliknięcia
-    let lastClickTime = 0;
-    toggleBtn.addEventListener('click', function(e) {
-        if (isDragging) {
+        toggleBtn.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return; // Tylko lewy przycisk myszy
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = parseInt(toggleBtn.style.left) || 70;
+            initialTop = parseInt(toggleBtn.style.top) || 70;
+            
+            // Nasłuchuj ruchu myszy aby wykryć przeciąganie
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mouseleave', onMouseUp);
+            
             e.preventDefault();
-            return;
-        }
-        
-        const currentTime = new Date().getTime();
-        const isDoubleClick = (currentTime - lastClickTime) < 300; // 300ms threshold
-        
-        if (isDoubleClick) {
-            // Podwójny klik - toggle panel
-            const panel = document.getElementById('swAddonsPanel');
-            if (panel) {
-                const isVisible = panel.style.display === 'block';
-                panel.style.display = isVisible ? 'none' : 'block';
-                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-                console.log('🎯 Panel toggled:', !isVisible);
+        });
+
+        function onMouseMove(e) {
+            const deltaX = Math.abs(e.clientX - startX);
+            const deltaY = Math.abs(e.clientY - startY);
+            
+            // Jeśli mysz przemieściła się wystarczająco daleko, rozpocznij przeciąganie
+            if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
+                startDragging();
             }
-            lastClickTime = 0;
-        } else {
+            
+            if (isDragging) {
+                onToggleDrag(e);
+            }
+        }
+
+        function startDragging() {
+            isDragging = true;
+            
+            // Zmień wygląd podczas przeciągania
+            toggleBtn.style.cursor = 'grabbing';
+            toggleBtn.style.transform = 'scale(1.15)';
+            toggleBtn.style.boxShadow = '0 0 30px rgba(255, 50, 50, 1.2)';
+            toggleBtn.style.border = '3px solid #ffff00';
+            toggleBtn.classList.add('dragging');
+        }
+
+        function onToggleDrag(e) {
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            // Oblicz nową pozycję
+            const newLeft = initialLeft + deltaX;
+            const newTop = initialTop + deltaY;
+            
+            // Ogranicz do obszaru ekranu
+            const maxX = window.innerWidth - toggleBtn.offsetWidth;
+            const maxY = window.innerHeight - toggleBtn.offsetHeight;
+            
+            toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
+            toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
+        }
+
+        function onMouseUp(e) {
+            // Usuń nasłuchiwacze
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('mouseleave', onMouseUp);
+            
+            if (isDragging) {
+                // Zakończ przeciąganie
+                stopDragging();
+            } else {
+                // To było kliknięcie - obsłuż podwójne kliknięcie
+                handleClick();
+            }
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            
+            // Przywróć wygląd
+            toggleBtn.style.cursor = 'grab';
+            toggleBtn.style.transform = 'scale(1)';
+            toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+            toggleBtn.style.border = '3px solid #00ff00';
+            toggleBtn.classList.remove('dragging');
+            toggleBtn.classList.add('saved');
+            
+            // Zapisz pozycję
+            SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+                left: toggleBtn.style.left,
+                top: toggleBtn.style.top
+            });
+            
+            console.log('💾 Saved button position:', {
+                left: toggleBtn.style.left,
+                top: toggleBtn.style.top
+            });
+            
+            // Usuń klasę saved po animacji
+            setTimeout(() => {
+                toggleBtn.classList.remove('saved');
+            }, 1500);
+        }
+
+        // Obsługa podwójnego kliknięcia
+        let lastClickTime = 0;
+        let clickCount = 0;
+        
+        function handleClick() {
+            const currentTime = new Date().getTime();
+            
+            if (currentTime - lastClickTime < 300) { // 300ms dla podwójnego kliknięcia
+                clickCount++;
+            } else {
+                clickCount = 1;
+            }
+            
             lastClickTime = currentTime;
-        }
-        
-        e.preventDefault();
-    });
-
-    // Zapobiegaj domyślnej akcji dla myszy
-    toggleBtn.addEventListener('mouseup', function(e) {
-        if (isDragging) {
-            e.preventDefault();
-        }
-    });
-
-    console.log('✅ Improved toggle drag functionality added');
-}
-
-    function onToggleDrag(e) {
-        if (!isDragging) return;
-        
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        
-        // Oblicz nową pozycję
-        const newLeft = initialLeft + deltaX;
-        const newTop = initialTop + deltaY;
-        
-        // Ogranicz do obszaru ekranu
-        const maxX = window.innerWidth - toggleBtn.offsetWidth;
-        const maxY = window.innerHeight - toggleBtn.offsetHeight;
-        
-        toggleBtn.style.left = Math.max(0, Math.min(newLeft, maxX)) + 'px';
-        toggleBtn.style.top = Math.max(0, Math.min(newTop, maxY)) + 'px';
-    }
-
-    function stopToggleDrag() {
-        if (!isDragging) return;
-        
-        isDragging = false;
-        
-        // Przywróć wygląd
-        toggleBtn.style.cursor = 'grab';
-        toggleBtn.style.transform = 'scale(1)';
-        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-        toggleBtn.style.border = '3px solid #00ff00';
-        
-        // Zapisz pozycję
-        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        console.log('💾 Saved button position:', {
-            left: toggleBtn.style.left,
-            top: toggleBtn.style.top
-        });
-        
-        // Usuń nasłuchiwacze
-        document.removeEventListener('mousemove', onToggleDrag);
-        document.removeEventListener('mouseup', stopToggleDrag);
-        document.removeEventListener('mouseleave', stopToggleDrag);
-    }
-
-    // Podwójny klik do otwierania panelu
-    let clickTimer = null;
-    toggleBtn.addEventListener('click', function(e) {
-        if (isDragging) return; // Ignoruj kliknięcia podczas przeciągania
-        
-        if (clickTimer !== null) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-            // Double click - toggle panel
-            const panel = document.getElementById('swAddonsPanel');
-            if (panel) {
-                const isVisible = panel.style.display === 'block';
-                panel.style.display = isVisible ? 'none' : 'block';
-                SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+            
+            if (clickCount === 2) {
+                // Podwójny klik - toggle panel
+                const panel = document.getElementById('swAddonsPanel');
+                if (panel) {
+                    const isVisible = panel.style.display === 'block';
+                    panel.style.display = isVisible ? 'none' : 'block';
+                    SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+                    console.log('🎯 Panel toggled:', !isVisible);
+                }
+                clickCount = 0;
             }
-        } else {
-            clickTimer = setTimeout(() => {
-                clickTimer = null;
+            
+            // Reset click count after timeout
+            setTimeout(() => {
+                if (clickCount === 1) {
+                    clickCount = 0; // Single click timeout
+                }
             }, 300);
         }
-    });
 
-    console.log('✅ Toggle drag functionality added');
-}
+        console.log('✅ Advanced toggle drag functionality added');
+    }
+
     function createMainPanel() {
         // Usuń stary panel jeśli istnieje
         const oldPanel = document.getElementById('swAddonsPanel');
@@ -558,15 +348,14 @@ function setupToggleDrag(toggleBtn) {
                     content.style.display = 'none';
                 });
                 
-                // Usuń aktywną klasę
+                // Usuń aktywną klasę z wszystkich przycisków
                 tabs.forEach(t => {
                     t.style.color = '#8899aa';
                     t.style.borderBottom = 'none';
                 });
                 
                 // Pokaż wybraną zakładkę
-                const tabId = 'swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
-                const tabContent = document.getElementById(tabId);
+                const tabContent = document.getElementById('swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
                 if (tabContent) {
                     tabContent.style.display = 'block';
                 }
@@ -594,17 +383,18 @@ function setupToggleDrag(toggleBtn) {
             offsetX = e.clientX - rect.left;
             offsetY = e.clientY - rect.top;
             panel.style.opacity = '0.9';
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('mousemove', onPanelDrag);
+            document.addEventListener('mouseup', stopPanelDrag);
         });
 
-        function onDrag(e) {
+        function onPanelDrag(e) {
             if (!isDragging) return;
             panel.style.left = (e.clientX - offsetX) + 'px';
             panel.style.top = (e.clientY - offsetY) + 'px';
         }
 
-        function stopDrag() {
+        function stopPanelDrag() {
+            if (!isDragging) return;
             isDragging = false;
             panel.style.opacity = '1';
             
@@ -614,26 +404,13 @@ function setupToggleDrag(toggleBtn) {
                 top: panel.style.top
             });
             
-            document.removeEventListener('mousemove', onDrag);
-            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('mousemove', onPanelDrag);
+            document.removeEventListener('mouseup', stopPanelDrag);
         }
-        console.log('✅ Drag setup complete');
+        console.log('✅ Panel drag setup complete');
     }
 
     function setupEventListeners() {
-        // Podwójny klik na przycisk
-        const toggleBtn = document.getElementById('swPanelToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('dblclick', function() {
-                const panel = document.getElementById('swAddonsPanel');
-                if (panel) {
-                    const isVisible = panel.style.display === 'block';
-                    panel.style.display = isVisible ? 'none' : 'block';
-                    SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-                }
-            });
-        }
-
         // Weryfikacja licencji
         const verifyBtn = document.getElementById('swVerifyButton');
         if (verifyBtn) {
@@ -649,6 +426,7 @@ function setupToggleDrag(toggleBtn) {
                     SW.GM_deleteValue(CONFIG.LICENSE_VERIFIED);
                     SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                     SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
+                    SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
                     alert('Ustawienia zresetowane. Odśwież stronę.');
                 }
             });
@@ -674,8 +452,10 @@ function setupToggleDrag(toggleBtn) {
                 SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
                 SW.GM_setValue(CONFIG.LICENSE_VERIFIED, 'true');
                 showMessage('✅ Licencja aktywowana!', 'success');
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
+                if (statusEl) {
+                    statusEl.textContent = 'Aktywna';
+                    statusEl.style.color = '#00ffaa';
+                }
                 loadAddons();
             } else {
                 showMessage('❌ Nieprawidłowy klucz', 'error');
@@ -698,67 +478,76 @@ function setupToggleDrag(toggleBtn) {
 
     function loadAddons() {
         console.log('🔓 Ładowanie dodatków...');
-        SW.GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/addons/kcs-icons.js?v=' + Date.now(),
-            onload: function(response) {
-                if (response.status === 200) {
-                    const script = document.createElement('script');
-                    script.textContent = response.responseText;
-                    document.head.appendChild(script);
-                    console.log('✅ Dodatek kcs-icons załadowany');
+        if (SW && SW.GM_xmlhttpRequest) {
+            SW.GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/addons/kcs-icons.js?v=' + Date.now(),
+                onload: function(response) {
+                    if (response.status === 200) {
+                        const script = document.createElement('script');
+                        script.textContent = response.responseText;
+                        document.head.appendChild(script);
+                        console.log('✅ Dodatek kcs-icons załadowany');
+                    }
+                },
+                onerror: function(error) {
+                    console.error('❌ Błąd ładowania dodatku:', error);
                 }
-            },
-            onerror: function(error) {
-                console.error('❌ Błąd ładowania dodatku:', error);
-            }
-        });
+            });
+        }
     }
 
     function loadSavedState() {
-    // Załaduj zapisaną pozycję PRZYCISKU
-    const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
-    const toggleBtn = document.getElementById('swPanelToggle');
-    if (toggleBtn && savedBtnPosition) {
-        toggleBtn.style.left = savedBtnPosition.left || '70px';
-        toggleBtn.style.top = savedBtnPosition.top || '70px';
-        console.log('📍 Loaded button position:', savedBtnPosition);
+        if (!SW || !SW.GM_getValue) return;
+        
+        // Załaduj zapisaną pozycję PRZYCISKU
+        const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
+        const toggleBtn = document.getElementById('swPanelToggle');
+        if (toggleBtn && savedBtnPosition) {
+            toggleBtn.style.left = savedBtnPosition.left || '70px';
+            toggleBtn.style.top = savedBtnPosition.top || '70px';
+            console.log('📍 Loaded button position:', savedBtnPosition);
+        }
+        
+        // Załaduj zapisaną pozycję PANELU
+        const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
+        const panel = document.getElementById('swAddonsPanel');
+        if (panel && savedPosition) {
+            panel.style.left = savedPosition.left || '70px';
+            panel.style.top = savedPosition.top || '140px';
+        }
+        
+        // Załaduj zapisaną widoczność
+        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
+        if (panel) {
+            panel.style.display = isVisible ? 'block' : 'none';
+        }
+        
+        // Załaduj zapisany klucz licencyjny
+        const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
+        const licenseInput = document.getElementById('swLicenseInput');
+        if (licenseInput && savedKey) {
+            licenseInput.value = savedKey;
+        }
+        
+        // Sprawdź status licencji
+        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+        const statusEl = document.getElementById('swLicenseStatus');
+        if (statusEl && isVerified) {
+            statusEl.textContent = 'Aktywna';
+            statusEl.style.color = '#00ffaa';
+        }
+        
+        console.log('✅ Saved state loaded');
     }
-    
-    // Reszta funkcji (panel position, license, etc.) pozostaje bez zmian
-    const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
-    const panel = document.getElementById('swAddonsPanel');
-    if (panel && savedPosition) {
-        panel.style.left = savedPosition.left || '70px';
-        panel.style.top = savedPosition.top || '140px';
-    }
-    
-    const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, 'false') === 'true';
-    if (panel) {
-        panel.style.display = isVisible ? 'block' : 'none';
-    }
-    
-    const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
-    const licenseInput = document.getElementById('swLicenseInput');
-    if (licenseInput && savedKey) {
-        licenseInput.value = savedKey;
-    }
-    
-    const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
-    const statusEl = document.getElementById('swLicenseStatus');
-    if (statusEl && isVerified) {
-        statusEl.textContent = 'Aktywna';
-        statusEl.style.color = '#00ffaa';
-    }
-    
-    console.log('✅ Saved state loaded');
-}
 
     function checkLicenseOnStart() {
-        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
-        if (isVerified) {
-            console.log('📋 Licencja zweryfikowana, ładuję dodatki...');
-            loadAddons();
+        if (SW && SW.GM_getValue) {
+            const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, 'false') === 'true';
+            if (isVerified) {
+                console.log('📋 Licencja zweryfikowana, ładuję dodatki...');
+                loadAddons();
+            }
         }
     }
 
