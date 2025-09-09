@@ -34,35 +34,34 @@
     }
 
     function createToggleButton() {
-        if (document.getElementById('swPanelToggle')) return;
-        
-        const toggleBtn = document.createElement("div");
-        toggleBtn.id = "swPanelToggle";
-        toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
-        toggleBtn.style.cssText = `
-            position: fixed;
-            top: 50px;
-            left: 50px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(45deg, #ff0000, #ff3333);
-            border: 3px solid #00ff00;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 1000000;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 0 0 5px black;
-        `;
-        toggleBtn.textContent = "SW";
-        document.body.appendChild(toggleBtn);
-    }
-
+    if (document.getElementById('swPanelToggle')) return;
+    
+    const toggleBtn = document.createElement("div");
+    toggleBtn.id = "swPanelToggle";
+    toggleBtn.title = "Kliknij dwukrotnie, aby otworzyć/ukryć panel";
+    toggleBtn.style.cssText = `
+        position: fixed !important;
+        top: 50px !important;
+        left: 50px !important;
+        width: 50px !important;
+        height: 50px !important;
+        background: linear-gradient(45deg, #ff0000, #ff3333) !important;
+        border: 3px solid #00ff00 !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        z-index: 1000000 !important;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-shadow: 0 0 5px black !important;
+    `;
+    toggleBtn.textContent = "SW";
+    document.body.appendChild(toggleBtn);
+}
     function createMainPanel() {
         if (document.getElementById('swAddonsPanel')) return;
         
