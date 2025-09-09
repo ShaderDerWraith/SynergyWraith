@@ -191,31 +191,46 @@ function setupToggleDrag(toggleBtn) {
     }
 
     function stopToggleDrag() {
-        if (dragTimeout) clearTimeout(dragTimeout);
+    if (dragTimeout) clearTimeout(dragTimeout);
+    
+    if (!isDragging && !isClick) return;
+    
+    if (isDragging) {
+        // Zakończ przeciąganie
+        isDragging = false;
         
-        if (!isDragging && !isClick) return;
+        // Przywróć wygląd
+        toggleBtn.style.cursor = 'grab';
+        toggleBtn.style.transform = 'scale(1)';
+        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+        toggleBtn.style.border = '3px solid #00ff00';
+        toggleBtn.classList.remove('dragging'); // USUŃ KLASĘ
+        toggleBtn.classList.add('saved'); // DODAJ ANIMACJĘ ZAPISU
         
-        if (isDragging) {
-            // Zakończ przeciąganie
-            isDragging = false;
-            
-            // Przywróć wygląd
-            toggleBtn.style.cursor = 'grab';
-            toggleBtn.style.transform = 'scale(1)';
-            toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-            toggleBtn.style.border = '3px solid #00ff00';
-            
-            // Zapisz pozycję
-            SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
-            });
-            
-            console.log('💾 Saved button position:', {
-                left: toggleBtn.style.left,
-                top: toggleBtn.style.top
-            });
-        }
+        // Zapisz pozycję
+        SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        console.log('💾 Saved button position:', {
+            left: toggleBtn.style.left,
+            top: toggleBtn.style.top
+        });
+        
+        // Usuń klasę saved po animacji
+        setTimeout(() => {
+            toggleBtn.classList.remove('saved');
+        }, 1000);
+    }
+    
+    // Usuń nasłuchiwacze
+    document.removeEventListener('mousemove', onToggleDrag);
+    document.removeEventListener('mouseup', stopToggleDrag);
+    document.removeEventListener('mouseleave', stopToggleDrag);
+    
+    isClick = false;
+}
         
         // Usuń nasłuchiwacze
         document.removeEventListener('mousemove', onToggleDrag);
