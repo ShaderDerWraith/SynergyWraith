@@ -94,11 +94,11 @@
         let isDragging = false;
         let startX, startY;
         let initialLeft, initialTop;
-        const DRAG_THRESHOLD = 5;
         let clickCount = 0;
         let clickTimer = null;
 
         toggleBtn.addEventListener('mousedown', function(e) {
+            console.log('mousedown on toggle button');
             if (e.button !== 0) return;
             
             startX = e.clientX;
@@ -114,10 +114,9 @@
         });
 
         function onMouseMove(e) {
-            const deltaX = Math.abs(e.clientX - startX);
-            const deltaY = Math.abs(e.clientY - startY);
-            
-            if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
+            console.log('mousemove');
+            if (!isDragging) {
+                // Rozpocznij przeciąganie natychmiast po ruchu myszy
                 startDragging();
             }
             
@@ -247,7 +246,7 @@
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
             </div>
             
-            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
+            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532; border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
                 <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
