@@ -60,6 +60,9 @@
 
     const AVAILABLE_ADDONS = {};
 
+    // 🔹 GLOBAL FUNCTION FOR EXTERNAL INIT
+    window.initPanel = initPanel;
+
     // 🔹 MAIN INITIALIZATION
     function initPanel() {
         console.log("✅ Panel dodatków załadowany");
@@ -73,24 +76,42 @@
         setupEventListeners();
         setupTabs();
         checkLicenseOnStart();
+        
+        console.log("🎯 Panel zainicjalizowany pomyślnie");
     }
 
     // 🔹 CREATE ELEMENTS
     function createToggleButton() {
+        // Sprawdź czy przycisk już istnieje
+        if (document.getElementById("myPanelToggle")) {
+            console.log("ℹ️ Przycisk już istnieje, pomijam tworzenie");
+            window.toggleBtn = document.getElementById("myPanelToggle");
+            return;
+        }
+        
         const toggleBtn = document.createElement("div");
         toggleBtn.id = "myPanelToggle";
         toggleBtn.textContent = "";
         toggleBtn.title = "Przeciągnij, aby przenieść. Kliknij dwukrotnie, aby otworzyć/ukryć panel.";
         document.body.appendChild(toggleBtn);
         window.toggleBtn = toggleBtn;
+        console.log("✅ Przycisk utworzony");
     }
 
     function createMainPanel() {
+        // Sprawdź czy panel już istnieje
+        if (document.getElementById("myAddonsPanel")) {
+            console.log("ℹ️ Panel już istnieje, pomijam tworzenie");
+            window.panel = document.getElementById("myAddonsPanel");
+            return;
+        }
+        
         const panel = document.createElement("div");
         panel.id = "myAddonsPanel";
         panel.innerHTML = generatePanelHTML();
         document.body.appendChild(panel);
         window.panel = panel;
+        console.log("✅ Panel utworzony");
     }
 
     function generatePanelHTML() {
@@ -334,21 +355,19 @@
         const expiryText = document.getElementById('licenseExpiryText');
         const keyText = document.getElementById('licenseKeyText');
         
-        if (isValid) {
-            const user = safeGetItem('license_user', 'Unknown User');
-            const expires = safeGetItem('license_expires', '2024-12-31');
-            const key = safeGetItem(CONFIG.LICENSE_KEY, '');
-            
-            if (statusText) {
+        if (statusText && userText && expiryText && keyText) {
+            if (isValid) {
+                const user = safeGetItem('license_user', 'Unknown User');
+                const expires = safeGetItem('license_expires', '2024-12-31');
+                const key = safeGetItem(CONFIG.LICENSE_KEY, '');
+                
                 statusText.textContent = 'Aktywna';
                 statusText.className = 'license-status-value license-status-valid';
                 userText.textContent = user;
                 expiryText.textContent = expires;
                 keyText.textContent = key.substring(0, 4) + '...' + key.substring(key.length - 4);
-            }
-            
-        } else {
-            if (statusText) {
+                
+            } else {
                 statusText.textContent = 'Nieaktywna';
                 statusText.className = 'license-status-value license-status-invalid';
                 userText.textContent = '-';
@@ -389,7 +408,7 @@
 
     function loadPanelPosition() {
         const savedPos = safeGetItem(CONFIG.PANEL_POS_KEY, '');
-        if (savedPos) {
+        if (savedPos && panel) {
             try {
                 const { top, left } = JSON.parse(savedPos);
                 panel.style.top = top;
@@ -402,7 +421,7 @@
 
     function loadToggleButtonPosition() {
         const savedPos = safeGetItem(CONFIG.TOGGLE_BTN_POS_KEY, '');
-        if (savedPos) {
+        if (savedPos && toggleBtn) {
             try {
                 const { top, left } = JSON.parse(savedPos);
                 toggleBtn.style.top = top;
@@ -433,7 +452,9 @@
 
     function loadPanelVisibility() {
         const savedVisible = safeGetItem(CONFIG.PANEL_VISIBLE_KEY, '');
-        panel.style.display = savedVisible === "true" ? "block" : "none";
+        if (panel) {
+            panel.style.display = savedVisible === "true" ? "block" : "none";
+        }
     }
 
     // 🔹 ADDONS LOADING
@@ -481,6 +502,8 @@
     }
 
     function setupDoubleClick() {
+        if (!toggleBtn) return;
+        
         let clickTimer = null;
         toggleBtn.addEventListener('click', () => {
             if (clickTimer !== null) {
@@ -494,6 +517,8 @@
     }
 
     function togglePanel() {
+        if (!panel) return;
+        
         const isVisible = panel.style.display === "block";
         panel.style.display = isVisible ? "none" : "block";
         safeSetItem(CONFIG.PANEL_VISIBLE_KEY, (!isVisible).toString());
@@ -501,6 +526,8 @@
 
     function setupPanelDrag() {
         const header = document.getElementById("myAddonsPanelHeader");
+        if (!header || !panel) return;
+        
         let isDragging = false;
         let offsetX, offsetY;
 
@@ -535,6 +562,8 @@
     }
 
     function setupToggleButtonDrag() {
+        if (!toggleBtn) return;
+        
         let isDragging = false;
         let offsetX, offsetY;
 
@@ -578,122 +607,4 @@
                 config[addonId] = isEnabled;
                 safeSetItem(CONFIG.ADDONS_CONFIG_KEY, JSON.stringify(config));
                 
-                console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'WYŁĄCZONY'}`);
-                
-                if (isEnabled) {
-                    loadAddonScript(addonId);
-                }
-            }
-        });
-    }
-
-    function setupAddonHeaders() {
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('addon-header')) {
-                const addon = e.target.closest('.addon');
-                addon.classList.toggle('expanded');
-            }
-        });
-    }
-
-    function setupAddonSettingsButtons() {
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('addon-settings-btn')) {
-                const addonId = e.target.dataset.addonId;
-                const settingsPanel = document.getElementById(`settings-${addonId}`);
-                if (settingsPanel) {
-                    settingsPanel.classList.toggle('visible');
-                    
-                    document.querySelectorAll('.addon-settings-panel').forEach(panel => {
-                        if (panel.id !== `settings-${addonId}`) {
-                            panel.classList.remove('visible');
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    function setupLicenseVerification() {
-        const verifyBtn = document.getElementById('verifyLicense');
-        const licenseInput = document.getElementById('licenseKeyInput');
-        
-        if (verifyBtn && licenseInput) {
-            verifyBtn.addEventListener('click', () => {
-                const licenseKey = licenseInput.value.trim();
-                if (licenseKey) {
-                    verifyLicense(licenseKey);
-                } else {
-                    showLicenseMessage('❌ Wprowadź klucz licencyjny', 'error');
-                }
-            });
-
-            licenseInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    verifyBtn.click();
-                }
-            });
-        }
-    }
-
-    function setupResetButton() {
-        const resetBtn = document.getElementById('reset-settings');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
-                    const keys = [
-                        CONFIG.PANEL_POS_KEY,
-                        CONFIG.PANEL_VISIBLE_KEY,
-                        CONFIG.TOGGLE_BTN_POS_KEY,
-                        CONFIG.ADDONS_CONFIG_KEY,
-                        CONFIG.LICENSE_KEY,
-                        CONFIG.LICENSE_VERIFIED,
-                        'license_user',
-                        'license_expires'
-                    ];
-                    
-                    keys.forEach(key => safeRemoveItem(key));
-                    
-                    alert('Ustawienia zresetowane. Strona zostanie odświeżona.');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            });
-        }
-    }
-
-    // 🔹 TAB SYSTEM
-    function setupTabs() {
-        const tabContainer = document.querySelector('.tab-container');
-        if (tabContainer) {
-            tabContainer.addEventListener('click', (e) => {
-                if (e.target.matches('.tablink')) {
-                    openTab(e.target.dataset.tab);
-                }
-            });
-        }
-    }
-
-    function openTab(tabName) {
-        document.querySelectorAll('.tabcontent').forEach(tab => {
-            tab.style.display = 'none';
-        });
-        
-        document.querySelectorAll('.tablink').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const tab = document.getElementById(tabName);
-        const tabButton = document.querySelector(`.tablink[data-tab="${tabName}"]`);
-        
-        if (tab) tab.style.display = 'block';
-        if (tabButton) tabButton.classList.add('active');
-    }
-
-    // 🔹 START THE PANEL
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPanel);
-    } else {
-        initPanel();
-    }
-
-})();
+                console.log(`🔧 Dodatek ${addonId}: ${isEnabled ? 'WŁĄCZONY' : 'W
