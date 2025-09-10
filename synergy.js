@@ -461,7 +461,9 @@
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-                SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
+                
+                // Ustaw KCS Icons na wyłączony (false) zamiast usuwać ustawienie
+                SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, false);
                 
                 // Pokaż komunikat w panelu
                 const resetMessage = document.getElementById('swResetMessage');
