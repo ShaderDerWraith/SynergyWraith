@@ -544,8 +544,11 @@
         setTimeout(() => {
             const validKeys = ["TEST-KEY-123", "SYNERGY-2024", "DEV-ACCESS", "SYNERGY-2024-001"];
             if (validKeys.includes(licenseKey)) {
-                SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
+                // Zapisz klucz i status
+                const setKeyResult = SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
+                const setVerifiedResult = SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
+                console.log('Zapis klucza:', setKeyResult, 'Zapis statusu:', setVerifiedResult);
+                
                 showMessage('✅ Licencja aktywowana!', 'success');
                 if (statusEl) {
                     statusEl.textContent = 'Aktywna';
@@ -620,9 +623,11 @@
         
         // Załaduj zapisany klucz licencyjny
         const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
+        console.log('Zapisany klucz:', savedKey);
         const licenseInput = document.getElementById('swLicenseInput');
         if (licenseInput && savedKey) {
             licenseInput.value = savedKey;
+            console.log('Ustawiono klucz w inputcie:', licenseInput.value);
         }
         
         // Sprawdź status licencji
@@ -667,8 +672,16 @@
         // ... (tutaj pozostała część funkcji initKCSIcons) ...
     }
 
-    console.log('🎯 Starting panel initialization...');
-    initPanel();
-    console.log('✅ SynergyWraith panel ready!');
-
+    console.log('🎯 Waiting for DOM to load...');
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded, initializing panel...');
+            initPanel();
+            console.log('✅ SynergyWraith panel ready!');
+        });
+    } else {
+        console.log('✅ DOM already loaded, initializing panel...');
+        initPanel();
+        console.log('✅ SynergyWraith panel ready!');
+    }
 })();
