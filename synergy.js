@@ -331,7 +331,7 @@
                 <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
                 
                 <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
-                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Status Licencji</div>
+                    <div style="color: '); padding-bottom: 8px; text-align: center;">Status Licencji</div>
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">Status:</span>
                         <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Nieaktywna</span>
@@ -457,13 +457,11 @@
         
         if (resetConfirm) {
             resetConfirm.addEventListener('click', function() {
-                // Usuń tylko ustawienia pozycji i widoczności, NIE usuwać klucza licencji
+                // Usuń tylko ustawienia pozycji i widoczności panelu
+                // NIE usuwać ustawień dodatków (KCS_ICONS_ENABLED)
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-                
-                // Ustaw KCS Icons na wyłączony (false) zamiast usuwać ustawienie
-                SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, false);
                 
                 // Pokaż komunikat w panelu
                 const resetMessage = document.getElementById('swResetMessage');
