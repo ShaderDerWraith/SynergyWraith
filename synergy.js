@@ -63,12 +63,21 @@
     function initPanel() {
         console.log('✅ Initializing panel...');
         
-        createToggleButton();
+        // Najpierw tworzymy przycisk, ale nie inicjujemy jeszcze przeciągania
+        const toggleBtn = createToggleButton();
+        
+        // Ładujemy zapisany stan (w tym pozycję przycisku)
+        loadSavedState();
+        
+        // Teraz inicjujemy przeciąganie przycisku z załadowaną pozycją
+        if (toggleBtn) {
+            setupToggleDrag(toggleBtn);
+        }
+        
         createMainPanel();
         setupEventListeners();
         setupTabs();
         setupDrag();
-        loadSavedState();
         
         checkLicenseOnStart();
         
@@ -92,11 +101,20 @@
                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
         `;
         
+        // Ustaw domyślną pozycję (zostanie nadpisana przez loadSavedState jeśli istnieje zapisana pozycja)
+        toggleBtn.style.position = 'fixed';
+        toggleBtn.style.width = '50px';
+        toggleBtn.style.height = '50px';
+        toggleBtn.style.zIndex = '999998';
+        toggleBtn.style.cursor = 'grab';
+        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
+        toggleBtn.style.border = '3px solid #00ff00';
+        toggleBtn.style.borderRadius = '50%';
+        toggleBtn.style.overflow = 'hidden';
+        toggleBtn.style.transition = 'transform 0.2s, box-shadow 0.2s, border 0.2s';
+        
         document.body.appendChild(toggleBtn);
         console.log('✅ Toggle button created');
-        
-        // Dodaj przeciąganie przycisku
-        setupToggleDrag(toggleBtn);
         
         return toggleBtn;
     }
@@ -108,8 +126,14 @@
         let clickCount = 0;
         let clickTimer = null;
         let animationFrame = null;
+        
+        // Pobierz aktualną pozycję przycisku (już załadowaną z zapisanych ustawień)
         let currentX = parseInt(toggleBtn.style.left) || 70;
         let currentY = parseInt(toggleBtn.style.top) || 70;
+        
+        // Ustaw pozycję na podstawie zmiennych currentX/Y
+        toggleBtn.style.left = currentX + 'px';
+        toggleBtn.style.top = currentY + 'px';
 
         toggleBtn.addEventListener('mousedown', function(e) {
             if (e.button !== 0) return;
