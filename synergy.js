@@ -66,6 +66,9 @@
         // Najpierw tworzymy przycisk, ale nie inicjujemy jeszcze przeciągania
         const toggleBtn = createToggleButton();
         
+        // Tworzymy panel główny przed ładowaniem stanu
+        createMainPanel();
+        
         // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
         
@@ -74,7 +77,6 @@
             setupToggleDrag(toggleBtn);
         }
         
-        createMainPanel();
         setupEventListeners();
         setupTabs();
         setupDrag();
@@ -455,23 +457,11 @@
         
         if (resetConfirm) {
             resetConfirm.addEventListener('click', function() {
-                // Zachowaj klucz licencji i status weryfikacji
-                const licenseKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
-                const licenseVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED);
-                
-                // Usuń tylko ustawienia pozycji i widoczności
+                // Usuń tylko ustawienia pozycji i widoczności, NIE usuwać klucza licencji
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
                 SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
-                
-                // Przywróć klucz licencji i status jeśli istnieją
-                if (licenseKey) {
-                    SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                }
-                if (licenseVerified) {
-                    SW.GM_setValue(CONFIG.LICENSE_VERIFIED, licenseVerified);
-                }
                 
                 // Pokaż komunikat w panelu
                 const resetMessage = document.getElementById('swResetMessage');
@@ -491,6 +481,9 @@
                 // Ukryj potwierdzenie i pokaż przycisk resetowania
                 resetConfirmation.style.display = 'none';
                 resetBtn.style.display = 'block';
+                
+                // Odśwież stan panelu, aby pokazać zresetowane ustawienia
+                loadSavedState();
             });
         }
         
