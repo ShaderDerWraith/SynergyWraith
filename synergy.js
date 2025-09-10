@@ -315,6 +315,20 @@
 
             <div class="sw-tab-content" id="swTabSettings" style="padding: 15px; display: none;">
                 <h3 style="color: #00ccff; margin-top: 0;">Ustawienia Panelu</h3>
+                
+                <!-- Potwierdzenie resetowania -->
+                <div id="swResetConfirmation" style="display: none; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
+                    <p style="color: #ccddee; margin-top: 0;">Czy na pewno chcesz zresetować ustawienia?</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="swResetConfirm" style="flex: 1; padding: 8px; background: linear-gradient(to right, #ff5555, #ff3366); border: none; border-radius: 5px; color: white; cursor: pointer;">
+                            Tak, resetuj
+                        </button>
+                        <button id="swResetCancel" style="flex: 1; padding: 8px; background: linear-gradient(to right, #555, #333); border: none; border-radius: 5px; color: white; cursor: pointer;">
+                            Anuluj
+                        </button>
+                    </div>
+                </div>
+                
                 <button id="swResetButton" style="width: 100%; padding: 10px; background: linear-gradient(to right, #ff5555, #ff3366); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
                     Resetuj Ustawienia
                 </button>
@@ -403,42 +417,64 @@
         }
 
         const resetBtn = document.getElementById('swResetButton');
+        const resetConfirm = document.getElementById('swResetConfirm');
+        const resetCancel = document.getElementById('swResetCancel');
+        const resetConfirmation = document.getElementById('swResetConfirmation');
+        
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
-                if (confirm('Czy na pewno chcesz zresetować ustawienia?')) {
-                    // Zachowaj klucz licencji i status weryfikacji
-                    const licenseKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
-                    const licenseVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED);
-                    
-                    // Usuń tylko ustawienia pozycji i widoczności
-                    SW.GM_deleteValue(CONFIG.PANEL_POSITION);
-                    SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
-                    SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-                    SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
-                    
-                    // Przywróć klucz licencji i status jeśli istnieją
-                    if (licenseKey) {
-                        SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                    }
-                    if (licenseVerified) {
-                        SW.GM_setValue(CONFIG.LICENSE_VERIFIED, licenseVerified);
-                    }
-                    
-                    // Pokaż komunikat w panelu zamiast alertu
-                    const resetMessage = document.getElementById('swResetMessage');
-                    if (resetMessage) {
-                        resetMessage.textContent = 'Ustawienia zresetowane. Proszę odświeżyć grę, aby zmiany zostały zastosowane.';
-                        resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
-                        resetMessage.style.color = '#00ccff';
-                        resetMessage.style.border = '1px solid #00ccff';
-                        resetMessage.style.display = 'block';
-                        
-                        // Ukryj komunikat po 5 sekundach
-                        setTimeout(() => {
-                            resetMessage.style.display = 'none';
-                        }, 5000);
-                    }
+                // Pokaż potwierdzenie zamiast używać confirm
+                resetConfirmation.style.display = 'block';
+                resetBtn.style.display = 'none';
+            });
+        }
+        
+        if (resetConfirm) {
+            resetConfirm.addEventListener('click', function() {
+                // Zachowaj klucz licencji i status weryfikacji
+                const licenseKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
+                const licenseVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED);
+                
+                // Usuń tylko ustawienia pozycji i widoczności
+                SW.GM_deleteValue(CONFIG.PANEL_POSITION);
+                SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
+                SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
+                SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
+                
+                // Przywróć klucz licencji i status jeśli istnieją
+                if (licenseKey) {
+                    SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
                 }
+                if (licenseVerified) {
+                    SW.GM_setValue(CONFIG.LICENSE_VERIFIED, licenseVerified);
+                }
+                
+                // Pokaż komunikat w panelu
+                const resetMessage = document.getElementById('swResetMessage');
+                if (resetMessage) {
+                    resetMessage.textContent = 'Ustawienia zresetowane. Proszę odświeżyć grę, aby zmiany zostały zastosowane.';
+                    resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
+                    resetMessage.style.color = '#00ccff';
+                    resetMessage.style.border = '1px solid #00ccff';
+                    resetMessage.style.display = 'block';
+                    
+                    // Ukryj komunikat po 5 sekundach
+                    setTimeout(() => {
+                        resetMessage.style.display = 'none';
+                    }, 5000);
+                }
+                
+                // Ukryj potwierdzenie i pokaż przycisk resetowania
+                resetConfirmation.style.display = 'none';
+                resetBtn.style.display = 'block';
+            });
+        }
+        
+        if (resetCancel) {
+            resetCancel.addEventListener('click', function() {
+                // Ukryj potwierdzenie i pokaż przycisk resetowania
+                resetConfirmation.style.display = 'none';
+                resetBtn.style.display = 'block';
             });
         }
 
@@ -449,7 +485,7 @@
                 const isEnabled = this.checked;
                 SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
                 
-                // Pokaż komunikat o konieczności odświeżenia w panelu zamiast alertu
+                // Pokaż komunikat o konieczności odświeżenia w panelu
                 const message = isEnabled ? 
                     'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
                     'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
