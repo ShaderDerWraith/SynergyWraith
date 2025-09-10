@@ -298,7 +298,7 @@
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
             </div>
             
-            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
+            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532; border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
                 <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
@@ -331,7 +331,7 @@
                 <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
                 
                 <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
-                    <div style="color: '); padding-bottom: 8px; text-align: center;">Status Licencji</div>
+                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Status Licencji</div>
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">Status:</span>
                         <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Nieaktywna</span>
@@ -577,12 +577,20 @@
     function loadAddons() {
         console.log('🔓 Ładowanie dodatków...');
         
+        // Sprawdź czy licencja jest zweryfikowana
+        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
+        if (!isVerified) {
+            console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
+            return;
+        }
+        
         // Sprawdź czy KCS Icons jest włączony
         const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
         
         if (isKcsEnabled) {
             console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
-            initKCSIcons();
+            // Dodaj niewielkie opóźnienie, aby upewnić się, że DOM jest w pełni załadowany
+            setTimeout(initKCSIcons, 100);
         } else {
             console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
         }
@@ -669,7 +677,204 @@
         'use strict';
         console.log("✅ Dodatek KCS Icons załadowany");
 
-        // ... (tutaj pozostała część funkcji initKCSIcons) ...
+        // --- PEŁNA LISTA MONSTERMAPPINGS ---
+        const monsterMappings = {
+            // Elity 2
+            "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
+            "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
+            // ... (tutaj wklej całą listę monsterMappings z Tampermonkey) ...
+        };
+
+        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
+        const ICON_CLASS_NAME = 'kcs-monster-icon';
+
+        function getCache() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                return cached ? JSON.parse(cached) : {};
+            } catch (e) {
+                console.error("[KCS Icons] Error reading cache:", e);
+                return {};
+            }
+        }
+
+        function saveCache(cache) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+            } catch (e) {
+                console.error("[KCS Icons] Error saving cache:", e);
+            }
+        }
+
+        function getMapNameFromTooltipText(text) {
+            if (!text) return null;
+            const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
+            const match = text.match(mapRegex);
+            if (match && match[1]) {
+                return match[1].trim().replace(/\n/g, ' ');
+            }
+            return null;
+        }
+
+        function addMonsterIcon(itemElement, monsterImgUrl) {
+            if (!itemElement) return;
+
+            let existingIcon = itemElement.querySelector(`img.${ICON_CLASS_NAME}`);
+            if (existingIcon) {
+                if (existingIcon.src === monsterImgUrl) {
+                    itemElement.dataset.monsterIconAdded = 'true';
+                    return;
+                } else {
+                    console.log(`[KCS Icons] Zmieniono URL ikony dla itemu. Aktualizowanie.`);
+                    existingIcon.remove();
+                }
+            }
+
+            const currentPosition = window.getComputedStyle(itemElement).position;
+            if (currentPosition === 'static') {
+                itemElement.style.position = 'relative';
+            }
+
+            const img = document.createElement('img');
+            img.src = monsterImgUrl;
+            img.classList.add(ICON_CLASS_NAME);
+            img.style.position = 'absolute';
+            img.style.bottom = '0px';
+            img.style.right = '0px';
+            img.style.width = '32px';
+            img.style.height = '32px';
+            img.style.zIndex = '10';
+            img.style.pointerEvents = 'none';
+            img.style.borderRadius = '2px';
+            itemElement.appendChild(img);
+
+            // Podnieś timer (cooldown) nad ikonę potwora
+            const cooldownDiv = itemElement.querySelector('div.cooldown');
+            if (cooldownDiv) {
+                const cdCurrentPosition = window.getComputedStyle(cooldownDiv).position;
+                if (cdCurrentPosition === 'static') {
+                    cooldownDiv.style.position = 'relative';
+                }
+                cooldownDiv.style.zIndex = '11';
+            }
+
+            // Podnieś ilość (amount) nad ikonę potwora dla Zwojów
+            const amountDiv = itemElement.querySelector('div.amount');
+            if (amountDiv) {
+                const amountCurrentPosition = window.getComputedStyle(amountDiv).position;
+                if (amountCurrentPosition === 'static') {
+                    amountDiv.style.position = 'relative';
+                }
+                amountDiv.style.zIndex = '11';
+            }
+
+            itemElement.dataset.monsterIconAdded = 'true';
+            const itemIdForLog = itemElement.className.match(/item-id-(\d+)/)?.[1] || 'nieznany';
+            console.log(`[KCS Icons] Added icon to item ${itemIdForLog}`);
+        }
+
+        const tooltipObserver = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tip-wrapper')) {
+                            const tooltipNode = node;
+                            const itemDivInTooltip = tooltipNode.querySelector('.item-head .item');
+                            if (!itemDivInTooltip) return;
+
+                            const itemNameElement = tooltipNode.querySelector('.item-name');
+                            if (!itemNameElement) return;
+
+                            const itemName = itemNameElement.textContent;
+                            if (!(itemName.includes("Kamień Czerwonego Smoka") || itemName.includes("Zwój Czerwonego Smoka") || itemName.includes("Ulotny zwój czerwonego smoka"))) {
+                                return;
+                            }
+
+                            let itemId = null;
+                            for (const cls of itemDivInTooltip.classList) {
+                                if (cls.startsWith('item-id-')) {
+                                    itemId = cls.substring('item-id-'.length);
+                                    break;
+                                }
+                            }
+                            if (!itemId) return;
+
+                            const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7');
+                            if (!mapTextElement) return;
+
+                            const rawMapText = mapTextElement.textContent;
+                            const parsedMapName = getMapNameFromTooltipText(rawMapText);
+
+                            if (parsedMapName && monsterMappings[parsedMapName]) {
+                                const monsterImgUrl = monsterMappings[parsedMapName];
+                                const inventoryItem = document.querySelector(`.item.item-id-${itemId}`);
+                                if (inventoryItem) {
+                                    addMonsterIcon(inventoryItem, monsterImgUrl);
+                                    const cache = getCache();
+                                    if (cache[itemId] !== monsterImgUrl) {
+                                        cache[itemId] = monsterImgUrl;
+                                        saveCache(cache);
+                                        console.log(`[KCS Icons] Przedmiot ${itemId} ("${itemName}" -> "${parsedMapName}") zapisany/zaktualizowany w cache.`);
+                                    }
+                                }
+                            } else if (parsedMapName) {
+                                console.log(`[KCS Icons] Mapa "${parsedMapName}" (z przedmiotu "${itemName}") nie znaleziona w monsterMappings.`);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        function applyIconsFromCache() {
+            const cache = getCache();
+            if (Object.keys(cache).length === 0) {
+                return;
+            }
+            console.log('[KCS Icons] Applying icons from cache');
+            const allItems = document.querySelectorAll('.item[class*="item-id-"]');
+            allItems.forEach(itemElement => {
+                let itemId = null;
+                for (const cls of itemElement.classList) {
+                    if (cls.startsWith('item-id-')) {
+                        itemId = cls.substring('item-id-'.length);
+                        break;
+                    }
+                }
+                if (itemId && cache[itemId]) {
+                    addMonsterIcon(itemElement, cache[itemId]);
+                }
+            });
+        }
+
+        const dynamicItemObserver = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    let potentiallyNewItems = false;
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.matches('.item[class*="item-id-"]') || node.querySelector('.item[class*="item-id-"]')) {
+                                potentiallyNewItems = true;
+                            }
+                        }
+                    });
+                    if (potentiallyNewItems) {
+                        console.log('[KCS Icons] New items detected, applying cache');
+                        applyIconsFromCache();
+                    }
+                }
+            }
+        });
+
+        // Rozpocznij obserwację
+        console.log('[KCS Icons] Starting observers');
+        tooltipObserver.observe(document.body, { childList: true, subtree: true });
+        dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
+
+        // Zastosuj ikony z cache
+        applyIconsFromCache();
+
+        console.log('[KCS Icons] Skrypt v0.6 (KCS + Zwoje) załadowany.');
     }
 
     console.log('🎯 Waiting for DOM to load...');
