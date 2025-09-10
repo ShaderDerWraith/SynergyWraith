@@ -302,6 +302,7 @@
             const itemName = itemNameElement.textContent;
             if (!(itemName.includes("Kamień Czerwonego Smoka") || 
                   itemName.includes("Zwój Czerwonego Smoka") || 
+                  itemName.includes("Niepozorny Kamień Czerwonego Smoka:) ||  
                   itemName.includes("Ulotny zwój czerwonego smoka"))) {
                 return;
             }
