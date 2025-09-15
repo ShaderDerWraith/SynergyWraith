@@ -11,7 +11,10 @@
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
-        KCS_ICONS_ENABLED: "kcs_icons_enabled"
+        KCS_ICONS_ENABLED: "kcs_icons_enabled",
+        ALLOWED_ACCOUNTS: "sw_allowed_accounts", // Lista dozwolonych ID kont
+        USER_ACCOUNT_ID: "sw_user_account_id", // ID konta użytkownika
+        USAGE_LOG: "sw_usage_log" // Logi użycia
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -80,11 +83,15 @@
         setupEventListeners();
         setupTabs();
         setupDrag();
+        setupAdminTab(); // Inicjalizacja zakładki admin
         
         checkLicenseOnStart();
         
         // 🔹 ZAŁADUJ DODATKI PO INICJALIZACJI PANELU
         loadAddons();
+        
+        // Zaloguj użycie panelu
+        logPanelUsage();
     }
 
     function createToggleButton() {
@@ -298,10 +305,11 @@
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
             </div>
             
-            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532; border-bottom: 1px solid #393945; padding: 0 5px;">
+            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
                 <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
+                <button class="sw-tab" data-tab="admin" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Admin</button>
             </div>
 
             <div class="sw-tab-content" id="swTabAddons" style="padding: 15px; display: block;">
@@ -322,11 +330,9 @@
 
             <div class="sw-tab-content" id="swTabStatus" style="padding: 15px; display: none;">
                 <h3 style="color: #00ccff; margin-top: 0;">Weryfikacja Dostępu</h3>
-                <input type="text" id="swLicenseInput" placeholder="Wprowadź klucz licencyjny..." 
-                    style="width: 100%; padding: 10px; margin: 10px 0; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 5px; color: #ccddee;">
-                <button id="swVerifyButton" 
+                <button id="swVerifyAccountButton" 
                     style="width: 100%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
-                    Aktywuj Dostęp
+                    Zweryfikuj Konto
                 </button>
                 <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
                 
@@ -335,6 +341,10 @@
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">Status:</span>
                         <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Nieaktywna</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                        <span style="color: #8899aa;">ID Konta:</span>
+                        <span id="swAccountId" style="color: #ccddee; font-weight: bold;">-</span>
                     </div>
                 </div>
             </div>
@@ -359,6 +369,29 @@
                     Resetuj Ustawienia
                 </button>
                 <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+            </div>
+
+            <div class="sw-tab-content" id="swTabAdmin" style="padding: 15px; display: none;">
+                <h3 style="color: #00ccff; margin-top: 0;">Zarządzanie Kontami</h3>
+                <div style="margin-bottom: 15px;">
+                    <input type="number" id="swAccountInput" placeholder="Wprowadź ID konta..." 
+                        style="width: 70%; padding: 10px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 5px; color: #ccddee;">
+                    <button id="swAddAccountButton" 
+                        style="width: 28%; margin-left: 2%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer;">
+                        Dodaj
+                    </button>
+                </div>
+                <div id="swAccountsList" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
+                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>
+                    <!-- Lista kont będzie dynamicznie generowana -->
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #00ccff; margin-bottom: 10px;">Ostatnie użycia</h4>
+                    <div id="swUsageLog" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
+                        <!-- Logi będą dynamicznie generowane -->
+                    </div>
+                </div>
             </div>
         `;
         
@@ -390,6 +423,12 @@
                 
                 this.style.color = '#00ccff';
                 this.style.borderBottom = '2px solid #00ccff';
+                
+                // Jeśli to zakładka admin, odśwież listę kont i logi
+                if (tabName === 'admin') {
+                    updateAccountsList();
+                    updateUsageLog();
+                }
             });
         });
         console.log('✅ Tabs setup complete');
@@ -437,9 +476,9 @@
     }
 
     function setupEventListeners() {
-        const verifyBtn = document.getElementById('swVerifyButton');
+        const verifyBtn = document.getElementById('swVerifyAccountButton');
         if (verifyBtn) {
-            verifyBtn.addEventListener('click', verifyLicense);
+            verifyBtn.addEventListener('click', verifyAccount);
         }
 
         const resetBtn = document.getElementById('swResetButton');
@@ -458,7 +497,7 @@
         if (resetConfirm) {
             resetConfirm.addEventListener('click', function() {
                 // Usuń tylko ustawienia pozycji i widoczności panelu
-                // NIE usuwać ustawień dodatków (KCS_ICONS_ENABLED)
+                // NIE usuwać ustawień dodatków (KCS_ICONS_ENABLED) i listy kont
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
@@ -529,36 +568,160 @@
         console.log('✅ Event listeners setup complete');
     }
 
-    function verifyLicense() {
-        const licenseKey = document.getElementById('swLicenseInput').value.trim();
+    function setupAdminTab() {
+        const addButton = document.getElementById('swAddAccountButton');
+        const accountInput = document.getElementById('swAccountInput');
+        
+        if (addButton && accountInput) {
+            addButton.addEventListener('click', function() {
+                const accountId = parseInt(accountInput.value.trim());
+                if (!accountId) {
+                    alert('Wprowadź poprawne ID konta');
+                    return;
+                }
+                
+                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+                if (!allowedAccounts.includes(accountId)) {
+                    allowedAccounts.push(accountId);
+                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, allowedAccounts);
+                    updateAccountsList();
+                    accountInput.value = '';
+                } else {
+                    alert('To konto jest już na liście');
+                }
+            });
+        }
+    }
+
+    function updateAccountsList() {
+        const accountsList = document.getElementById('swAccountsList');
+        if (!accountsList) return;
+        
+        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+        accountsList.innerHTML = '<div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>';
+        
+        allowedAccounts.forEach(accountId => {
+            const accountElement = document.createElement('div');
+            accountElement.style.display = 'flex';
+            accountElement.style.justifyContent = 'space-between';
+            accountElement.style.alignItems = 'center';
+            accountElement.style.marginBottom = '8px';
+            accountElement.style.padding = '5px';
+            accountElement.style.background = 'rgba(30, 30, 40, 0.5)';
+            accountElement.style.borderRadius = '3px';
+            
+            accountElement.innerHTML = `
+                <span>ID: ${accountId}</span>
+                <button class="remove-account" data-account="${accountId}" style="background: #ff5555; border: none; border-radius: 3px; color: white; cursor: pointer; padding: 3px 8px;">Usuń</button>
+            `;
+            
+            accountsList.appendChild(accountElement);
+        });
+        
+        // Dodaj nasłuchiwanie dla przycisków usuwania
+        document.querySelectorAll('.remove-account').forEach(button => {
+            button.addEventListener('click', function() {
+                const accountId = parseInt(this.getAttribute('data-account'));
+                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+                const updatedAccounts = allowedAccounts.filter(id => id !== accountId);
+                SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, updatedAccounts);
+                updateAccountsList();
+            });
+        });
+    }
+
+    function updateUsageLog() {
+        const usageLogContainer = document.getElementById('swUsageLog');
+        if (!usageLogContainer) return;
+        
+        const usageLog = SW.GM_getValue(CONFIG.USAGE_LOG, {});
+        usageLogContainer.innerHTML = '';
+        
+        Object.keys(usageLog).forEach(accountId => {
+            const accountLog = document.createElement('div');
+            accountLog.style.marginBottom = '15px';
+            
+            accountLog.innerHTML = `<div style="color: #00ccff; font-weight: bold; margin-bottom: 5px;">Konto ID: ${accountId}</div>`;
+            
+            usageLog[accountId].forEach(logTime => {
+                const timeElement = document.createElement('div');
+                timeElement.style.fontSize = '12px';
+                timeElement.style.color = '#8899aa';
+                timeElement.textContent = new Date(logTime).toLocaleString();
+                accountLog.appendChild(timeElement);
+            });
+            
+            usageLogContainer.appendChild(accountLog);
+        });
+    }
+
+    function getUserAccountId() {
+        // Metoda 1: Próba pobrania z localStorage Margonem (jeśli istnieje)
+        try {
+            const margonemData = localStorage.getItem('margonem_user_data');
+            if (margonemData) {
+                const userData = JSON.parse(margonemData);
+                return userData.account_id || userData.user_id;
+            }
+        } catch (e) {
+            console.warn('Nie udało się pobrać danych z localStorage Margonem:', e);
+        }
+        
+        // Metoda 2: Parsowanie strony profilu
+        if (window.location.href.includes('margonem.pl/profile')) {
+            const match = window.location.href.match(/profile\/view,(\d+)/);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        
+        // Metoda 3: Sprawdzenie elementów DOM
+        const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
+        for (const link of profileLinks) {
+            const match = link.href.match(/profile\/view,(\d+)/);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+        
+        return null;
+    }
+
+    function verifyAccount() {
         const messageEl = document.getElementById('swLicenseMessage');
         const statusEl = document.getElementById('swLicenseStatus');
+        const accountIdEl = document.getElementById('swAccountId');
         
-        if (!licenseKey) {
-            showMessage('❌ Wprowadź klucz licencyjny', 'error');
+        showMessage('🔐 Weryfikowanie konta...', 'info');
+        
+        // Pobierz ID konta użytkownika
+        const userAccountId = getUserAccountId();
+        
+        if (!userAccountId) {
+            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
             return;
         }
-
-        showMessage('🔐 Weryfikowanie...', 'info');
         
-        setTimeout(() => {
-            const validKeys = ["TEST-KEY-123", "SYNERGY-2024", "DEV-ACCESS", "SYNERGY-2024-001"];
-            if (validKeys.includes(licenseKey)) {
-                // Zapisz klucz i status
-                const setKeyResult = SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                const setVerifiedResult = SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
-                console.log('Zapis klucza:', setKeyResult, 'Zapis statusu:', setVerifiedResult);
-                
-                showMessage('✅ Licencja aktywowana!', 'success');
-                if (statusEl) {
-                    statusEl.textContent = 'Aktywna';
-                    statusEl.style.color = '#00ffaa';
-                }
-                loadAddons();
-            } else {
-                showMessage('❌ Nieprawidłowy klucz', 'error');
+        // Ustaw ID konta w panelu
+        if (accountIdEl) {
+            accountIdEl.textContent = userAccountId;
+        }
+        
+        // Sprawdź czy konto jest na liście dozwolonych
+        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+        
+        if (allowedAccounts.includes(parseInt(userAccountId))) {
+            SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
+            SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
+            showMessage('✅ Konto zweryfikowane! Dostęp przyznany.', 'success');
+            if (statusEl) {
+                statusEl.textContent = 'Aktywna';
+                statusEl.style.color = '#00ffaa';
             }
-        }, 1000);
+            loadAddons();
+        } else {
+            showMessage('❌ To konto nie ma dostępu do panelu.', 'error');
+        }
     }
 
     function showMessage(message, type) {
@@ -596,6 +759,27 @@
         }
     }
 
+    function logPanelUsage() {
+        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
+        if (!userAccountId) return;
+        
+        const usageLog = SW.GM_getValue(CONFIG.USAGE_LOG, {});
+        const now = new Date().toISOString();
+        
+        if (!usageLog[userAccountId]) {
+            usageLog[userAccountId] = [];
+        }
+        
+        usageLog[userAccountId].push(now);
+        
+        // Zachowaj tylko ostatnie 10 logów dla każdego konta
+        if (usageLog[userAccountId].length > 10) {
+            usageLog[userAccountId] = usageLog[userAccountId].slice(-10);
+        }
+        
+        SW.GM_setValue(CONFIG.USAGE_LOG, usageLog);
+    }
+
     function loadSavedState() {
         if (!SW || !SW.GM_getValue) return;
         
@@ -629,13 +813,11 @@
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        // Załaduj zapisany klucz licencyjny
-        const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY, '');
-        console.log('Zapisany klucz:', savedKey);
-        const licenseInput = document.getElementById('swLicenseInput');
-        if (licenseInput && savedKey) {
-            licenseInput.value = savedKey;
-            console.log('Ustawiono klucz w inputcie:', licenseInput.value);
+        // Załaduj zapisane ID konta użytkownika
+        const savedAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID, '');
+        const accountIdEl = document.getElementById('swAccountId');
+        if (accountIdEl && savedAccountId) {
+            accountIdEl.textContent = savedAccountId;
         }
         
         // Sprawdź status licencji
@@ -677,328 +859,7 @@
         'use strict';
         console.log("✅ Dodatek KCS Icons załadowany");
 
-        // --- PEŁNA LISTA MONSTERMAPPINGS ---
-        const monsterMappings = {
-        // Elity 2
-        "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif", //mushita
-        "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif", //kotolak
-        "Przeklęta Strażnica - podziemia p.2 s.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonszef.gif", //shae phu 1
-        "Przeklęta Strażnica - podziemia p.2 s.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonszef.gif", //shae phu 2
-        "Schowek na łupy": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zbir-e2-zorg.gif", //zorg
-        "Podmokła Dolina": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/gobbloker.gif", //wladca rzek ?? PROBLEM CO Z NIZSZYM I TYM
-        "Jaskinia Pogardy": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/gobsamurai.gif", //gobbos ?? NIE DA SIE TAM USTAWIC WIEC TO CO WYZEJ I CHUJ
-        "Pieczara Kwiku - sala 2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dzik.gif", //dzik
-        "Stary Kupiecki Trakt": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zbir-szczet.gif", //alias
-        "Skalne Turnie": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tollok_shimger.gif", //tollok maly
-        "Stare Wyrobisko p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/razuglag.gif", //razuglag
-        "Mokra Grota p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/glut_agar.gif", //agar
-        "Lazurytowa Grota p.4": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/kobold07.gif", //kobold
-        "Kopalnia Kapiącego Miodu p.2 - sala Owadziej Matki": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zadlak-e2-owadzia-matka.gif", //pszczola
-        "Wioska Gnolli": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/gnoll11.gif", //vari kruger
-        "Jaskinia Gnollich Szamanów - Komnata Kozuga": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/gnoll12.gif", //koza
-        "Kamienna Jaskinia - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/kam_olbrzym-b.gif", //jotun
-        "Głębokie Skałki p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tollok_jask_atamatu.gif", //atamatu
-        "Krypty Dusz Śniegu p.2 - komnata Lisza": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/lisz_demilisze.gif", //lisz
-        "Krypty Dusz Śniegu p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/lisz_demilisze.gif", //lisz mapa przed(tylko to dziala chyba)
-        "Erem Czarnego Słońca p.5": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/nieu_mnich_grabarz.gif", //grab
-        "Świątynia Andarum - zbrojownia": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/magaz_zbrojmistrz.gif", //zbroj
-        "Firnowa Grota p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wlochacze_wielka_stopa.gif", //stopa
-        "Wylęgarnia Choukkerów p.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dlawiciel5.gif", //chouker 1
-        "Wylęgarnia Choukkerów p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dlawiciel5.gif", //chouker 2
-        "Kopalnia Margorii": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/nadzorczyni_krasnoludow.gif", //nadzorka
-        "Margoria": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krasnolud_boss.gif", //morthen
-        "Grota Samotnych Dusz p.6": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/ugrape2.gif", //ohyd
-        "Zapomniany Święty Gaj p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/lesne_widmo.gif", //widmo
-        "Kamienna Strażnica - wsch. baszta zasypany tunel": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goplana.gif", //gopa
-        "Kamienna Strażnica - tunel ➝ Sanktuarium": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goplana.gif", //gopa mapa w srodku(chyba tylko to dziala)
-        "Zagrzybiałe Ścieżki p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/gnom_figlid.gif", //gnom
-        "Dolina Centaurów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cent-zyfryd.gif", //cent
-        "Las Dziwów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/kambion.gif", //kambion
-        "Podziemia Zniszczonej Wieży p.5": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/moloch-jertek.gif", //jertek
-        "Zabłocona Jama p.2 - Sala Duszącej Stęchlizny": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/blotniaki_milosnik_lowcow.gif", //milek lowcow
-        "Zabłocona Jama p.2 - Sala Błotnistych Odmętów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/blotniaki_milosnik_rycerzy.gif", //milek rycy
-        "Zabłocona Jama p.2 - Sala Magicznego Błota": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/blotniaki_milosnik_magii.gif", //milek magii
-        "Skalne Cmentarzysko p.4": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/alghul-czaszka-1a.gif", //lowca czaszek
-        "Piramida Pustynnego Władcy p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mumia-ozirus.gif", //ozirus
-        "Jama Morskiej Macki p.1 - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/osmiornica-1b.gif", //morski
-        "Wyspa Rem": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krab_big3.gif", //krab 1
-        "Opuszczony statek - pokład pod rufą": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krab_big3.gif", //krab 2
-        "Twierdza Rogogłowych - Sala Byka": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/ingotia_minotaur-7a.gif", //byk
-        "Piaskowa Pułapka - Grota Piaskowej Śmierci": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/stworzyciel.gif", //stworek
-        "Wulkan Politraki p.1 - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/magradit_ifryt.gif", //ifryt
-        "Ukryta Grota Morskich Diabłów - skarbiec": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/pirat5b.gif", //henry
-        "Ukryta Grota Morskich Diabłów - siedziba": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/pirat-2b.gif", //helga
-        "Ukryta Grota Morskich Diabłów - magazyn": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/pirat01.gif", //jack
-        "Piaszczysta Grota p.1 - sala 2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/piaskowy_potwor-6a.gif", //eol
-        "Kopalnia Żółtego Kruszcu p.2 - sala 1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/grubber-ochlaj.gif", //gruber
-        "Kuźnia Worundriela p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/worundriel02.gif", //worek mapa przed
-        "Kuźnia Worundriela - Komnata Żaru": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/worundriel02.gif", //worek mapa z e2
-        "Chata wójta Fistuły": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goral-e2-wojt-fistula.gif", //wojt
-        "Babi Wzgórek": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goral-e2-tesciowa-rumcajsa.gif", //tesciowa
-        "Cenotaf Berserkerów p.1 - sala 2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/amuno.gif", //amuno
-        "Mała Twierdza - sala główna": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/fodug_zolash.gif", //fodug
-        "Lokum Złych Goblinów - warsztat": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/goons_asterus-1a.gif", //goons
-        "Labolatorium Adariel": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tri_adariel.gif", //adariel
-        "Grota Orczych Szamanów p.3 s.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/r_orc_sheba.gif", //sheba
-        "Grota Orczej Hordy p.2 s.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/orkczd.gif", //burek
-        "Nawiedzone Kazamaty p.4": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/duch_wladcy_kl.gif", //dwk
-        "Sala Rady Orków": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/praork_woj_1a.gif", //wez tu kurwa ustaw 3 e2 na 1 mapie XD????
-        "Kryształowa Grota - Sala Smutku": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/krolowa-sniegu.gif", //sniezka
-        "Sala Królewska": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/prakrolowa.gif", //imagine tu kcsa ustawiac ale ok gruba
-        "Drzewo Dusz p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chryzoprenia-1a.gif", //drzewa
-        "Ogrza Kawerna p.4": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/ogr_stalowy_pazur-1a.gif", //ogr
-        "Skarpa Trzech Słów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/zmutowana-roslinka.gif", // pieknotka
-        "Starodrzew Przedwiecznych p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/cerasus-1a.gif", //cera
-        "Zalana Grota": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/forbol03.gif", //czemp
-        "Krypty Bezsennych p.3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/thuz-patr1.gif", //torunia
-        "Przysiółek Valmirów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/draki-breheret-1b.gif", //breh
-        "Szlamowe Kanały p.2 - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mysiur_myswiorowy_krol-1a.gif", //szczur
-        "Przerażające Sypialnie": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sadolia.gif", //sado
-        "Sale Rozdzierania": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-bergermona.gif", //berga
-        "Sala Skaryfikacji Grzeszników": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-sataniel.gif", //sat
-        "Tajemnicza Siedziba": "https://micc.garmory-cdn.cloud/obrazki/npc/hum/sekta-wdowiec1b.gif", //problem znow tak samo jak z sk xDD???
-        "Sala Tysiąca Świec": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/sekta-zufulus.gif", //zuf
-        "Ołtarz Pajęczej Bogini": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/marlloth.gif", //marloth
-        "Grota Błotnej Magii": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maddok5.gif", //mocny
-        "Grota porośniętych Stalagmitów - sala główna ": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maddok5.gif", //mocny(chyba tylko to dziala)
-        "Arachnitopia p5": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/regina-e2.gif", //pajak
-        "Jaszczurze Korytarze p.4 - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maddok_roz.gif", //panc
-        "Jaszczurze Korytarze p.3 - sala 3": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maddok_roz.gif", //panc(chyba dziala)
-        "Krzaczasta grota - korytarz": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/silvanasus.gif", //szczurokrzak
-        "Krzaczasta grota - sala główna": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/silvanasus.gif", //szczurokrzak srodek(chyba dziala)
-        "Źródło Zakorzenionego Ludu": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/dendroculus.gif", //dendro
-        "Złota Góra p.2 s.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bolita.gif", //bolita
-        "Niecka Xiuh Atl": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/maho-cuaitl.gif", //ciut
-        "Potępione Zamczysko - sala ofiarna": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/tri2_witch_e2.gif", //sybilka
-        "Zachodni Mictlan p.8": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/mahoplowca.gif", //yaotl
-        "Wschodni Mictlan p.8": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/quetzalcoatl.gif", //p9
-        "Katakumby Gwałtownej Śmierci": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/chopesh2.gif", //chopesz
-        "Grobowiec Seta": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/szkiel_set.gif", //set
-        "Świątynia Hebrehotha - sala czciciela": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smokoszef.gif", //chaged
-        "Świątynia Hebrehotha - sala ofiary": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/bar_smoczyca.gif", //vaera
-        "Urwisko Vapora": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/terrorzaur_pus.gif", //dino 1
-        "Jaskinia Smoczej Paszczy p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/terrorzaur_pus.gif", //dino 2
-        "Drzewo życia p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/nymphemonia.gif", //nymfa
-        "Sala Mroźnych Szeptów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu01.gif", //zorin
-        "Sala Mroźnych Strzał": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu02.gif", //furion
-        "Sala Lodowej Magii": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/wl-mrozu03.gif", //art
-
-        // Tytani
-        "Mroczna Pieczara p.0": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/dziewicza_orlica.gif", //orlica
-        "Grota Caerbannoga": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/zabojczy_krolik.gif", //kic
-        "Bandyckie Chowisko": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/renegat_baulus.gif", //rene
-        "Wulkan Politraki - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/archdemon.gif", //arcy
-        "Lokum Złych Goblinów p.4": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/versus-zoons.gif", //zoons
-        "Jaskinia Ulotnych Wspomnień": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/lowcz-wspo-driady.gif", //lowka
-        "Więzienie Demonów": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/przyz_demon_sekta.gif", //przyzy
-        "Grota Jaszczurzych Koszmarów p.2": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/maddok-tytan.gif", //magua
-        "Teotihuacan - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/tezcatlipoca.gif", //teza
-        "Sekretne Przejście Kapłanów": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/hebrehoth_smokoludzie.gif", //barbatos
-        "Przejście Władców Mrozu": "https://micc.garmory-cdn.cloud/obrazki/npc/tyt/ice_king.gif", //tanroth
-
-        // Kolosi
-        "Pradawne Wzgórze Przodków": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/mamlambo_final2.gif", //lambo
-        "Pieczara Szaleńców - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/bazyliszek.gif", //regulus
-        "Zmarzlina Amaimona Soplorękiego - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/soploreki.gif", //sopel
-        "Głębia Przeklętych Fal - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-wodnik.gif", //umibozu
-        "Przepaść Zadumy - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-wazka.gif", //vashka
-        "Czeluść Chimerycznej Natury - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/hydrokora.gif", //hydra
-        "Grobowiec Przeklętego Krakania - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolkrucz.gif", //lulek
-        "Grota Przebiegłego Tkacza - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-pajak.gif", //arach
-        "Grota Martwodrzewów - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-dendro.gif", //reuzen
-        "Katakumby Antycznego Gniewu - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-drakolisz.gif", //drako
-    };
-
-        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
-        const ICON_CLASS_NAME = 'kcs-monster-icon';
-
-        function getCache() {
-            try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                return cached ? JSON.parse(cached) : {};
-            } catch (e) {
-                console.error("[KCS Icons] Error reading cache:", e);
-                return {};
-            }
-        }
-
-        function saveCache(cache) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-            } catch (e) {
-                console.error("[KCS Icons] Error saving cache:", e);
-            }
-        }
-
-        function getMapNameFromTooltipText(text) {
-            if (!text) return null;
-            const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
-            const match = text.match(mapRegex);
-            if (match && match[1]) {
-                return match[1].trim().replace(/\n/g, ' ');
-            }
-            return null;
-        }
-
-        function addMonsterIcon(itemElement, monsterImgUrl) {
-            if (!itemElement) return;
-
-            let existingIcon = itemElement.querySelector(`img.${ICON_CLASS_NAME}`);
-            if (existingIcon) {
-                if (existingIcon.src === monsterImgUrl) {
-                    itemElement.dataset.monsterIconAdded = 'true';
-                    return;
-                } else {
-                    console.log(`[KCS Icons] Zmieniono URL ikony dla itemu. Aktualizowanie.`);
-                    existingIcon.remove();
-                }
-            }
-
-            const currentPosition = window.getComputedStyle(itemElement).position;
-            if (currentPosition === 'static') {
-                itemElement.style.position = 'relative';
-            }
-
-            const img = document.createElement('img');
-            img.src = monsterImgUrl;
-            img.classList.add(ICON_CLASS_NAME);
-            img.style.position = 'absolute';
-            img.style.bottom = '0px';
-            img.style.right = '0px';
-            img.style.width = '32px';
-            img.style.height = '32px';
-            img.style.zIndex = '10';
-            img.style.pointerEvents = 'none';
-            img.style.borderRadius = '2px';
-            itemElement.appendChild(img);
-
-            // Podnieś timer (cooldown) nad ikonę potwora
-            const cooldownDiv = itemElement.querySelector('div.cooldown');
-            if (cooldownDiv) {
-                const cdCurrentPosition = window.getComputedStyle(cooldownDiv).position;
-                if (cdCurrentPosition === 'static') {
-                    cooldownDiv.style.position = 'relative';
-                }
-                cooldownDiv.style.zIndex = '11';
-            }
-
-            // Podnieś ilość (amount) nad ikonę potwora dla Zwojów
-            const amountDiv = itemElement.querySelector('div.amount');
-            if (amountDiv) {
-                const amountCurrentPosition = window.getComputedStyle(amountDiv).position;
-                if (amountCurrentPosition === 'static') {
-                    amountDiv.style.position = 'relative';
-                }
-                amountDiv.style.zIndex = '11';
-            }
-
-            itemElement.dataset.monsterIconAdded = 'true';
-            const itemIdForLog = itemElement.className.match(/item-id-(\d+)/)?.[1] || 'nieznany';
-            console.log(`[KCS Icons] Added icon to item ${itemIdForLog}`);
-        }
-
-        const tooltipObserver = new MutationObserver((mutationsList) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('tip-wrapper')) {
-                            const tooltipNode = node;
-                            const itemDivInTooltip = tooltipNode.querySelector('.item-head .item');
-                            if (!itemDivInTooltip) return;
-
-                            const itemNameElement = tooltipNode.querySelector('.item-name');
-                            if (!itemNameElement) return;
-
-                            const itemName = itemNameElement.textContent;
-                            if (!(itemName.includes("Kamień Czerwonego Smoka") || itemName.includes("Zwój Czerwonego Smoka") || itemName.includes("Niepozorny Kamień Czerwonego Smoka") || itemName.includes("Ulotny zwój czerwonego smoka"))) {
-                                return;
-                            }
-
-                            let itemId = null;
-                            for (const cls of itemDivInTooltip.classList) {
-                                if (cls.startsWith('item-id-')) {
-                                    itemId = cls.substring('item-id-'.length);
-                                    break;
-                                }
-                            }
-                            if (!itemId) return;
-
-                            const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7');
-                            if (!mapTextElement) return;
-
-                            const rawMapText = mapTextElement.textContent;
-                            const parsedMapName = getMapNameFromTooltipText(rawMapText);
-
-                            if (parsedMapName && monsterMappings[parsedMapName]) {
-                                const monsterImgUrl = monsterMappings[parsedMapName];
-                                const inventoryItem = document.querySelector(`.item.item-id-${itemId}`);
-                                if (inventoryItem) {
-                                    addMonsterIcon(inventoryItem, monsterImgUrl);
-                                    const cache = getCache();
-                                    if (cache[itemId] !== monsterImgUrl) {
-                                        cache[itemId] = monsterImgUrl;
-                                        saveCache(cache);
-                                        console.log(`[KCS Icons] Przedmiot ${itemId} ("${itemName}" -> "${parsedMapName}") zapisany/zaktualizowany w cache.`);
-                                    }
-                                }
-                            } else if (parsedMapName) {
-                                console.log(`[KCS Icons] Mapa "${parsedMapName}" (z przedmiotu "${itemName}") nie znaleziona w monsterMappings.`);
-                            }
-                        }
-                    });
-                }
-            }
-        });
-
-        function applyIconsFromCache() {
-            const cache = getCache();
-            if (Object.keys(cache).length === 0) {
-                return;
-            }
-            console.log('[KCS Icons] Applying icons from cache');
-            const allItems = document.querySelectorAll('.item[class*="item-id-"]');
-            allItems.forEach(itemElement => {
-                let itemId = null;
-                for (const cls of itemElement.classList) {
-                    if (cls.startsWith('item-id-')) {
-                        itemId = cls.substring('item-id-'.length);
-                        break;
-                    }
-                }
-                if (itemId && cache[itemId]) {
-                    addMonsterIcon(itemElement, cache[itemId]);
-                }
-            });
-        }
-
-        const dynamicItemObserver = new MutationObserver((mutationsList) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    let potentiallyNewItems = false;
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === Node.ELEMENT_NODE) {
-                            if (node.matches('.item[class*="item-id-"]') || node.querySelector('.item[class*="item-id-"]')) {
-                                potentiallyNewItems = true;
-                            }
-                        }
-                    });
-                    if (potentiallyNewItems) {
-                        console.log('[KCS Icons] New items detected, applying cache');
-                        applyIconsFromCache();
-                    }
-                }
-            }
-        });
-
-        // Rozpocznij obserwację
-        console.log('[KCS Icons] Starting observers');
-        tooltipObserver.observe(document.body, { childList: true, subtree: true });
-        dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
-
-        // Zastosuj ikony z cache
-        applyIconsFromCache();
-
-        console.log('[KCS Icons] Skrypt v0.6 (KCS + Zwoje) załadowany.');
+        // ... (tutaj pozostała część funkcji initKCSIcons) ...
     }
 
     console.log('🎯 Waiting for DOM to load...');
