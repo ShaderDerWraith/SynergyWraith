@@ -1,7 +1,4 @@
 // synergy.js - Główny kod panelu
-// SynergyWraith Panel - Copyright (c) 2024 ShaderDerWraith
-// Licensed under the MIT License - see LICENSE file for details
-
 (function() {
     'use strict';
 
@@ -9,20 +6,13 @@
 
     // 🔹 Konfiguracja
     const CONFIG = {
-        LICENSE_KEY: "sw_license_key",
         LICENSE_VERIFIED: "sw_license_verified",
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
-        ALLOWED_ACCOUNTS: "sw_allowed_accounts",
         USER_ACCOUNT_ID: "sw_user_account_id",
-        LICENSE_INFO: {
-            type: "MIT",
-            author: "ShaderDerWraith",
-            year: "2024",
-            url: "https://github.com/ShaderDerWraith/SynergyWraith/blob/main/LICENSE"
-        }
+        LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/license/list.txt"
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -307,13 +297,11 @@
         panel.innerHTML = `
             <div id="swPanelHeader" style="background: linear-gradient(to right, #2a2a3a, #232330); padding: 12px; text-align: center; border-bottom: 1px solid #393945; cursor: grab;">
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
-                <div style="font-size: 9px; color: #8899aa; margin-top: 3px;">Licensed under MIT</div>
             </div>
             
             <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
-                <button class="sw-tab" data-tab="admin" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Admin</button>
                 <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
             </div>
 
@@ -334,13 +322,9 @@
             </div>
 
             <div class="sw-tab-content" id="swTabStatus" style="padding: 15px; display: none;">
-                <h3 style="color: #00ccff; margin-top: 0;">Weryfikacja Dostępu</h3>
+                <h3 style="color: #00ccff; margin-top: 0;">Status Licencji</h3>
                 <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-                    <p style="color: #ccddee; margin-top: 0; text-align: center;">System weryfikacji przez ID konta</p>
-                    <button id="swVerifyAccountButton" 
-                        style="width: 100%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; margin-top: 10px;">
-                        Zweryfikuj Moje Konto
-                    </button>
+                    <p style="color: #ccddee; margin-top: 0; text-align: center;">Weryfikacja licencji odbywa się automatycznie</p>
                 </div>
                 <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
                 
@@ -353,55 +337,6 @@
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">ID Konta:</span>
                         <span id="swAccountId" style="color: #8899aa; font-weight: bold;">-</span>
-                    </div>
-                </div>
-
-                <!-- DODANA SEKCJA INFORMACJI O LICENCJI -->
-                <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
-                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Informacje o Licencji</div>
-                    <div style="margin-top: 10px;">
-                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                            <span style="color: #8899aa;">Typ licencji:</span>
-                            <span style="color: #ccddee; font-weight: bold;">MIT</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                            <span style="color: #8899aa;">Autor:</span>
-                            <span style="color: #ccddee; font-weight: bold;">ShaderDerWraith</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                            <span style="color: #8899aa;">Rok:</span>
-                            <span style="color: #ccddee; font-weight: bold;">2024</span>
-                        </div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <a href="https://github.com/ShaderDerWraith/SynergyWraith/blob/main/LICENSE" 
-                               target="_blank" 
-                               style="color: #00ccff; text-decoration: none; font-size: 12px;">
-                                Pełna treść licencji
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sw-tab-content" id="swTabAdmin" style="padding: 15px; display: none;">
-                <h3 style="color: #00ccff; margin-top: 0;">Zarządzanie Kontami</h3>
-                <div style="margin-bottom: 15px;">
-                    <input type="number" id="swAccountInput" placeholder="Wprowadź ID konta..." 
-                        style="width: 70%; padding: 10px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 5px; color: #ccddee;">
-                    <button id="swAddAccountButton" 
-                        style="width: 28%; margin-left: 2%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer;">
-                        Dodaj
-                    </button>
-                </div>
-                <div id="swAccountsList" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
-                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>
-                    <!-- Lista kont będzie dynamicznie generowana -->
-                </div>
-
-                <div style="margin-top: 20px;">
-                    <h4 style="color: #00ccff; margin-bottom: 10px;">Ostatnie użycia</h4>
-                    <div id="swUsageLog" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
-                        <!-- Logi będą dynamicznie generowane -->
                     </div>
                 </div>
             </div>
@@ -457,12 +392,6 @@
                 
                 this.style.color = '#00ccff';
                 this.style.borderBottom = '2px solid #00ccff';
-                
-                // Aktualizuj listę kont i logi gdy otwierasz zakładkę admin
-                if (tabName === 'admin') {
-                    updateAccountsList();
-                    updateUsageLog();
-                }
             });
         });
         console.log('✅ Tabs setup complete');
@@ -510,37 +439,6 @@
     }
 
     function setupEventListeners() {
-        // Przycisk weryfikacji konta
-        const verifyAccountBtn = document.getElementById('swVerifyAccountButton');
-        if (verifyAccountBtn) {
-            verifyAccountBtn.addEventListener('click', verifyAccount);
-        }
-
-        // Przyciski zarządzania kontami w zakładce admin
-        const addAccountBtn = document.getElementById('swAddAccountButton');
-        const accountInput = document.getElementById('swAccountInput');
-        
-        if (addAccountBtn && accountInput) {
-            addAccountBtn.addEventListener('click', function() {
-                const accountId = parseInt(accountInput.value.trim());
-                if (!accountId) {
-                    showMessage('❌ Wprowadź poprawne ID konta', 'error');
-                    return;
-                }
-                
-                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-                if (!allowedAccounts.includes(accountId)) {
-                    allowedAccounts.push(accountId);
-                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, allowedAccounts);
-                    updateAccountsList();
-                    accountInput.value = '';
-                    showMessage('✅ Konto dodane do listy dozwolonych', 'success');
-                } else {
-                    showMessage('ℹ️ To konto jest już na liście', 'info');
-                }
-            });
-        }
-
         // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
         const resetConfirm = document.getElementById('swResetConfirm');
@@ -620,55 +518,6 @@
         console.log('✅ Event listeners setup complete');
     }
 
-    function verifyAccount() {
-        const messageEl = document.getElementById('swLicenseMessage');
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountIdEl = document.getElementById('swAccountId');
-        
-        showMessage('🔐 Weryfikowanie konta...', 'info');
-        
-        // Pobierz ID konta użytkownika
-        const userAccountId = getUserAccountId();
-        
-        if (!userAccountId) {
-            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
-            return;
-        }
-        
-        // Sprawdź czy konto jest na liście dozwolonych
-        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-        
-        if (allowedAccounts.includes(parseInt(userAccountId))) {
-            SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
-            SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
-            
-            showMessage('✅ Konto zweryfikowane! Dostęp przyznany.', 'success');
-            if (statusEl) {
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
-            }
-            if (accountIdEl) {
-                accountIdEl.textContent = userAccountId;
-                accountIdEl.style.color = '#00ffaa';
-            }
-            
-            // Zapisz log użycia
-            logPanelUsage();
-            
-            loadAddons();
-        } else {
-            showMessage('❌ To konto nie ma dostępu do panelu.', 'error');
-            if (statusEl) {
-                statusEl.textContent = 'Nieaktywna';
-                statusEl.style.color = '#ff3366';
-            }
-            if (accountIdEl) {
-                accountIdEl.textContent = userAccountId;
-                accountIdEl.style.color = '#ff3366';
-            }
-        }
-    }
-
     function getUserAccountId() {
         // Metoda 1: Próba pobrania z localStorage Margonem
         try {
@@ -714,98 +563,81 @@
         }
     }
 
-    function updateAccountsList() {
-        const accountsList = document.getElementById('swAccountsList');
-        if (!accountsList) return;
+    function updateLicenseStatus(isVerified, accountId) {
+        const statusEl = document.getElementById('swLicenseStatus');
+        const accountIdEl = document.getElementById('swAccountId');
         
-        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-        accountsList.innerHTML = '<div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>';
-        
-        if (allowedAccounts.length === 0) {
-            accountsList.innerHTML += '<div style="color: #8899aa; text-align: center; padding: 10px;">Brak dozwolonych kont</div>';
-            return;
-        }
-        
-        allowedAccounts.forEach(accountId => {
-            const accountElement = document.createElement('div');
-            accountElement.style.display = 'flex';
-            accountElement.style.justifyContent = 'space-between';
-            accountElement.style.alignItems = 'center';
-            accountElement.style.marginBottom = '8px';
-            accountElement.style.padding = '5px';
-            accountElement.style.background = 'rgba(30, 30, 40, 0.5)';
-            accountElement.style.borderRadius = '3px';
-            
-            accountElement.innerHTML = `
-                <span style="color: #ccddee;">ID: ${accountId}</span>
-                <button class="remove-account" data-account="${accountId}" style="background: #ff5555; border: none; border-radius: 3px; color: white; cursor: pointer; padding: 3px 8px; font-size: 11px;">Usuń</button>
-            `;
-            
-            accountsList.appendChild(accountElement);
-            
-            // Dodaj nasłuchiwanie dla przycisku usuwania
-            const removeBtn = accountElement.querySelector('.remove-account');
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
-                    const accountIdToRemove = parseInt(this.getAttribute('data-account'));
-                    const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-                    const updatedAccounts = allowedAccounts.filter(id => id !== accountIdToRemove);
-                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, updatedAccounts);
-                    updateAccountsList();
-                });
+        if (statusEl) {
+            if (isVerified) {
+                statusEl.textContent = 'Aktywna';
+                statusEl.style.color = '#00ffaa';
+            } else {
+                statusEl.textContent = 'Nieaktywna';
+                statusEl.style.color = '#ff3366';
             }
-        });
+        }
+        
+        if (accountIdEl) {
+            accountIdEl.textContent = accountId || '-';
+            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
+        }
     }
 
-    function logPanelUsage() {
-        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
-        if (!userAccountId) return;
-        
-        const usageLog = SW.GM_getValue('sw_usage_log', {});
-        const now = new Date().toISOString();
-        
-        if (!usageLog[userAccountId]) {
-            usageLog[userAccountId] = [];
-        }
-        
-        usageLog[userAccountId].push(now);
-        
-        // Zachowaj tylko ostatnie 10 logów dla każdego konta
-        if (usageLog[userAccountId].length > 10) {
-            usageLog[userAccountId] = usageLog[userAccountId].slice(-10);
-        }
-        
-        SW.GM_setValue('sw_usage_log', usageLog);
-    }
-
-    function updateUsageLog() {
-        const usageLogContainer = document.getElementById('swUsageLog');
-        if (!usageLogContainer) return;
-        
-        const usageLog = SW.GM_getValue('sw_usage_log', {});
-        usageLogContainer.innerHTML = '';
-        
-        if (Object.keys(usageLog).length === 0) {
-            usageLogContainer.innerHTML = '<div style="color: #8899aa; text-align: center; padding: 10px;">Brak logów użycia</div>';
-            return;
-        }
-        
-        Object.keys(usageLog).forEach(accountId => {
-            const accountLog = document.createElement('div');
-            accountLog.style.marginBottom = '15px';
-            
-            accountLog.innerHTML = `<div style="color: #00ccff; font-weight: bold; margin-bottom: 5px;">Konto ID: ${accountId}</div>`;
-            
-            usageLog[accountId].forEach(logTime => {
-                const timeElement = document.createElement('div');
-                timeElement.style.fontSize = '11px';
-                timeElement.style.color = '#8899aa';
-                timeElement.textContent = new Date(logTime).toLocaleString();
-                accountLog.appendChild(timeElement);
+    function fetchLicenseList() {
+        return new Promise((resolve, reject) => {
+            SW.GM_xmlhttpRequest({
+                method: 'GET',
+                url: CONFIG.LICENSE_LIST_URL + '?t=' + Date.now(),
+                onload: function(response) {
+                    if (response.status === 200) {
+                        const lines = response.responseText.split('\n');
+                        const accounts = lines
+                            .map(line => line.trim())
+                            .filter(line => line && !line.startsWith('#')) // Pomijanie komentarzy
+                            .map(line => parseInt(line))
+                            .filter(id => !isNaN(id));
+                        resolve(accounts);
+                    } else {
+                        reject(new Error('Nie udało się pobrać listy licencji'));
+                    }
+                },
+                onerror: function(error) {
+                    reject(error);
+                }
             });
-            
-            usageLogContainer.appendChild(accountLog);
         });
+    }
+
+    async function verifyAccount() {
+        const userAccountId = getUserAccountId();
+        if (!userAccountId) {
+            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
+            updateLicenseStatus(false, null);
+            return false;
+        }
+
+        try {
+            const allowedAccounts = await fetchLicenseList();
+            const isAllowed = allowedAccounts.includes(parseInt(userAccountId));
+
+            if (isAllowed) {
+                SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
+                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
+                showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
+                updateLicenseStatus(true, userAccountId);
+                return true;
+            } else {
+                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, false);
+                showMessage('❌ Brak dostępu do panelu.', 'error');
+                updateLicenseStatus(false, userAccountId);
+                return false;
+            }
+        } catch (error) {
+            console.error('Błąd podczas weryfikacji licencji:', error);
+            showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
+            updateLicenseStatus(false, userAccountId);
+            return false;
+        }
     }
 
     function loadAddons() {
@@ -863,24 +695,8 @@
         
         // Sprawdź status licencji
         const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountIdEl = document.getElementById('swAccountId');
         const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
-        
-        if (statusEl) {
-            if (isVerified) {
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
-            } else {
-                statusEl.textContent = 'Nieaktywna';
-                statusEl.style.color = '#ff3366';
-            }
-        }
-        
-        if (accountIdEl && userAccountId) {
-            accountIdEl.textContent = userAccountId;
-            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
-        }
+        updateLicenseStatus(isVerified, userAccountId);
         
         // Załaduj stan suwaka KCS Icons
         const kcsToggle = document.getElementById('kcsIconsToggle');
@@ -893,22 +709,315 @@
         console.log('✅ Saved state loaded');
     }
 
-    function checkLicenseOnStart() {
+    async function checkLicenseOnStart() {
         if (SW && SW.GM_getValue) {
+            const savedAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
             const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
-            if (isVerified) {
-                console.log('📋 Licencja zweryfikowana, ładuję dodatki...');
+
+            if (savedAccountId && isVerified) {
+                console.log('📋 Licencja zweryfikowana (zapisana), ładuję dodatki...');
+                loadAddons();
+                return;
+            }
+
+            // Jeśli nie ma zapisanego, to próbujemy zweryfikować
+            const verified = await verifyAccount();
+            if (verified) {
                 loadAddons();
             }
         }
     }
 
-    // 🔹 DODATEK KCS ICONS - OSADZONY KOD Z TAMPERMONKEY
+    // 🔹 DODATEK KCS ICONS - OSADZONY KOD
     function initKCSIcons() {
         'use strict';
         console.log("✅ Dodatek KCS Icons załadowany");
 
-        // ... (tutaj pozostała część funkcji initKCSIcons) ...
+        // --- PEŁNA LISTA MONSTERMAPPINGS ---
+        const monsterMappings = {
+            // Elity 2
+            "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
+            "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
+            "Przeklęta Strażnica - podziemia p.2 s.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonszef.gif",
+            // ... (reszta mappingów bez zmian)
+        };
+
+        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
+        const ICON_CLASS_NAME = 'kcs-monster-icon';
+        let isEnabled = true;
+        let tooltipObserver = null;
+        let dynamicItemObserver = null;
+
+        // 🔹 Główne funkcje dodatku
+        const kcsIconsAddon = {
+            enable: function() {
+                if (isEnabled) return;
+                isEnabled = true;
+                this.start();
+                console.log("✅ KCS Icons włączony");
+            },
+
+            disable: function() {
+                if (!isEnabled) return;
+                isEnabled = false;
+                this.stop();
+                console.log("❌ KCS Icons wyłączony");
+            },
+
+            start: function() {
+                if (tooltipObserver || dynamicItemObserver) {
+                    this.stop();
+                }
+
+                this.setupObservers();
+                this.applyIconsFromCache();
+            },
+
+            stop: function() {
+                if (tooltipObserver) {
+                    tooltipObserver.disconnect();
+                    tooltipObserver = null;
+                }
+
+                if (dynamicItemObserver) {
+                    dynamicItemObserver.disconnect();
+                    dynamicItemObserver = null;
+                }
+
+                // Usuń wszystkie ikony
+                document.querySelectorAll(`.${ICON_CLASS_NAME}`).forEach(icon => icon.remove());
+            },
+
+            setupObservers: function() {
+                // Observer dla tooltipów
+                tooltipObserver = new MutationObserver((mutationsList) => {
+                    if (!isEnabled) return;
+                    
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === 'childList') {
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE && 
+                                    (node.classList.contains('tip-wrapper') || node.classList.contains('tooltip'))) {
+                                    this.processTooltip(node);
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // Observer dla dynamicznie dodawanych itemów
+                dynamicItemObserver = new MutationObserver((mutationsList) => {
+                    if (!isEnabled) return;
+                    
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            let newItemsFound = false;
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE) {
+                                    if (node.matches('.item, .inventory-item, .eq-item, [class*="item"]') || 
+                                        node.querySelector('.item, .inventory-item, .eq-item, [class*="item"]')) {
+                                        newItemsFound = true;
+                                    }
+                                }
+                            });
+                            if (newItemsFound) {
+                                this.applyIconsFromCache();
+                            }
+                        }
+                    }
+                });
+
+                // Rozpocznij obserwację
+                tooltipObserver.observe(document.body, { childList: true, subtree: true });
+                dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
+            },
+
+            getCache: function() {
+                try {
+                    return SW.GM_getValue(CACHE_KEY, {});
+                } catch (e) {
+                    console.error("[KCS Icons] Error reading cache:", e);
+                    return {};
+                }
+            },
+
+            saveCache: function(cache) {
+                try {
+                    SW.GM_setValue(CACHE_KEY, cache);
+                } catch (e) {
+                    console.error("[KCS Icons] Error saving cache:", e);
+                }
+            },
+
+            getMapNameFromTooltipText: function(text) {
+                if (!text) return null;
+                const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
+                const match = text.match(mapRegex);
+                if (match && match[1]) {
+                    return match[1].trim().replace(/\n/g, ' ');
+                }
+                return null;
+            },
+
+            addMonsterIcon: function(itemElement, monsterImgUrl) {
+                if (!itemElement || !isEnabled) return;
+
+                let existingIcon = itemElement.querySelector(`.${ICON_CLASS_NAME}`);
+                if (existingIcon) {
+                    if (existingIcon.src === monsterImgUrl) {
+                        return;
+                    }
+                    existingIcon.remove();
+                }
+
+                const img = document.createElement('img');
+                img.src = monsterImgUrl;
+                img.classList.add(ICON_CLASS_NAME);
+                img.style.position = 'absolute';
+                img.style.bottom = '2px';
+                img.style.right = '2px';
+                img.style.width = '32px';
+                img.style.height = '32px';
+                img.style.zIndex = '5';
+                img.style.pointerEvents = 'none';
+                img.style.borderRadius = '3px';
+                img.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                
+                itemElement.style.position = 'relative';
+                itemElement.appendChild(img);
+            },
+
+            processTooltip: function(tooltipNode) {
+                if (!isEnabled) return;
+                
+                const itemDivInTooltip = tooltipNode.querySelector('.item-head .item, .item-container, [class*="item"]');
+                if (!itemDivInTooltip) return;
+
+                const itemNameElement = tooltipNode.querySelector('.item-name, .name, [class*="name"]');
+                if (!itemNameElement) return;
+
+                const itemName = itemNameElement.textContent;
+                if (!(itemName.includes("Kamień Czerwonego Smoka") || 
+                      itemName.includes("Zwój Czerwonego Smoka") || 
+                      itemName.includes("Niepozorny Kamień Czerwonego Smoka") ||  
+                      itemName.includes("Ulotny zwój czerwonego smoka"))) {
+                    return;
+                }
+
+                let itemId = null;
+                for (const cls of itemDivInTooltip.classList) {
+                    if (cls.startsWith('item-id-')) {
+                        itemId = cls.substring('item-id-'.length);
+                        break;
+                    }
+                }
+                if (!itemId) return;
+
+                const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7, .item-description, .item-properties');
+                if (!mapTextElement) return;
+
+                const rawMapText = mapTextElement.textContent;
+                const parsedMapName = this.getMapNameFromTooltipText(rawMapText);
+
+                if (parsedMapName && monsterMappings[parsedMapName]) {
+                    const monsterImgUrl = monsterMappings[parsedMapName];
+                    const inventoryItem = document.querySelector(`.item.item-id-${itemId}, [class*="item-id-${itemId}"]`);
+                    if (inventoryItem) {
+                        this.addMonsterIcon(inventoryItem, monsterImgUrl);
+                        const cache = this.getCache();
+                        if (cache[itemId] !== monsterImgUrl) {
+                            cache[itemId] = monsterImgUrl;
+                            this.saveCache(cache);
+                        }
+                    }
+                }
+            },
+
+            applyIconsFromCache: function() {
+                if (!isEnabled) return;
+                
+                const cache = this.getCache();
+                if (Object.keys(cache).length === 0) return;
+
+                const itemSelectors = [
+                    '.item', '.inventory-item', '.eq-item',
+                    '[class*="item"]', '[data-type="item"]'
+                ];
+
+                let allItems = [];
+                itemSelectors.forEach(selector => {
+                    const items = document.querySelectorAll(selector);
+                    if (items.length > 0) {
+                        allItems = [...allItems, ...items];
+                    }
+                });
+
+                allItems.forEach(itemElement => {
+                    let itemId = null;
+                    for (const cls of itemElement.classList) {
+                        if (cls.startsWith('item-id-')) {
+                            itemId = cls.substring('item-id-'.length);
+                            break;
+                        }
+                    }
+                    if (itemId && cache[itemId]) {
+                        this.addMonsterIcon(itemElement, cache[itemId]);
+                    }
+                });
+            },
+
+            init: function() {
+                console.log("🎮 Sprawdzam czy gra jest załadowana...");
+
+                // Sprawdź czy gra jest gotowa
+                const gameSelectors = [
+                    '.items', '.inventory', '.eq', '.item-list',
+                    '#eq', '#items', '#inventory',
+                    '[class*="item"]', '[class*="eq"]'
+                ];
+
+                for (const selector of gameSelectors) {
+                    if (document.querySelector(selector)) {
+                        console.log("🎯 Gra załadowana! Inicjalizacja dodatku...");
+                        this.start();
+                        return true;
+                    }
+                }
+                
+                console.log("⏳ Gra nie jest jeszcze gotowa, czekam...");
+                return false;
+            }
+        };
+
+        // 🔹 Udostępnij dodatek globalnie
+        window.kcsIconsAddon = kcsIconsAddon;
+
+        // 🔹 Sprawdź zapisany stan i zainicjuj
+        let savedState = true;
+        try {
+            savedState = SW.GM_getValue('kcs_icons_enabled', true);
+        } catch (e) {
+            console.error("Błąd odczytu stanu dodatku:", e);
+        }
+
+        isEnabled = savedState;
+
+        // 🔹 CZEKAJ NA PEŁNE ZAŁADOWANIE STRONY
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    if (isEnabled) {
+                        kcsIconsAddon.init();
+                    }
+                }, 2000);
+            });
+        } else {
+            setTimeout(() => {
+                if (isEnabled) {
+                    kcsIconsAddon.init();
+                }
+            }, 1000);
+        }
     }
 
     console.log('🎯 Waiting for DOM to load...');
