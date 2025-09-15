@@ -12,9 +12,8 @@
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
-        ALLOWED_ACCOUNTS: "sw_allowed_accounts", // Lista dozwolonych ID kont
-        USER_ACCOUNT_ID: "sw_user_account_id", // ID konta użytkownika
-        USAGE_LOG: "sw_usage_log" // Logi użycia
+        ALLOWED_ACCOUNTS: "sw_allowed_accounts",
+        USER_ACCOUNT_ID: "sw_user_account_id"
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -83,15 +82,11 @@
         setupEventListeners();
         setupTabs();
         setupDrag();
-        setupAdminTab(); // Inicjalizacja zakładki admin
         
         checkLicenseOnStart();
         
         // 🔹 ZAŁADUJ DODATKI PO INICJALIZACJI PANELU
         loadAddons();
-        
-        // Zaloguj użycie panelu
-        logPanelUsage();
     }
 
     function createToggleButton() {
@@ -308,8 +303,8 @@
             <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
                 <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
                 <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
-                <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
                 <button class="sw-tab" data-tab="admin" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Admin</button>
+                <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
             </div>
 
             <div class="sw-tab-content" id="swTabAddons" style="padding: 15px; display: block;">
@@ -330,10 +325,13 @@
 
             <div class="sw-tab-content" id="swTabStatus" style="padding: 15px; display: none;">
                 <h3 style="color: #00ccff; margin-top: 0;">Weryfikacja Dostępu</h3>
-                <button id="swVerifyAccountButton" 
-                    style="width: 100%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
-                    Zweryfikuj Konto
-                </button>
+                <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+                    <p style="color: #ccddee; margin-top: 0; text-align: center;">System weryfikacji przez ID konta</p>
+                    <button id="swVerifyAccountButton" 
+                        style="width: 100%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600; margin-top: 10px;">
+                        Zweryfikuj Moje Konto
+                    </button>
+                </div>
                 <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
                 
                 <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
@@ -344,7 +342,30 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">ID Konta:</span>
-                        <span id="swAccountId" style="color: #ccddee; font-weight: bold;">-</span>
+                        <span id="swAccountId" style="color: #8899aa; font-weight: bold;">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sw-tab-content" id="swTabAdmin" style="padding: 15px; display: none;">
+                <h3 style="color: #00ccff; margin-top: 0;">Zarządzanie Kontami</h3>
+                <div style="margin-bottom: 15px;">
+                    <input type="number" id="swAccountInput" placeholder="Wprowadź ID konta..." 
+                        style="width: 70%; padding: 10px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 5px; color: #ccddee;">
+                    <button id="swAddAccountButton" 
+                        style="width: 28%; margin-left: 2%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer;">
+                        Dodaj
+                    </button>
+                </div>
+                <div id="swAccountsList" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
+                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>
+                    <!-- Lista kont będzie dynamicznie generowana -->
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #00ccff; margin-bottom: 10px;">Ostatnie użycia</h4>
+                    <div id="swUsageLog" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
+                        <!-- Logi będą dynamicznie generowane -->
                     </div>
                 </div>
             </div>
@@ -369,29 +390,6 @@
                     Resetuj Ustawienia
                 </button>
                 <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
-            </div>
-
-            <div class="sw-tab-content" id="swTabAdmin" style="padding: 15px; display: none;">
-                <h3 style="color: #00ccff; margin-top: 0;">Zarządzanie Kontami</h3>
-                <div style="margin-bottom: 15px;">
-                    <input type="number" id="swAccountInput" placeholder="Wprowadź ID konta..." 
-                        style="width: 70%; padding: 10px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 5px; color: #ccddee;">
-                    <button id="swAddAccountButton" 
-                        style="width: 28%; margin-left: 2%; padding: 10px; background: linear-gradient(to right, #00ccff, #0099ff); border: none; border-radius: 5px; color: white; cursor: pointer;">
-                        Dodaj
-                    </button>
-                </div>
-                <div id="swAccountsList" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
-                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>
-                    <!-- Lista kont będzie dynamicznie generowana -->
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h4 style="color: #00ccff; margin-bottom: 10px;">Ostatnie użycia</h4>
-                    <div id="swUsageLog" style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto;">
-                        <!-- Logi będą dynamicznie generowane -->
-                    </div>
-                </div>
             </div>
         `;
         
@@ -424,7 +422,7 @@
                 this.style.color = '#00ccff';
                 this.style.borderBottom = '2px solid #00ccff';
                 
-                // Jeśli to zakładka admin, odśwież listę kont i logi
+                // Aktualizuj listę kont i logi gdy otwierasz zakładkę admin
                 if (tabName === 'admin') {
                     updateAccountsList();
                     updateUsageLog();
@@ -476,11 +474,38 @@
     }
 
     function setupEventListeners() {
-        const verifyBtn = document.getElementById('swVerifyAccountButton');
-        if (verifyBtn) {
-            verifyBtn.addEventListener('click', verifyAccount);
+        // Przycisk weryfikacji konta
+        const verifyAccountBtn = document.getElementById('swVerifyAccountButton');
+        if (verifyAccountBtn) {
+            verifyAccountBtn.addEventListener('click', verifyAccount);
         }
 
+        // Przyciski zarządzania kontami w zakładce admin
+        const addAccountBtn = document.getElementById('swAddAccountButton');
+        const accountInput = document.getElementById('swAccountInput');
+        
+        if (addAccountBtn && accountInput) {
+            addAccountBtn.addEventListener('click', function() {
+                const accountId = parseInt(accountInput.value.trim());
+                if (!accountId) {
+                    showMessage('❌ Wprowadź poprawne ID konta', 'error');
+                    return;
+                }
+                
+                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+                if (!allowedAccounts.includes(accountId)) {
+                    allowedAccounts.push(accountId);
+                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, allowedAccounts);
+                    updateAccountsList();
+                    accountInput.value = '';
+                    showMessage('✅ Konto dodane do listy dozwolonych', 'success');
+                } else {
+                    showMessage('ℹ️ To konto jest już na liście', 'info');
+                }
+            });
+        }
+
+        // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
         const resetConfirm = document.getElementById('swResetConfirm');
         const resetCancel = document.getElementById('swResetCancel');
@@ -488,7 +513,6 @@
         
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
-                // Pokaż potwierdzenie zamiast używać confirm
                 resetConfirmation.style.display = 'block';
                 resetBtn.style.display = 'none';
             });
@@ -497,7 +521,6 @@
         if (resetConfirm) {
             resetConfirm.addEventListener('click', function() {
                 // Usuń tylko ustawienia pozycji i widoczności panelu
-                // NIE usuwać ustawień dodatków (KCS_ICONS_ENABLED) i listy kont
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
@@ -511,24 +534,20 @@
                     resetMessage.style.border = '1px solid #00ccff';
                     resetMessage.style.display = 'block';
                     
-                    // Ukryj komunikat po 5 sekundach
                     setTimeout(() => {
                         resetMessage.style.display = 'none';
                     }, 5000);
                 }
                 
-                // Ukryj potwierdzenie i pokaż przycisk resetowania
                 resetConfirmation.style.display = 'none';
                 resetBtn.style.display = 'block';
                 
-                // Odśwież stan panelu, aby pokazać zresetowane ustawienia
                 loadSavedState();
             });
         }
         
         if (resetCancel) {
             resetCancel.addEventListener('click', function() {
-                // Ukryj potwierdzenie i pokaż przycisk resetowania
                 resetConfirmation.style.display = 'none';
                 resetBtn.style.display = 'block';
             });
@@ -541,12 +560,10 @@
                 const isEnabled = this.checked;
                 SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
                 
-                // Pokaż komunikat o konieczności odświeżenia w panelu
                 const message = isEnabled ? 
                     'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
                     'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
                 
-                // Użyj istniejącego elementu do wyświetlania komunikatów
                 const messageEl = document.getElementById('swAddonsMessage');
                 if (messageEl) {
                     messageEl.textContent = message;
@@ -555,7 +572,6 @@
                     messageEl.style.border = '1px solid #00ccff';
                     messageEl.style.display = 'block';
                     
-                    // Ukryj komunikat po 5 sekundach
                     setTimeout(() => {
                         messageEl.style.display = 'none';
                     }, 5000);
@@ -568,95 +584,57 @@
         console.log('✅ Event listeners setup complete');
     }
 
-    function setupAdminTab() {
-        const addButton = document.getElementById('swAddAccountButton');
-        const accountInput = document.getElementById('swAccountInput');
+    function verifyAccount() {
+        const messageEl = document.getElementById('swLicenseMessage');
+        const statusEl = document.getElementById('swLicenseStatus');
+        const accountIdEl = document.getElementById('swAccountId');
         
-        if (addButton && accountInput) {
-            addButton.addEventListener('click', function() {
-                const accountId = parseInt(accountInput.value.trim());
-                if (!accountId) {
-                    alert('Wprowadź poprawne ID konta');
-                    return;
-                }
-                
-                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-                if (!allowedAccounts.includes(accountId)) {
-                    allowedAccounts.push(accountId);
-                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, allowedAccounts);
-                    updateAccountsList();
-                    accountInput.value = '';
-                } else {
-                    alert('To konto jest już na liście');
-                }
-            });
+        showMessage('🔐 Weryfikowanie konta...', 'info');
+        
+        // Pobierz ID konta użytkownika
+        const userAccountId = getUserAccountId();
+        
+        if (!userAccountId) {
+            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
+            return;
+        }
+        
+        // Sprawdź czy konto jest na liście dozwolonych
+        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+        
+        if (allowedAccounts.includes(parseInt(userAccountId))) {
+            SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
+            SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
+            
+            showMessage('✅ Konto zweryfikowane! Dostęp przyznany.', 'success');
+            if (statusEl) {
+                statusEl.textContent = 'Aktywna';
+                statusEl.style.color = '#00ffaa';
+            }
+            if (accountIdEl) {
+                accountIdEl.textContent = userAccountId;
+                accountIdEl.style.color = '#00ffaa';
+            }
+            
+            // Zapisz log użycia
+            logPanelUsage();
+            
+            loadAddons();
+        } else {
+            showMessage('❌ To konto nie ma dostępu do panelu.', 'error');
+            if (statusEl) {
+                statusEl.textContent = 'Nieaktywna';
+                statusEl.style.color = '#ff3366';
+            }
+            if (accountIdEl) {
+                accountIdEl.textContent = userAccountId;
+                accountIdEl.style.color = '#ff3366';
+            }
         }
     }
 
-    function updateAccountsList() {
-        const accountsList = document.getElementById('swAccountsList');
-        if (!accountsList) return;
-        
-        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-        accountsList.innerHTML = '<div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>';
-        
-        allowedAccounts.forEach(accountId => {
-            const accountElement = document.createElement('div');
-            accountElement.style.display = 'flex';
-            accountElement.style.justifyContent = 'space-between';
-            accountElement.style.alignItems = 'center';
-            accountElement.style.marginBottom = '8px';
-            accountElement.style.padding = '5px';
-            accountElement.style.background = 'rgba(30, 30, 40, 0.5)';
-            accountElement.style.borderRadius = '3px';
-            
-            accountElement.innerHTML = `
-                <span>ID: ${accountId}</span>
-                <button class="remove-account" data-account="${accountId}" style="background: #ff5555; border: none; border-radius: 3px; color: white; cursor: pointer; padding: 3px 8px;">Usuń</button>
-            `;
-            
-            accountsList.appendChild(accountElement);
-        });
-        
-        // Dodaj nasłuchiwanie dla przycisków usuwania
-        document.querySelectorAll('.remove-account').forEach(button => {
-            button.addEventListener('click', function() {
-                const accountId = parseInt(this.getAttribute('data-account'));
-                const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-                const updatedAccounts = allowedAccounts.filter(id => id !== accountId);
-                SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, updatedAccounts);
-                updateAccountsList();
-            });
-        });
-    }
-
-    function updateUsageLog() {
-        const usageLogContainer = document.getElementById('swUsageLog');
-        if (!usageLogContainer) return;
-        
-        const usageLog = SW.GM_getValue(CONFIG.USAGE_LOG, {});
-        usageLogContainer.innerHTML = '';
-        
-        Object.keys(usageLog).forEach(accountId => {
-            const accountLog = document.createElement('div');
-            accountLog.style.marginBottom = '15px';
-            
-            accountLog.innerHTML = `<div style="color: #00ccff; font-weight: bold; margin-bottom: 5px;">Konto ID: ${accountId}</div>`;
-            
-            usageLog[accountId].forEach(logTime => {
-                const timeElement = document.createElement('div');
-                timeElement.style.fontSize = '12px';
-                timeElement.style.color = '#8899aa';
-                timeElement.textContent = new Date(logTime).toLocaleString();
-                accountLog.appendChild(timeElement);
-            });
-            
-            usageLogContainer.appendChild(accountLog);
-        });
-    }
-
     function getUserAccountId() {
-        // Metoda 1: Próba pobrania z localStorage Margonem (jeśli istnieje)
+        // Metoda 1: Próba pobrania z localStorage Margonem
         try {
             const margonemData = localStorage.getItem('margonem_user_data');
             if (margonemData) {
@@ -687,43 +665,6 @@
         return null;
     }
 
-    function verifyAccount() {
-        const messageEl = document.getElementById('swLicenseMessage');
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountIdEl = document.getElementById('swAccountId');
-        
-        showMessage('🔐 Weryfikowanie konta...', 'info');
-        
-        // Pobierz ID konta użytkownika
-        const userAccountId = getUserAccountId();
-        
-        if (!userAccountId) {
-            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
-            return;
-        }
-        
-        // Ustaw ID konta w panelu
-        if (accountIdEl) {
-            accountIdEl.textContent = userAccountId;
-        }
-        
-        // Sprawdź czy konto jest na liście dozwolonych
-        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
-        
-        if (allowedAccounts.includes(parseInt(userAccountId))) {
-            SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
-            SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
-            showMessage('✅ Konto zweryfikowane! Dostęp przyznany.', 'success');
-            if (statusEl) {
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
-            }
-            loadAddons();
-        } else {
-            showMessage('❌ To konto nie ma dostępu do panelu.', 'error');
-        }
-    }
-
     function showMessage(message, type) {
         const messageEl = document.getElementById('swLicenseMessage');
         if (messageEl) {
@@ -735,6 +676,100 @@
             messageEl.style.border = `1px solid ${type === 'success' ? '#00ffaa' : 
                                  type === 'info' ? '#00ccff' : '#ff3366'}`;
         }
+    }
+
+    function updateAccountsList() {
+        const accountsList = document.getElementById('swAccountsList');
+        if (!accountsList) return;
+        
+        const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+        accountsList.innerHTML = '<div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; margin-bottom: 10px;">Dozwolone konta</div>';
+        
+        if (allowedAccounts.length === 0) {
+            accountsList.innerHTML += '<div style="color: #8899aa; text-align: center; padding: 10px;">Brak dozwolonych kont</div>';
+            return;
+        }
+        
+        allowedAccounts.forEach(accountId => {
+            const accountElement = document.createElement('div');
+            accountElement.style.display = 'flex';
+            accountElement.style.justifyContent = 'space-between';
+            accountElement.style.alignItems = 'center';
+            accountElement.style.marginBottom = '8px';
+            accountElement.style.padding = '5px';
+            accountElement.style.background = 'rgba(30, 30, 40, 0.5)';
+            accountElement.style.borderRadius = '3px';
+            
+            accountElement.innerHTML = `
+                <span style="color: #ccddee;">ID: ${accountId}</span>
+                <button class="remove-account" data-account="${accountId}" style="background: #ff5555; border: none; border-radius: 3px; color: white; cursor: pointer; padding: 3px 8px; font-size: 11px;">Usuń</button>
+            `;
+            
+            accountsList.appendChild(accountElement);
+            
+            // Dodaj nasłuchiwanie dla przycisku usuwania
+            const removeBtn = accountElement.querySelector('.remove-account');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    const accountIdToRemove = parseInt(this.getAttribute('data-account'));
+                    const allowedAccounts = SW.GM_getValue(CONFIG.ALLOWED_ACCOUNTS, [7411461]);
+                    const updatedAccounts = allowedAccounts.filter(id => id !== accountIdToRemove);
+                    SW.GM_setValue(CONFIG.ALLOWED_ACCOUNTS, updatedAccounts);
+                    updateAccountsList();
+                });
+            }
+        });
+    }
+
+    function logPanelUsage() {
+        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
+        if (!userAccountId) return;
+        
+        const usageLog = SW.GM_getValue('sw_usage_log', {});
+        const now = new Date().toISOString();
+        
+        if (!usageLog[userAccountId]) {
+            usageLog[userAccountId] = [];
+        }
+        
+        usageLog[userAccountId].push(now);
+        
+        // Zachowaj tylko ostatnie 10 logów dla każdego konta
+        if (usageLog[userAccountId].length > 10) {
+            usageLog[userAccountId] = usageLog[userAccountId].slice(-10);
+        }
+        
+        SW.GM_setValue('sw_usage_log', usageLog);
+    }
+
+    function updateUsageLog() {
+        const usageLogContainer = document.getElementById('swUsageLog');
+        if (!usageLogContainer) return;
+        
+        const usageLog = SW.GM_getValue('sw_usage_log', {});
+        usageLogContainer.innerHTML = '';
+        
+        if (Object.keys(usageLog).length === 0) {
+            usageLogContainer.innerHTML = '<div style="color: #8899aa; text-align: center; padding: 10px;">Brak logów użycia</div>';
+            return;
+        }
+        
+        Object.keys(usageLog).forEach(accountId => {
+            const accountLog = document.createElement('div');
+            accountLog.style.marginBottom = '15px';
+            
+            accountLog.innerHTML = `<div style="color: #00ccff; font-weight: bold; margin-bottom: 5px;">Konto ID: ${accountId}</div>`;
+            
+            usageLog[accountId].forEach(logTime => {
+                const timeElement = document.createElement('div');
+                timeElement.style.fontSize = '11px';
+                timeElement.style.color = '#8899aa';
+                timeElement.textContent = new Date(logTime).toLocaleString();
+                accountLog.appendChild(timeElement);
+            });
+            
+            usageLogContainer.appendChild(accountLog);
+        });
     }
 
     function loadAddons() {
@@ -752,32 +787,10 @@
         
         if (isKcsEnabled) {
             console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
-            // Dodaj niewielkie opóźnienie, aby upewnić się, że DOM jest w pełni załadowany
             setTimeout(initKCSIcons, 100);
         } else {
             console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
         }
-    }
-
-    function logPanelUsage() {
-        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
-        if (!userAccountId) return;
-        
-        const usageLog = SW.GM_getValue(CONFIG.USAGE_LOG, {});
-        const now = new Date().toISOString();
-        
-        if (!usageLog[userAccountId]) {
-            usageLog[userAccountId] = [];
-        }
-        
-        usageLog[userAccountId].push(now);
-        
-        // Zachowaj tylko ostatnie 10 logów dla każdego konta
-        if (usageLog[userAccountId].length > 10) {
-            usageLog[userAccountId] = usageLog[userAccountId].slice(-10);
-        }
-        
-        SW.GM_setValue(CONFIG.USAGE_LOG, usageLog);
     }
 
     function loadSavedState() {
@@ -791,7 +804,6 @@
             toggleBtn.style.top = savedBtnPosition.top;
             console.log('📍 Loaded button position:', savedBtnPosition);
         } else if (toggleBtn) {
-            // Ustaw domyślną pozycję tylko jeśli nie ma zapisanej
             toggleBtn.style.left = '70px';
             toggleBtn.style.top = '70px';
         }
@@ -813,16 +825,12 @@
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        // Załaduj zapisane ID konta użytkownika
-        const savedAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID, '');
-        const accountIdEl = document.getElementById('swAccountId');
-        if (accountIdEl && savedAccountId) {
-            accountIdEl.textContent = savedAccountId;
-        }
-        
         // Sprawdź status licencji
         const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
         const statusEl = document.getElementById('swLicenseStatus');
+        const accountIdEl = document.getElementById('swAccountId');
+        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
+        
         if (statusEl) {
             if (isVerified) {
                 statusEl.textContent = 'Aktywna';
@@ -831,6 +839,11 @@
                 statusEl.textContent = 'Nieaktywna';
                 statusEl.style.color = '#ff3366';
             }
+        }
+        
+        if (accountIdEl && userAccountId) {
+            accountIdEl.textContent = userAccountId;
+            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
         }
         
         // Załaduj stan suwaka KCS Icons
