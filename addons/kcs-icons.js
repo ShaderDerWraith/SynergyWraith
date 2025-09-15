@@ -1,4 +1,7 @@
 // addons/kcs-icons.js
+// SynergyWraith KCS Icons Addon - Copyright (c) 2024 ShaderDerWraith
+// Licensed under the MIT License - see LICENSE file for details
+
 (function() {
     'use strict';
 
