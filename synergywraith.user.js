@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         SynergyWraith - Panel Dodatków
-// @version      1.7
+// @version      1.8
 // @description  Zaawansowany panel dodatków do Margonem
 // @author       ShaderDerWraith
 // @license      MIT
-// @updateURL    https://shaderderwraith.github.io/SynergyWraith/synergywraith.user.js
+// @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/synergywraith.user.js
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg
 // @match        http*://*.margonem.pl/*
 // @match        http*://*.margonem.com/*
@@ -27,9 +27,9 @@
 (function () {
     'use strict';
     
-    console.log('🚀 SynergyWraith loader started - v1.7');
+    console.log('🚀 SynergyWraith loader started - v1.8');
     
-    // 🔹 UŻYJ RAW GITHUB URL zamiast GitHub Pages
+    // 🔹 UŻYJ RAW GITHUB URL
     const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/';
     const TIMESTAMP = Date.now();
     
