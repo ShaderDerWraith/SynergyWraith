@@ -1,4 +1,7 @@
 // synergy.js - Główny kod panelu
+// SynergyWraith Panel - Copyright (c) 2024 ShaderDerWraith
+// Licensed under the MIT License - see LICENSE file for details
+
 (function() {
     'use strict';
 
@@ -13,7 +16,13 @@
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
         ALLOWED_ACCOUNTS: "sw_allowed_accounts",
-        USER_ACCOUNT_ID: "sw_user_account_id"
+        USER_ACCOUNT_ID: "sw_user_account_id",
+        LICENSE_INFO: {
+            type: "MIT",
+            author: "ShaderDerWraith",
+            year: "2024",
+            url: "https://github.com/ShaderDerWraith/SynergyWraith/blob/main/LICENSE"
+        }
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -298,6 +307,7 @@
         panel.innerHTML = `
             <div id="swPanelHeader" style="background: linear-gradient(to right, #2a2a3a, #232330); padding: 12px; text-align: center; border-bottom: 1px solid #393945; cursor: grab;">
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
+                <div style="font-size: 9px; color: #8899aa; margin-top: 3px;">Licensed under MIT</div>
             </div>
             
             <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
@@ -343,6 +353,32 @@
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">ID Konta:</span>
                         <span id="swAccountId" style="color: #8899aa; font-weight: bold;">-</span>
+                    </div>
+                </div>
+
+                <!-- DODANA SEKCJA INFORMACJI O LICENCJI -->
+                <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
+                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Informacje o Licencji</div>
+                    <div style="margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                            <span style="color: #8899aa;">Typ licencji:</span>
+                            <span style="color: #ccddee; font-weight: bold;">MIT</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                            <span style="color: #8899aa;">Autor:</span>
+                            <span style="color: #ccddee; font-weight: bold;">ShaderDerWraith</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                            <span style="color: #8899aa;">Rok:</span>
+                            <span style="color: #ccddee; font-weight: bold;">2024</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <a href="https://github.com/ShaderDerWraith/SynergyWraith/blob/main/LICENSE" 
+                               target="_blank" 
+                               style="color: #00ccff; text-decoration: none; font-size: 12px;">
+                                Pełna treść licencji
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
