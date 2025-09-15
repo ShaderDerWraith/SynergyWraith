@@ -5,7 +5,7 @@
     left: 70px;
     width: 50px;
     height: 50px;
-    background: transparent; /* Usunięto gradient */
+    background: transparent;
     border: 3px solid #00ff00;
     border-radius: 50%;
     cursor: grab;
@@ -23,7 +23,7 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    overflow: hidden; /* Dodano, aby obrazek nie wystawał poza zaokrąglone rogi */
+    overflow: hidden;
 }
 
 #swPanelToggle.dragging {
@@ -366,6 +366,12 @@ input:checked + .slider:before {
     border: 1px solid #ff3366;
 }
 
+.license-info {
+    background: rgba(0, 204, 255, 0.1);
+    color: #00ccff;
+    border: 1px solid #00ccff;
+}
+
 /* 🔹 LICENSE STATUS IN TAB 🔹 */
 .license-status-container {
     background: rgba(40, 40, 50, 0.6);
@@ -418,6 +424,120 @@ input:checked + .slider:before {
 
 .license-status-invalid {
     color: #ff3366 !important;
+}
+
+/* 🔹 ADMIN TAB STYLES 🔹 */
+.admin-section {
+    margin-bottom: 20px;
+}
+
+.admin-input-group {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.admin-input {
+    flex: 1;
+    padding: 10px;
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 5px;
+    color: #ccddee;
+    font-size: 12px;
+}
+
+.admin-button {
+    padding: 10px 15px;
+    background: linear-gradient(to right, #00ccff, #0099ff);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.admin-list {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.admin-list-header {
+    color: #00ccff;
+    font-weight: bold;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.admin-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px;
+    background: rgba(30, 30, 40, 0.5);
+    border-radius: 3px;
+}
+
+.admin-list-empty {
+    color: #8899aa;
+    text-align: center;
+    padding: 10px;
+}
+
+.remove-btn {
+    background: #ff5555;
+    border: none;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+/* 🔹 USAGE LOG STYLES 🔹 */
+.usage-log {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.usage-log-header {
+    color: #00ccff;
+    font-weight: bold;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.usage-log-item {
+    margin-bottom: 15px;
+}
+
+.usage-log-account {
+    color: #00ccff;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.usage-log-time {
+    font-size: 11px;
+    color: #8899aa;
+}
+
+.usage-log-empty {
+    color: #8899aa;
+    text-align: center;
+    padding: 10px;
 }
 
 /* 🔹 SETTINGS TAB 🔹 */
@@ -477,5 +597,9 @@ input:checked + .slider:before {
     .license-status-value {
         max-width: 100%;
         text-align: left;
+    }
+    
+    .admin-input-group {
+        flex-direction: column;
     }
 }
