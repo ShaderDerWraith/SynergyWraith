@@ -3,6 +3,7 @@
 // @version      1.7
 // @description  Zaawansowany panel dodatków do Margonem
 // @author       ShaderDerWraith
+// @license      MIT
 // @updateURL    https://shaderderwraith.github.io/SynergyWraith/synergywraith.user.js
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg
 // @match        http*://*.margonem.pl/*
