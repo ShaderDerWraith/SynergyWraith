@@ -6,13 +6,11 @@
 
     // 🔹 Konfiguracja
     const CONFIG = {
-        LICENSE_VERIFIED: "sw_license_verified",
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
-        USER_ACCOUNT_ID: "sw_user_account_id",
-        LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/license/list.txt"
+        LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/LICENSE"
     };
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
@@ -59,9 +57,11 @@
     }
 
     const SW = window.synergyWraith;
+    let isLicenseVerified = false;
+    let userAccountId = null;
 
     // 🔹 Główne funkcje
-    function initPanel() {
+    async function initPanel() {
         console.log('✅ Initializing panel...');
         
         // Najpierw tworzymy przycisk, ale nie inicjujemy jeszcze przeciągania
@@ -82,10 +82,13 @@
         setupTabs();
         setupDrag();
         
-        checkLicenseOnStart();
+        // Sprawdzamy licencję i dopiero potem ładujemy dodatki
+        await checkLicenseOnStart();
         
-        // 🔹 ZAŁADUJ DODATKI PO INICJALIZACJI PANELU
-        loadAddons();
+        // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
+        if (isLicenseVerified) {
+            loadAddons();
+        }
     }
 
     function createToggleButton() {
@@ -216,7 +219,6 @@
             if (isDragging) {
                 stopDragging();
             } else {
-                handleClick();
             }
         }
 
@@ -268,6 +270,9 @@
                 console.log('🎯 Panel toggled:', !isVisible);
             }
         }
+
+        // Dodaj nasłuchiwanie kliknięcia
+        toggleBtn.addEventListener('click', handleClick);
 
         console.log('✅ Advanced toggle drag functionality added');
     }
@@ -332,7 +337,7 @@
                     <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Status Licencji</div>
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">Status:</span>
-                        <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Nieaktywna</span>
+                        <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Weryfikacja...</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin: 10px 0;">
                         <span style="color: #8899aa;">ID Konta:</span>
@@ -524,21 +529,26 @@
             const margonemData = localStorage.getItem('margonem_user_data');
             if (margonemData) {
                 const userData = JSON.parse(margonemData);
-                return userData.account_id || userData.user_id;
+                if (userData.account_id) {
+                    return userData.account_id;
+                }
+                if (userData.user_id) {
+                    return userData.user_id;
+                }
             }
         } catch (e) {
             console.warn('Nie udało się pobrać danych z localStorage Margonem:', e);
         }
-        
-        // Metoda 2: Parsowanie strony profilu
+
+        // Metoda 2: Parsowanie URL strony profilu
         if (window.location.href.includes('margonem.pl/profile')) {
             const match = window.location.href.match(/profile\/view,(\d+)/);
             if (match && match[1]) {
                 return match[1];
             }
         }
-        
-        // Metoda 3: Sprawdzenie elementów DOM
+
+        // Metoda 3: Sprawdzenie elementów DOM (linki do profilu)
         const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
         for (const link of profileLinks) {
             const match = link.href.match(/profile\/view,(\d+)/);
@@ -546,7 +556,23 @@
                 return match[1];
             }
         }
-        
+
+        // Metoda 4: Sprawdzenie czy jesteśmy na stronie gry i pobranie z globalnych zmiennych
+        if (typeof g !== 'undefined' && g.user && g.user.account_id) {
+            return g.user.account_id;
+        }
+
+        // Metoda 5: Sprawdzenie w sessionStorage lub innych miejscach
+        try {
+            const accountId = sessionStorage.getItem('account_id');
+            if (accountId) {
+                return accountId;
+            }
+        } catch (e) {
+            console.warn('Nie udało się pobrać account_id z sessionStorage:', e);
+        }
+
+        console.error('Nie udało się pobrać ID konta');
         return null;
     }
 
@@ -593,7 +619,7 @@
                         const lines = response.responseText.split('\n');
                         const accounts = lines
                             .map(line => line.trim())
-                            .filter(line => line && !line.startsWith('#')) // Pomijanie komentarzy
+                            .filter(line => line && !line.startsWith('#') && !isNaN(line)) // Pomijanie komentarzy i nie-liczb
                             .map(line => parseInt(line))
                             .filter(id => !isNaN(id));
                         resolve(accounts);
@@ -609,8 +635,10 @@
     }
 
     async function verifyAccount() {
-        const userAccountId = getUserAccountId();
-        if (!userAccountId) {
+        const accountId = getUserAccountId();
+        userAccountId = accountId;
+        
+        if (!accountId) {
             showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
             updateLicenseStatus(false, null);
             return false;
@@ -618,24 +646,24 @@
 
         try {
             const allowedAccounts = await fetchLicenseList();
-            const isAllowed = allowedAccounts.includes(parseInt(userAccountId));
+            const isAllowed = allowedAccounts.includes(parseInt(accountId));
 
             if (isAllowed) {
-                SW.GM_setValue(CONFIG.USER_ACCOUNT_ID, userAccountId);
-                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, true);
                 showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
-                updateLicenseStatus(true, userAccountId);
+                updateLicenseStatus(true, accountId);
+                isLicenseVerified = true;
                 return true;
             } else {
-                SW.GM_setValue(CONFIG.LICENSE_VERIFIED, false);
                 showMessage('❌ Brak dostępu do panelu.', 'error');
-                updateLicenseStatus(false, userAccountId);
+                updateLicenseStatus(false, accountId);
+                isLicenseVerified = false;
                 return false;
             }
         } catch (error) {
             console.error('Błąd podczas weryfikacji licencji:', error);
             showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
-            updateLicenseStatus(false, userAccountId);
+            updateLicenseStatus(false, accountId);
+            isLicenseVerified = false;
             return false;
         }
     }
@@ -643,9 +671,7 @@
     function loadAddons() {
         console.log('🔓 Ładowanie dodatków...');
         
-        // Sprawdź czy licencja jest zweryfikowana
-        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
-        if (!isVerified) {
+        if (!isLicenseVerified) {
             console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
             return;
         }
@@ -693,11 +719,6 @@
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        // Sprawdź status licencji
-        const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
-        const userAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
-        updateLicenseStatus(isVerified, userAccountId);
-        
         // Załaduj stan suwaka KCS Icons
         const kcsToggle = document.getElementById('kcsIconsToggle');
         if (kcsToggle) {
@@ -710,22 +731,8 @@
     }
 
     async function checkLicenseOnStart() {
-        if (SW && SW.GM_getValue) {
-            const savedAccountId = SW.GM_getValue(CONFIG.USER_ACCOUNT_ID);
-            const isVerified = SW.GM_getValue(CONFIG.LICENSE_VERIFIED, false);
-
-            if (savedAccountId && isVerified) {
-                console.log('📋 Licencja zweryfikowana (zapisana), ładuję dodatki...');
-                loadAddons();
-                return;
-            }
-
-            // Jeśli nie ma zapisanego, to próbujemy zweryfikować
-            const verified = await verifyAccount();
-            if (verified) {
-                loadAddons();
-            }
-        }
+        console.log('🔍 Checking license on start...');
+        return await verifyAccount();
     }
 
     // 🔹 DODATEK KCS ICONS - OSADZONY KOD
@@ -738,8 +745,7 @@
             // Elity 2
             "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
             "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
-            "Przeklęta Strażnica - podziemia p.2 s.1": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/demonszef.gif",
-            // ... (reszta mappingów bez zmian)
+            // ... (reszta mappingów)
         };
 
         const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
