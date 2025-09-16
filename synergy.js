@@ -107,7 +107,7 @@
                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
         `;
         
-        // Ustaw domyślną pozycję (zostanie nadpisana przez loadSavedState jeśli istnieje zapisana pozycja)
+        // Ustaw domyślną pozycję (zostanie nadpisana przez loadSavedState jeśli istnieje zapisana pozycję)
         toggleBtn.style.position = 'fixed';
         toggleBtn.style.width = '50px';
         toggleBtn.style.height = '50px';
@@ -219,6 +219,7 @@
             if (isDragging) {
                 stopDragging();
             } else {
+                handleClick();
             }
         }
 
@@ -300,7 +301,7 @@
         `;
         
         panel.innerHTML = `
-            <div id="swPanelHeader" style="background: linear-gradient(to right, #2a2a3a, #232330); padding: 12px; text-align: center; border-bottom: 1px solid #393945; cursor: grab;">
+            <div id="swPanelHeader" style="background: linear-gradient(to right, #2a2a3a, #232330; padding: 12px; text-align: center; border-bottom: 1px solid #393945; cursor: grab;">
                 <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
             </div>
             
@@ -362,7 +363,7 @@
                     </div>
                 </div>
                 
-                <button id="swResetButton" style="width: 100%; padding: 10px; background: linear-gradient(to right, #ff5555, #ff3366); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
+                <button id="swResetButton" style="width: 100%; padding: 10px; background: linear-gradient(to right, #ff5555, #ff3366; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
                     Resetuj Ustawienia
                 </button>
                 <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
@@ -524,55 +525,96 @@
     }
 
     function getUserAccountId() {
-        // Metoda 1: Próba pobrania z localStorage Margonem
+        // Metoda 1: Próba pobrania z localStorage Margonem (najbardziej niezawodne)
         try {
             const margonemData = localStorage.getItem('margonem_user_data');
             if (margonemData) {
                 const userData = JSON.parse(margonemData);
+                // Sprawdzamy różne możliwe klucze dla ID konta
                 if (userData.account_id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (account_id):', userData.account_id);
                     return userData.account_id;
                 }
                 if (userData.user_id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (user_id):', userData.user_id);
                     return userData.user_id;
+                }
+                if (userData.id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (id):', userData.id);
+                    return userData.id;
                 }
             }
         } catch (e) {
-            console.warn('Nie udało się pobrać danych z localStorage Margonem:', e);
+            console.warn('❌ Nie udało się pobrać danych z localStorage Margonem:', e);
         }
 
-        // Metoda 2: Parsowanie URL strony profilu
+        // Metoda 2: Sprawdzenie globalnych zmiennych gry (jeśli jesteśmy w grze)
+        if (typeof g !== 'undefined' && g.user) {
+            if (g.user.account_id) {
+                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.account_id);
+                return g.user.account_id;
+            }
+            if (g.user.id) {
+                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.id);
+                return g.user.id;
+            }
+        }
+
+        // Metoda 3: Parsowanie URL strony profilu
         if (window.location.href.includes('margonem.pl/profile')) {
             const match = window.location.href.match(/profile\/view,(\d+)/);
             if (match && match[1]) {
+                console.log('✅ Znaleziono ID konta w URL:', match[1]);
                 return match[1];
             }
         }
 
-        // Metoda 3: Sprawdzenie elementów DOM (linki do profilu)
+        // Metoda 4: Sprawdzenie elementów DOM (linki do profilu)
         const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
         for (const link of profileLinks) {
             const match = link.href.match(/profile\/view,(\d+)/);
             if (match && match[1]) {
+                console.log('✅ Znaleziono ID konta w linku do profilu:', match[1]);
                 return match[1];
             }
         }
 
-        // Metoda 4: Sprawdzenie czy jesteśmy na stronie gry i pobranie z globalnych zmiennych
-        if (typeof g !== 'undefined' && g.user && g.user.account_id) {
-            return g.user.account_id;
-        }
-
-        // Metoda 5: Sprawdzenie w sessionStorage lub innych miejscach
+        // Metoda 5: Sprawdzenie w sessionStorage
         try {
-            const accountId = sessionStorage.getItem('account_id');
-            if (accountId) {
-                return accountId;
+            const sessionData = sessionStorage.getItem('margonem_user_data');
+            if (sessionData) {
+                const userData = JSON.parse(sessionData);
+                if (userData.account_id) {
+                    console.log('✅ Znaleziono ID konta w sessionStorage:', userData.account_id);
+                    return userData.account_id;
+                }
             }
         } catch (e) {
-            console.warn('Nie udało się pobrać account_id z sessionStorage:', e);
+            console.warn('❌ Nie udało się pobrać danych z sessionStorage:', e);
         }
 
-        console.error('Nie udało się pobrać ID konta');
+        // Metoda 6: Sprawdzenie w cookies
+        try {
+            const cookies = document.cookie.split(';');
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'margonem_user_data' && value) {
+                    try {
+                        const userData = JSON.parse(decodeURIComponent(value));
+                        if (userData.account_id) {
+                            console.log('✅ Znaleziono ID konta w cookies:', userData.account_id);
+                            return userData.account_id;
+                        }
+                    } catch (e) {
+                        console.warn('❌ Błąd parsowania danych z cookies:', e);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('❌ Nie udało się pobrać danych z cookies:', e);
+        }
+
+        console.error('❌ Nie udało się pobrać ID konta z żadnego źródła');
         return null;
     }
 
@@ -644,9 +686,14 @@
             return false;
         }
 
+        console.log('🔍 Weryfikuję licencję dla ID konta:', accountId);
+
         try {
             const allowedAccounts = await fetchLicenseList();
+            console.log('📋 Lista dozwolonych kont:', allowedAccounts);
+            
             const isAllowed = allowedAccounts.includes(parseInt(accountId));
+            console.log('✅ Wynik weryfikacji:', isAllowed);
 
             if (isAllowed) {
                 showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
@@ -660,7 +707,7 @@
                 return false;
             }
         } catch (error) {
-            console.error('Błąd podczas weryfikacji licencji:', error);
+            console.error('❌ Błąd podczas weryfikacji licencji:', error);
             showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
             updateLicenseStatus(false, accountId);
             isLicenseVerified = false;
