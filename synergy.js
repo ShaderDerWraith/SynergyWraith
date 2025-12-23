@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.1 loaded');
+    console.log('🚀 SynergyWraith Panel v1.2 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -276,6 +276,10 @@
 .tabcontent {
     display: none;
     padding: 15px;
+}
+
+.tabcontent.active {
+    display: block;
     animation: fadeEffect 0.3s ease;
 }
 
@@ -314,103 +318,43 @@
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
-/* 🔹 ADDONS LIST 🔹 */
+/* 🔹 ADDONS LIST - UPROSZCZONY 🔹 */
 .addon {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 10px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.addon:hover {
-    background: rgba(40, 40, 40, 0.9);
-    border-color: #00ff00;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
 }
 
 .addon-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
-    cursor: pointer;
-}
-
-.addon-header > div {
-    display: flex;
-    align-items: center;
+    margin-bottom: 5px;
 }
 
 .addon-title {
     font-weight: 600;
     color: #00ff00;
-    font-size: 13px;
+    font-size: 12px;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 .addon-description {
     color: #aaaaaa;
     font-size: 11px;
-    line-height: 1.4;
-    margin-bottom: 8px;
-    display: none;
+    line-height: 1.3;
+    margin-bottom: 5px;
 }
 
-.addon.expanded .addon-description {
-    display: block;
-}
-
-/* 🔹 SETTINGS GEAR ICON 🔹 */
-.addon-settings-btn {
-    background: rgba(0, 255, 0, 0.1);
-    border: 1px solid #333;
-    color: #00ff00;
-    cursor: pointer;
-    padding: 2px 5px;
-    margin-left: 8px;
-    font-size: 12px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-}
-
-.addon-settings-btn:hover {
-    color: #ffffff;
-    background: rgba(0, 255, 0, 0.3);
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.addon-settings-panel {
-    display: none;
-    margin-top: 10px;
-    padding: 10px;
-    background: rgba(20, 20, 20, 0.9);
-    border: 1px solid #333;
-    border-radius: 5px;
-}
-
-.addon-settings-panel.visible {
-    display: block;
-}
-
-.settings-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-/* 🔹 SWITCH STYLE - ZMODYFIKOWANY 🔹 */
+/* 🔹 SWITCH STYLE - ZMNIEJSZONY 🔹 */
 .switch {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 18px;
+    width: 32px;
+    height: 16px;
 }
 
 .switch input {
@@ -428,15 +372,15 @@
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid #555;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
+    height: 12px;
+    width: 12px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
@@ -451,7 +395,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(18px);
+    transform: translateX(16px);
     background-color: #00ff00;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
 }
@@ -590,161 +534,7 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
-/* 🔹 ADMIN TAB STYLES 🔹 */
-.admin-section {
-    margin-bottom: 20px;
-}
-
-.admin-input-group {
-    display: flex;
-    margin-bottom: 15px;
-    gap: 10px;
-}
-
-.admin-input {
-    flex: 1;
-    padding: 10px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 5px;
-    color: #00ff00;
-    font-size: 12px;
-    transition: all 0.3s ease;
-}
-
-.admin-input:focus {
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.admin-button {
-    padding: 10px 15px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    transition: all 0.3s ease;
-}
-
-.admin-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
-}
-
-.admin-list {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 15px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.admin-list-header {
-    color: #00ff00;
-    font-weight: bold;
-    border-bottom: 1px solid #333;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-}
-
-.admin-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 5px;
-    background: rgba(20, 20, 20, 0.8);
-    border-radius: 3px;
-    border: 1px solid #333;
-    transition: all 0.3s ease;
-}
-
-.admin-list-item:hover {
-    border-color: #00ff00;
-    background: rgba(30, 30, 30, 0.9);
-}
-
-.admin-list-empty {
-    color: #666;
-    text-align: center;
-    padding: 10px;
-}
-
-.remove-btn {
-    background: #660000;
-    border: 1px solid #ff0000;
-    border-radius: 3px;
-    color: #ff0000;
-    cursor: pointer;
-    padding: 3px 8px;
-    font-size: 11px;
-    transition: all 0.3s ease;
-}
-
-.remove-btn:hover {
-    background: #ff0000;
-    color: #ffffff;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-}
-
-/* 🔹 USAGE LOG STYLES 🔹 */
-.usage-log {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 15px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.usage-log-header {
-    color: #00ff00;
-    font-weight: bold;
-    border-bottom: 1px solid #333;
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-}
-
-.usage-log-item {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: rgba(20, 20, 20, 0.8);
-    border-radius: 5px;
-    border: 1px solid #333;
-    transition: all 0.3s ease;
-}
-
-.usage-log-item:hover {
-    border-color: #00ff00;
-    transform: translateX(5px);
-}
-
-.usage-log-account {
-    color: #00ff00;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.usage-log-time {
-    font-size: 11px;
-    color: #aaaaaa;
-}
-
-.usage-log-empty {
-    color: #666;
-    text-align: center;
-    padding: 10px;
-}
-
-/* 🔹 SETTINGS TAB - NOWE FUNKCJE 🔹 */
+/* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
     padding: 12px;
@@ -752,11 +542,6 @@ input:checked + .slider:before {
     border: 1px solid #333;
     border-radius: 6px;
     transition: all 0.3s ease;
-}
-
-.settings-item:hover {
-    border-color: #00ff00;
-    background: rgba(40, 40, 40, 0.9);
 }
 
 .settings-label {
@@ -829,8 +614,8 @@ input:checked + .slider:before {
 .background-toggle {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 24px;
+    width: 36px;
+    height: 18px;
 }
 
 .background-toggle input {
@@ -848,15 +633,15 @@ input:checked + .slider:before {
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 24px;
+    border-radius: 18px;
     border: 1px solid #555;
 }
 
 .background-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 14px;
+    width: 14px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
@@ -871,7 +656,7 @@ input:checked + .slider:before {
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(26px);
+    transform: translateX(18px);
     background-color: #00ff00;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
 }
@@ -889,7 +674,7 @@ input:checked + .slider:before {
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
@@ -935,9 +720,7 @@ input:checked + .slider:before {
 #swAddonsPanel.transparent-background .sw-tab-content,
 #swAddonsPanel.transparent-background .addon,
 #swAddonsPanel.transparent-background .settings-item,
-#swAddonsPanel.transparent-background .license-status-container,
-#swAddonsPanel.transparent-background .admin-list,
-#swAddonsPanel.transparent-background .usage-log {
+#swAddonsPanel.transparent-background .license-status-container {
     background: rgba(10, 10, 10, 0.9);
     backdrop-filter: blur(5px);
 }
@@ -967,10 +750,6 @@ input:checked + .slider:before {
     .license-status-value {
         max-width: 100%;
         text-align: left;
-    }
-    
-    .admin-input-group {
-        flex-direction: column;
     }
     
     .font-size-container {
@@ -1010,17 +789,6 @@ input:checked + .slider:before {
 .admin-list::-webkit-scrollbar-thumb:hover,
 .usage-log::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #00ff00, #009900);
-}
-
-/* 🔹 ANIMACJE DODATKOWE 🔹 */
-@keyframes pulse {
-    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-}
-
-.addon.active {
-    animation: pulse 2s infinite;
 }
         `;
         document.head.appendChild(style);
@@ -1236,7 +1004,6 @@ input:checked + .slider:before {
         
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
-        panel.className = "tabcontent";
         
         panel.innerHTML = `
             <div id="swPanelHeader">
@@ -1249,7 +1016,7 @@ input:checked + .slider:before {
                 <button class="tablink" data-tab="settings">Ustawienia</button>
             </div>
 
-            <div id="addons" class="tabcontent" style="display: block;">
+            <div id="addons" class="tabcontent active">
                 <h3>Aktywne Dodatki</h3>
                 <div class="addon">
                     <div class="addon-header">
@@ -1303,19 +1070,6 @@ input:checked + .slider:before {
                     </div>
                 </div>
                 
-                <!-- Potwierdzenie resetowania -->
-                <div id="swResetConfirmation" style="display: none; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
-                    <p style="color: #ccddee; margin-top: 0;">Czy na pewno chcesz zresetować ustawienia?</p>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="swResetConfirm" style="flex: 1; padding: 8px; background: linear-gradient(to right, #ff5555, #ff3366); border: none; border-radius: 5px; color: white; cursor: pointer;">
-                            Tak, resetuj
-                        </button>
-                        <button id="swResetCancel" style="flex: 1; padding: 8px; background: linear-gradient(to right, #555, #333); border: none; border-radius: 5px; color: white; cursor: pointer;">
-                            Anuluj
-                        </button>
-                    </div>
-                </div>
-                
                 <div class="reset-settings-container">
                     <button class="reset-settings-button" id="swResetButton">
                         <span class="reset-settings-icon">↻</span>
@@ -1333,30 +1087,33 @@ input:checked + .slider:before {
 
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
-        const tabContents = document.querySelectorAll('.tabcontent');
         
         tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 
-                // Ukryj wszystkie zakładki
-                tabContents.forEach(content => {
-                    content.style.display = 'none';
-                });
+                const tabName = this.getAttribute('data-tab');
                 
                 // Usuń aktywny stan ze wszystkich zakładek
                 tabs.forEach(t => {
                     t.classList.remove('active');
                 });
                 
+                // Dodaj aktywny stan do klikniętej zakładki
+                this.classList.add('active');
+                
+                // Ukryj wszystkie zakładki
+                const tabContents = document.querySelectorAll('.tabcontent');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                
                 // Pokaż wybraną zakładkę
                 const tabContent = document.getElementById(tabName);
                 if (tabContent) {
-                    tabContent.style.display = 'block';
+                    tabContent.classList.add('active');
                 }
-                
-                // Dodaj aktywny stan do klikniętej zakładki
-                this.classList.add('active');
             });
         });
         console.log('✅ Tabs setup complete');
@@ -1372,6 +1129,8 @@ input:checked + .slider:before {
         let offsetX, offsetY;
 
         header.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.tablink')) return; // Zapobiegaj przeciąganiu po kliknięciu w zakładkę
+            
             isDragging = true;
             const rect = panel.getBoundingClientRect();
             offsetX = e.clientX - rect.left;
@@ -1431,64 +1190,11 @@ input:checked + .slider:before {
 
         // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
-        const resetConfirm = document.getElementById('swResetConfirm');
-        const resetCancel = document.getElementById('swResetCancel');
-        const resetConfirmation = document.getElementById('swResetConfirmation');
-        
         if (resetBtn) {
             resetBtn.addEventListener('click', function() {
-                resetConfirmation.style.display = 'block';
-                resetBtn.style.display = 'none';
-            });
-        }
-        
-        if (resetConfirm) {
-            resetConfirm.addEventListener('click', function() {
-                // Resetuj wszystkie ustawienia
-                SW.GM_deleteValue(CONFIG.PANEL_POSITION);
-                SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
-                SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-                SW.GM_deleteValue(CONFIG.FONT_SIZE);
-                SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
-                SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
-                
-                // Pokaż komunikat w panelu
-                const resetMessage = document.getElementById('swResetMessage');
-                if (resetMessage) {
-                    resetMessage.textContent = 'Ustawienia zresetowane! Panel zostanie odświeżony.';
-                    resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
-                    resetMessage.style.color = '#00ccff';
-                    resetMessage.style.border = '1px solid #00ccff';
-                    resetMessage.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        resetMessage.style.display = 'none';
-                    }, 5000);
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    resetAllSettings();
                 }
-                
-                resetConfirmation.style.display = 'none';
-                resetBtn.style.display = 'block';
-                
-                // Odśwież ustawienia
-                loadSavedState();
-                
-                // Odśwież panel po 1 sekundzie
-                setTimeout(() => {
-                    const panel = document.getElementById('swAddonsPanel');
-                    if (panel) {
-                        panel.style.display = 'none';
-                        setTimeout(() => {
-                            panel.style.display = 'block';
-                        }, 100);
-                    }
-                }, 1000);
-            });
-        }
-        
-        if (resetCancel) {
-            resetCancel.addEventListener('click', function() {
-                resetConfirmation.style.display = 'none';
-                resetBtn.style.display = 'block';
             });
         }
 
@@ -1521,12 +1227,41 @@ input:checked + .slider:before {
         console.log('✅ Event listeners setup complete');
     }
 
+    function resetAllSettings() {
+        // Resetuj wszystkie ustawienia
+        SW.GM_deleteValue(CONFIG.PANEL_POSITION);
+        SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
+        SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
+        SW.GM_deleteValue(CONFIG.FONT_SIZE);
+        SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
+        SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
+        
+        // Pokaż komunikat w panelu
+        const resetMessage = document.getElementById('swResetMessage');
+        if (resetMessage) {
+            resetMessage.textContent = 'Ustawienia zresetowane! Panel zostanie odświeżony.';
+            resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
+            resetMessage.style.color = '#00ccff';
+            resetMessage.style.border = '1px solid #00ccff';
+            resetMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                resetMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Odśwież ustawienia
+        loadSavedState();
+    }
+
     function updateBackgroundVisibility(isVisible) {
         const panel = document.getElementById('swAddonsPanel');
-        if (isVisible) {
-            panel.classList.remove('transparent-background');
-        } else {
-            panel.classList.add('transparent-background');
+        if (panel) {
+            if (isVisible) {
+                panel.classList.remove('transparent-background');
+            } else {
+                panel.classList.add('transparent-background');
+            }
         }
     }
 
@@ -1591,8 +1326,478 @@ input:checked + .slider:before {
         console.log('✅ Saved state loaded');
     }
 
-    // 🔹 Reszta funkcji (getUserAccountId, showMessage, updateLicenseStatus, fetchLicenseList, verifyAccount, loadAddons, checkLicenseOnStart, initKCSIcons)
-    // ... (pozostałe funkcje pozostają bez zmian)
+    // 🔹 Reszta funkcji pozostaje bez zmian
+    function getUserAccountId() {
+        // Metoda 1: Próba pobrania z localStorage Margonem
+        try {
+            const margonemData = localStorage.getItem('margonem_user_data');
+            if (margonemData) {
+                const userData = JSON.parse(margonemData);
+                if (userData.account_id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (account_id):', userData.account_id);
+                    return userData.account_id;
+                }
+                if (userData.user_id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (user_id):', userData.user_id);
+                    return userData.user_id;
+                }
+                if (userData.id) {
+                    console.log('✅ Znaleziono ID konta w localStorage (id):', userData.id);
+                    return userData.id;
+                }
+            }
+        } catch (e) {
+            console.warn('❌ Nie udało się pobrać danych z localStorage Margonem:', e);
+        }
+
+        // Metoda 2: Sprawdzenie globalnych zmiennych gry
+        if (typeof g !== 'undefined' && g.user) {
+            if (g.user.account_id) {
+                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.account_id);
+                return g.user.account_id;
+            }
+            if (g.user.id) {
+                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.id);
+                return g.user.id;
+            }
+        }
+
+        // Metoda 3: Parsowanie URL strony profilu
+        if (window.location.href.includes('margonem.pl/profile')) {
+            const match = window.location.href.match(/profile\/view,(\d+)/);
+            if (match && match[1]) {
+                console.log('✅ Znaleziono ID konta w URL:', match[1]);
+                return match[1];
+            }
+        }
+
+        // Metoda 4: Sprawdzenie elementów DOM
+        const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
+        for (const link of profileLinks) {
+            const match = link.href.match(/profile\/view,(\d+)/);
+            if (match && match[1]) {
+                console.log('✅ Znaleziono ID konta w linku do profilu:', match[1]);
+                return match[1];
+            }
+        }
+
+        console.error('❌ Nie udało się pobrać ID konta z żadnego źródła');
+        return null;
+    }
+
+    function showMessage(message, type) {
+        const messageEl = document.getElementById('swLicenseMessage');
+        if (messageEl) {
+            messageEl.textContent = message;
+            messageEl.style.background = type === 'success' ? 'rgba(0,255,170,0.1)' : 
+                                      type === 'info' ? 'rgba(0,204,255,0.1)' : 'rgba(255,50,100,0.1)';
+            messageEl.style.color = type === 'success' ? '#00ffaa' : 
+                                 type === 'info' ? '#00ccff' : '#ff3366';
+            messageEl.style.border = `1px solid ${type === 'success' ? '#00ffaa' : 
+                                 type === 'info' ? '#00ccff' : '#ff3366'}`;
+        }
+    }
+
+    function updateLicenseStatus(isVerified, accountId) {
+        const statusEl = document.getElementById('swLicenseStatus');
+        const accountIdEl = document.getElementById('swAccountId');
+        
+        if (statusEl) {
+            if (isVerified) {
+                statusEl.textContent = 'Aktywna';
+                statusEl.style.color = '#00ffaa';
+                statusEl.className = 'license-status-valid';
+            } else {
+                statusEl.textContent = 'Nieaktywna';
+                statusEl.style.color = '#ff3366';
+                statusEl.className = 'license-status-invalid';
+            }
+        }
+        
+        if (accountIdEl) {
+            accountIdEl.textContent = accountId || '-';
+            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
+        }
+    }
+
+    function fetchLicenseList() {
+        return new Promise((resolve, reject) => {
+            SW.GM_xmlhttpRequest({
+                method: 'GET',
+                url: CONFIG.LICENSE_LIST_URL + '?t=' + Date.now(),
+                onload: function(response) {
+                    if (response.status === 200) {
+                        const lines = response.responseText.split('\n');
+                        const accounts = lines
+                            .map(line => line.trim())
+                            .filter(line => line && !line.startsWith('#') && !isNaN(line))
+                            .map(line => parseInt(line))
+                            .filter(id => !isNaN(id));
+                        resolve(accounts);
+                    } else {
+                        reject(new Error('Nie udało się pobrać listy licencji'));
+                    }
+                },
+                onerror: function(error) {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    async function verifyAccount() {
+        const accountId = getUserAccountId();
+        userAccountId = accountId;
+        
+        if (!accountId) {
+            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
+            updateLicenseStatus(false, null);
+            return false;
+        }
+
+        console.log('🔍 Weryfikuję licencję dla ID konta:', accountId);
+
+        try {
+            const allowedAccounts = await fetchLicenseList();
+            console.log('📋 Lista dozwolonych kont:', allowedAccounts);
+            
+            const isAllowed = allowedAccounts.includes(parseInt(accountId));
+            console.log('✅ Wynik weryfikacji:', isAllowed);
+
+            if (isAllowed) {
+                showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
+                updateLicenseStatus(true, accountId);
+                isLicenseVerified = true;
+                return true;
+            } else {
+                showMessage('❌ Brak dostępu do panelu.', 'error');
+                updateLicenseStatus(false, accountId);
+                isLicenseVerified = false;
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Błąd podczas weryfikacji licencji:', error);
+            showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
+            updateLicenseStatus(false, accountId);
+            isLicenseVerified = false;
+            return false;
+        }
+    }
+
+    function loadAddons() {
+        console.log('🔓 Ładowanie dodatków...');
+        
+        if (!isLicenseVerified) {
+            console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
+            return;
+        }
+        
+        // Sprawdź czy KCS Icons jest włączony
+        const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
+        
+        if (isKcsEnabled) {
+            console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
+            setTimeout(initKCSIcons, 100);
+        } else {
+            console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
+        }
+    }
+
+    async function checkLicenseOnStart() {
+        console.log('🔍 Checking license on start...');
+        return await verifyAccount();
+    }
+
+    // 🔹 DODATEK KCS ICONS - OSADZONY KOD
+    function initKCSIcons() {
+        'use strict';
+        console.log("✅ Dodatek KCS Icons załadowany");
+
+        // --- PEŁNA LISTA MONSTERMAPPINGS ---
+        const monsterMappings = {
+            // Elity 2
+            "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
+            "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
+            // ... (reszta mappingów)
+        };
+
+        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
+        const ICON_CLASS_NAME = 'kcs-monster-icon';
+        let isEnabled = true;
+        let tooltipObserver = null;
+        let dynamicItemObserver = null;
+
+        // 🔹 Główne funkcje dodatku
+        const kcsIconsAddon = {
+            enable: function() {
+                if (isEnabled) return;
+                isEnabled = true;
+                this.start();
+                console.log("✅ KCS Icons włączony");
+            },
+
+            disable: function() {
+                if (!isEnabled) return;
+                isEnabled = false;
+                this.stop();
+                console.log("❌ KCS Icons wyłączony");
+            },
+
+            start: function() {
+                if (tooltipObserver || dynamicItemObserver) {
+                    this.stop();
+                }
+
+                this.setupObservers();
+                this.applyIconsFromCache();
+            },
+
+            stop: function() {
+                if (tooltipObserver) {
+                    tooltipObserver.disconnect();
+                    tooltipObserver = null;
+                }
+
+                if (dynamicItemObserver) {
+                    dynamicItemObserver.disconnect();
+                    dynamicItemObserver = null;
+                }
+
+                // Usuń wszystkie ikony
+                document.querySelectorAll(`.${ICON_CLASS_NAME}`).forEach(icon => icon.remove());
+            },
+
+            setupObservers: function() {
+                // Observer dla tooltipów
+                tooltipObserver = new MutationObserver((mutationsList) => {
+                    if (!isEnabled) return;
+                    
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === 'childList') {
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE && 
+                                    (node.classList.contains('tip-wrapper') || node.classList.contains('tooltip'))) {
+                                    this.processTooltip(node);
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // Observer dla dynamicznie dodawanych itemów
+                dynamicItemObserver = new MutationObserver((mutationsList) => {
+                    if (!isEnabled) return;
+                    
+                    for (const mutation of mutationsList) {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            let newItemsFound = false;
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE) {
+                                    if (node.matches('.item, .inventory-item, .eq-item, [class*="item"]') || 
+                                        node.querySelector('.item, .inventory-item, .eq-item, [class*="item"]')) {
+                                        newItemsFound = true;
+                                    }
+                                }
+                            });
+                            if (newItemsFound) {
+                                this.applyIconsFromCache();
+                            }
+                        }
+                    }
+                });
+
+                // Rozpocznij obserwację
+                tooltipObserver.observe(document.body, { childList: true, subtree: true });
+                dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
+            },
+
+            getCache: function() {
+                try {
+                    return SW.GM_getValue(CACHE_KEY, {});
+                } catch (e) {
+                    console.error("[KCS Icons] Error reading cache:", e);
+                    return {};
+                }
+            },
+
+            saveCache: function(cache) {
+                try {
+                    SW.GM_setValue(CACHE_KEY, cache);
+                } catch (e) {
+                    console.error("[KCS Icons] Error saving cache:", e);
+                }
+            },
+
+            getMapNameFromTooltipText: function(text) {
+                if (!text) return null;
+                const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
+                const match = text.match(mapRegex);
+                if (match && match[1]) {
+                    return match[1].trim().replace(/\n/g, ' ');
+                }
+                return null;
+            },
+
+            addMonsterIcon: function(itemElement, monsterImgUrl) {
+                if (!itemElement || !isEnabled) return;
+
+                let existingIcon = itemElement.querySelector(`.${ICON_CLASS_NAME}`);
+                if (existingIcon) {
+                    if (existingIcon.src === monsterImgUrl) {
+                        return;
+                    }
+                    existingIcon.remove();
+                }
+
+                const img = document.createElement('img');
+                img.src = monsterImgUrl;
+                img.classList.add(ICON_CLASS_NAME);
+                img.style.position = 'absolute';
+                img.style.bottom = '2px';
+                img.style.right = '2px';
+                img.style.width = '32px';
+                img.style.height = '32px';
+                img.style.zIndex = '5';
+                img.style.pointerEvents = 'none';
+                img.style.borderRadius = '3px';
+                img.style.border = '1px solid rgba(0, 0, 0, 0.3)';
+                
+                itemElement.style.position = 'relative';
+                itemElement.appendChild(img);
+            },
+
+            processTooltip: function(tooltipNode) {
+                if (!isEnabled) return;
+                
+                const itemDivInTooltip = tooltipNode.querySelector('.item-head .item, .item-container, [class*="item"]');
+                if (!itemDivInTooltip) return;
+
+                const itemNameElement = tooltipNode.querySelector('.item-name, .name, [class*="name"]');
+                if (!itemNameElement) return;
+
+                const itemName = itemNameElement.textContent;
+                if (!(itemName.includes("Kamień Czerwonego Smoka") || 
+                      itemName.includes("Zwój Czerwonego Smoka") || 
+                      itemName.includes("Niepozorny Kamień Czerwonego Smoka") ||  
+                      itemName.includes("Ulotny zwój czerwonego smoka"))) {
+                    return;
+                }
+
+                let itemId = null;
+                for (const cls of itemDivInTooltip.classList) {
+                    if (cls.startsWith('item-id-')) {
+                        itemId = cls.substring('item-id-'.length);
+                        break;
+                    }
+                }
+                if (!itemId) return;
+
+                const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7, .item-description, .item-properties');
+                if (!mapTextElement) return;
+
+                const rawMapText = mapTextElement.textContent;
+                const parsedMapName = this.getMapNameFromTooltipText(rawMapText);
+
+                if (parsedMapName && monsterMappings[parsedMapName]) {
+                    const monsterImgUrl = monsterMappings[parsedMapName];
+                    const inventoryItem = document.querySelector(`.item.item-id-${itemId}, [class*="item-id-${itemId}"]`);
+                    if (inventoryItem) {
+                        this.addMonsterIcon(inventoryItem, monsterImgUrl);
+                        const cache = this.getCache();
+                        if (cache[itemId] !== monsterImgUrl) {
+                            cache[itemId] = monsterImgUrl;
+                            this.saveCache(cache);
+                        }
+                    }
+                }
+            },
+
+            applyIconsFromCache: function() {
+                if (!isEnabled) return;
+                
+                const cache = this.getCache();
+                if (Object.keys(cache).length === 0) return;
+
+                const itemSelectors = [
+                    '.item', '.inventory-item', '.eq-item',
+                    '[class*="item"]', '[data-type="item"]'
+                ];
+
+                let allItems = [];
+                itemSelectors.forEach(selector => {
+                    const items = document.querySelectorAll(selector);
+                    if (items.length > 0) {
+                        allItems = [...allItems, ...items];
+                    }
+                });
+
+                allItems.forEach(itemElement => {
+                    let itemId = null;
+                    for (const cls of itemElement.classList) {
+                        if (cls.startsWith('item-id-')) {
+                            itemId = cls.substring('item-id-'.length);
+                            break;
+                        }
+                    }
+                    if (itemId && cache[itemId]) {
+                        this.addMonsterIcon(itemElement, cache[itemId]);
+                    }
+                });
+            },
+
+            init: function() {
+                console.log("🎮 Sprawdzam czy gra jest załadowana...");
+
+                // Sprawdź czy gra jest gotowa
+                const gameSelectors = [
+                    '.items', '.inventory', '.eq', '.item-list',
+                    '#eq', '#items', '#inventory',
+                    '[class*="item"]', '[class*="eq"]'
+                ];
+
+                for (const selector of gameSelectors) {
+                    if (document.querySelector(selector)) {
+                        console.log("🎯 Gra załadowana! Inicjalizacja dodatku...");
+                        this.start();
+                        return true;
+                    }
+                }
+                
+                console.log("⏳ Gra nie jest jeszcze gotowa, czekam...");
+                return false;
+            }
+        };
+
+        // 🔹 Udostępnij dodatek globalnie
+        window.kcsIconsAddon = kcsIconsAddon;
+
+        // 🔹 Sprawdź zapisany stan i zainicjuj
+        let savedState = true;
+        try {
+            savedState = SW.GM_getValue('kcs_icons_enabled', true);
+        } catch (e) {
+            console.error("Błąd odczytu stanu dodatku:", e);
+        }
+
+        isEnabled = savedState;
+
+        // 🔹 CZEKAJ NA PEŁNE ZAŁADOWANIE STRONY
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    if (isEnabled) {
+                        kcsIconsAddon.init();
+                    }
+                }, 2000);
+            });
+        } else {
+            setTimeout(() => {
+                if (isEnabled) {
+                    kcsIconsAddon.init();
+                }
+            }, 1000);
+        }
+    }
 
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
