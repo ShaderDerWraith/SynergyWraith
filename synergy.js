@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.2 loaded');
+    console.log('🚀 SynergyWraith Panel v1.3 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -10,10 +10,57 @@
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
+        FAVORITE_ADDONS: "sw_favorite_addons",
         FONT_SIZE: "sw_panel_font_size",
         BACKGROUND_VISIBLE: "sw_panel_background",
         LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/LICENSE"
     };
+
+    // 🔹 Lista dostępnych dodatków
+    const ADDONS = [
+        {
+            id: 'kcs-icons',
+            name: 'KCS i Zwój Ikony',
+            description: 'Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka',
+            enabled: true,
+            favorite: false
+        },
+        {
+            id: 'auto-looter',
+            name: 'Auto Looter',
+            description: 'Automatycznie zbiera przedmioty z potworów',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'quest-helper',
+            name: 'Pomocnik Questów',
+            description: 'Wskazuje lokalizację zadań i wymagane przedmioty',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'enhanced-stats',
+            name: 'Rozszerzone Statystyki',
+            description: 'Pokazuje szczegółowe statystyki postaci i przedmiotów',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: 'Asystent Handlu',
+            description: 'Pomaga w handlu, wyświetla ceny rynkowe',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'combat-log',
+            name: 'Dziennik Walki',
+            description: 'Szczegółowy log obrażeń i efektów w walce',
+            enabled: false,
+            favorite: false
+        }
+    ];
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
@@ -61,6 +108,7 @@
     const SW = window.synergyWraith;
     let isLicenseVerified = false;
     let userAccountId = null;
+    let currentAddons = [...ADDONS];
 
     // 🔹 Wstrzyknij CSS
     function injectCSS() {
@@ -318,43 +366,142 @@
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
-/* 🔹 ADDONS LIST - UPROSZCZONY 🔹 */
-.addon {
-    background: rgba(30, 30, 30, 0.8);
+/* 🔹 ADDONS CATEGORIES 🔹 */
+.addon-categories {
+    display: flex;
+    background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
+    padding: 5px;
+    margin-bottom: 15px;
+    gap: 2px;
 }
 
-.addon-header {
+.addon-category {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 8px 5px;
+    color: #888;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.addon-category:hover {
+    color: #00ff00;
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.addon-category.active {
+    color: #00ff00;
+    background: rgba(0, 255, 0, 0.15);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* 🔹 ADDONS LIST - KOMPAKTOWY 🔹 */
+.addon-category-content {
+    display: none;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.addon-category-content.active {
+    display: block;
+    animation: fadeEffect 0.3s ease;
+}
+
+.addon-list-empty {
+    text-align: center;
+    color: #666;
+    font-size: 11px;
+    padding: 15px;
+    font-style: italic;
+}
+
+.addon-item {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.addon-item:hover {
+    background: rgba(40, 40, 40, 0.9);
+    border-color: #444;
+}
+
+.addon-item-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 5px;
+    flex: 1;
 }
 
-.addon-title {
+.addon-item-title {
     font-weight: 600;
     color: #00ff00;
-    font-size: 12px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-}
-
-.addon-description {
-    color: #aaaaaa;
     font-size: 11px;
-    line-height: 1.3;
-    margin-bottom: 5px;
+    text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-/* 🔹 SWITCH STYLE - ZMNIEJSZONY 🔹 */
+.addon-item-description {
+    color: #888;
+    font-size: 10px;
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+.addon-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* 🔹 FAVORITE STAR 🔹 */
+.favorite-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 2px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+}
+
+.favorite-btn:hover {
+    color: #ffaa00;
+    transform: scale(1.1);
+}
+
+.favorite-btn.favorite {
+    color: #ffaa00;
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+}
+
+/* 🔹 SWITCH STYLE - KOMPAKTOWY 🔹 */
 .switch {
     position: relative;
     display: inline-block;
-    width: 32px;
-    height: 16px;
+    width: 28px;
+    height: 14px;
 }
 
 .switch input {
@@ -372,15 +519,15 @@
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid #555;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 12px;
-    width: 12px;
+    height: 10px;
+    width: 10px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
@@ -395,9 +542,9 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(16px);
+    transform: translateX(14px);
     background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -593,7 +740,7 @@ input:checked + .slider:before {
     font-size: 12px;
     min-width: 30px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
@@ -718,7 +865,7 @@ input:checked + .slider:before {
 }
 
 #swAddonsPanel.transparent-background .sw-tab-content,
-#swAddonsPanel.transparent-background .addon,
+#swAddonsPanel.transparent-background .addon-item,
 #swAddonsPanel.transparent-background .settings-item,
 #swAddonsPanel.transparent-background .license-status-container {
     background: rgba(10, 10, 10, 0.9);
@@ -769,25 +916,21 @@ input:checked + .slider:before {
 }
 
 /* 🔹 SCROLLBAR STYLES 🔹 */
-.admin-list::-webkit-scrollbar,
-.usage-log::-webkit-scrollbar {
-    width: 8px;
+.addon-category-content::-webkit-scrollbar {
+    width: 6px;
 }
 
-.admin-list::-webkit-scrollbar-track,
-.usage-log::-webkit-scrollbar-track {
+.addon-category-content::-webkit-scrollbar-track {
     background: rgba(20, 20, 20, 0.8);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
-.admin-list::-webkit-scrollbar-thumb,
-.usage-log::-webkit-scrollbar-thumb {
+.addon-category-content::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
-.admin-list::-webkit-scrollbar-thumb:hover,
-.usage-log::-webkit-scrollbar-thumb:hover {
+.addon-category-content::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #00ff00, #009900);
 }
         `;
@@ -802,16 +945,18 @@ input:checked + .slider:before {
         // Wstrzyknij CSS
         injectCSS();
         
-        // Najpierw tworzymy przycisk, ale nie inicjujemy jeszcze przeciągania
-        const toggleBtn = createToggleButton();
+        // Ładujemy zapisane dodatki
+        loadAddonsState();
         
-        // Tworzymy panel główny przed ładowaniem stanu
+        // Tworzymy elementy
+        createToggleButton();
         createMainPanel();
         
         // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
         
-        // Teraz inicjujemy przeciąganie przycisku z załadowaną pozycją
+        // Inicjujemy przeciąganie
+        const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn) {
             setupToggleDrag(toggleBtn);
         }
@@ -820,12 +965,12 @@ input:checked + .slider:before {
         setupTabs();
         setupDrag();
         
-        // Sprawdzamy licencję i dopiero potem ładujemy dodatki
+        // Sprawdzamy licencję
         await checkLicenseOnStart();
         
         // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
         if (isLicenseVerified) {
-            loadAddons();
+            loadEnabledAddons();
         }
     }
 
@@ -1017,19 +1162,26 @@ input:checked + .slider:before {
             </div>
 
             <div id="addons" class="tabcontent active">
-                <h3>Aktywne Dodatki</h3>
-                <div class="addon">
-                    <div class="addon-header">
-                        <div>
-                            <span class="addon-title">KCS i Zwój Ikony</span>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="kcsIconsToggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="addon-description">Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka</div>
+                <h3>Dodatki</h3>
+                
+                <div class="addon-categories">
+                    <button class="addon-category active" data-category="enabled">Włączone</button>
+                    <button class="addon-category" data-category="disabled">Wyłączone</button>
+                    <button class="addon-category" data-category="favorites">Ulubione</button>
                 </div>
+                
+                <div id="addon-enabled" class="addon-category-content active">
+                    <!-- Włączone dodatki zostaną dodane dynamicznie -->
+                </div>
+                
+                <div id="addon-disabled" class="addon-category-content">
+                    <!-- Wyłączone dodatki zostaną dodane dynamicznie -->
+                </div>
+                
+                <div id="addon-favorites" class="addon-category-content">
+                    <!-- Ulubione dodatki zostaną dodane dynamicznie -->
+                </div>
+                
                 <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
             </div>
 
@@ -1082,7 +1234,116 @@ input:checked + .slider:before {
         `;
         
         document.body.appendChild(panel);
+        renderAddons();
         console.log('✅ Panel created');
+    }
+
+    function renderAddons() {
+        const enabledContainer = document.getElementById('addon-enabled');
+        const disabledContainer = document.getElementById('addon-disabled');
+        const favoritesContainer = document.getElementById('addon-favorites');
+        
+        // Wyczyść kontenery
+        enabledContainer.innerHTML = '';
+        disabledContainer.innerHTML = '';
+        favoritesContainer.innerHTML = '';
+        
+        // Liczniki
+        let enabledCount = 0;
+        let disabledCount = 0;
+        let favoritesCount = 0;
+        
+        // Sortuj dodatki: najpierw ulubione, potem włączone, potem wyłączone
+        const sortedAddons = [...currentAddons].sort((a, b) => {
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            if (a.enabled && !b.enabled) return -1;
+            if (!a.enabled && b.enabled) return 1;
+            return a.name.localeCompare(b.name);
+        });
+        
+        // Renderuj każdy dodatek
+        sortedAddons.forEach(addon => {
+            const addonElement = createAddonElement(addon);
+            
+            // Dodaj do odpowiedniego kontenera
+            if (addon.favorite) {
+                favoritesContainer.appendChild(addonElement.cloneNode(true));
+                favoritesCount++;
+            }
+            
+            if (addon.enabled) {
+                enabledContainer.appendChild(addonElement.cloneNode(true));
+                enabledCount++;
+            } else {
+                disabledContainer.appendChild(addonElement.cloneNode(true));
+                disabledCount++;
+            }
+        });
+        
+        // Jeśli kontenery są puste, dodaj komunikat
+        if (enabledCount === 0) {
+            enabledContainer.innerHTML = '<div class="addon-list-empty">Brak włączonych dodatków</div>';
+        }
+        
+        if (disabledCount === 0) {
+            disabledContainer.innerHTML = '<div class="addon-list-empty">Brak wyłączonych dodatków</div>';
+        }
+        
+        if (favoritesCount === 0) {
+            favoritesContainer.innerHTML = '<div class="addon-list-empty">Brak ulubionych dodatków</div>';
+        }
+        
+        // Aktualizuj liczniki w przyciskach kategorii
+        updateCategoryCounts(enabledCount, disabledCount, favoritesCount);
+    }
+
+    function createAddonElement(addon) {
+        const div = document.createElement('div');
+        div.className = 'addon-item';
+        div.dataset.id = addon.id;
+        
+        div.innerHTML = `
+            <div class="addon-item-header">
+                <div>
+                    <div class="addon-item-title">
+                        ${addon.name}
+                    </div>
+                    <div class="addon-item-description">
+                        ${addon.description}
+                    </div>
+                </div>
+                <div class="addon-item-actions">
+                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                        ★
+                    </button>
+                    <label class="switch">
+                        <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        `;
+        
+        return div;
+    }
+
+    function updateCategoryCounts(enabled, disabled, favorites) {
+        const enabledBtn = document.querySelector('.addon-category[data-category="enabled"]');
+        const disabledBtn = document.querySelector('.addon-category[data-category="disabled"]');
+        const favoritesBtn = document.querySelector('.addon-category[data-category="favorites"]');
+        
+        if (enabledBtn) {
+            enabledBtn.textContent = enabled > 0 ? `Włączone (${enabled})` : 'Włączone';
+        }
+        
+        if (disabledBtn) {
+            disabledBtn.textContent = disabled > 0 ? `Wyłączone (${disabled})` : 'Wyłączone';
+        }
+        
+        if (favoritesBtn) {
+            favoritesBtn.textContent = favorites > 0 ? `Ulubione (${favorites})` : 'Ulubione';
+        }
     }
 
     function setupTabs() {
@@ -1116,6 +1377,38 @@ input:checked + .slider:before {
                 }
             });
         });
+
+        // Kategorie dodatków
+        const addonCategories = document.querySelectorAll('.addon-category');
+        addonCategories.forEach(category => {
+            category.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const categoryName = this.getAttribute('data-category');
+                
+                // Usuń aktywny stan ze wszystkich kategorii
+                addonCategories.forEach(c => {
+                    c.classList.remove('active');
+                });
+                
+                // Dodaj aktywny stan do klikniętej kategorii
+                this.classList.add('active');
+                
+                // Ukryj wszystkie kategorie treści
+                const categoryContents = document.querySelectorAll('.addon-category-content');
+                categoryContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Pokaż wybraną kategorię
+                const categoryContent = document.getElementById(`addon-${categoryName}`);
+                if (categoryContent) {
+                    categoryContent.classList.add('active');
+                }
+            });
+        });
+        
         console.log('✅ Tabs setup complete');
     }
 
@@ -1129,7 +1422,7 @@ input:checked + .slider:before {
         let offsetX, offsetY;
 
         header.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.tablink')) return; // Zapobiegaj przeciąganiu po kliknięciu w zakładkę
+            if (e.target.closest('.tablink') || e.target.closest('.addon-category')) return;
             
             isDragging = true;
             const rect = panel.getBoundingClientRect();
@@ -1198,33 +1491,81 @@ input:checked + .slider:before {
             });
         }
 
-        // Obsługa suwaka KCS Icons
-        const kcsToggle = document.getElementById('kcsIconsToggle');
-        if (kcsToggle) {
-            kcsToggle.addEventListener('change', function() {
-                const isEnabled = this.checked;
-                SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
-                
-                const message = isEnabled ? 
-                    'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
-                    'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
-                
-                const messageEl = document.getElementById('swAddonsMessage');
-                if (messageEl) {
-                    messageEl.textContent = message;
-                    messageEl.className = 'license-message license-info';
-                    messageEl.style.display = 'block';
-                    
-                    setTimeout(() => {
-                        messageEl.style.display = 'none';
-                    }, 5000);
-                }
-                
-                console.log('💾 KCS Icons ' + (isEnabled ? 'włączony' : 'wyłączony') + ' - wymagane odświeżenie gry');
-            });
-        }
+        // Delegowane nasłuchiwanie dla dodatków
+        document.addEventListener('click', function(e) {
+            // Obsługa ulubionych
+            if (e.target.classList.contains('favorite-btn') || e.target.closest('.favorite-btn')) {
+                const btn = e.target.classList.contains('favorite-btn') ? e.target : e.target.closest('.favorite-btn');
+                const addonId = btn.dataset.id;
+                toggleFavorite(addonId);
+            }
+            
+            // Obsługa przełączników
+            if (e.target.type === 'checkbox' && e.target.closest('.addon-item')) {
+                const addonId = e.target.dataset.id;
+                const isEnabled = e.target.checked;
+                toggleAddon(addonId, isEnabled);
+            }
+        });
 
         console.log('✅ Event listeners setup complete');
+    }
+
+    function toggleFavorite(addonId) {
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        if (addonIndex === -1) return;
+        
+        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
+        
+        // Zapisz ulubione
+        const favoriteIds = currentAddons
+            .filter(a => a.favorite)
+            .map(a => a.id);
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, favoriteIds);
+        
+        // Przerenderuj dodatki
+        renderAddons();
+        
+        console.log(`⭐ Toggle favorite for ${addonId}: ${currentAddons[addonIndex].favorite}`);
+    }
+
+    function toggleAddon(addonId, isEnabled) {
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        if (addonIndex === -1) return;
+        
+        currentAddons[addonIndex].enabled = isEnabled;
+        
+        // Dla KCS Icons dodatku
+        if (addonId === 'kcs-icons') {
+            SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+            
+            const message = isEnabled ? 
+                'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
+                'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
+            
+            const messageEl = document.getElementById('swAddonsMessage');
+            if (messageEl) {
+                messageEl.textContent = message;
+                messageEl.className = 'license-message license-info';
+                messageEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
+            }
+            
+            console.log('💾 KCS Icons ' + (isEnabled ? 'włączony' : 'wyłączony') + ' - wymagane odświeżenie gry');
+            
+            // Jeśli licencja zweryfikowana i KCS włączony, uruchom dodatek
+            if (isLicenseVerified && isEnabled) {
+                setTimeout(initKCSIcons, 100);
+            }
+        }
+        
+        // Przerenderuj dodatki
+        renderAddons();
+        
+        console.log(`🔧 Toggle ${addonId}: ${isEnabled ? 'enabled' : 'disabled'}`);
     }
 
     function resetAllSettings() {
@@ -1235,11 +1576,19 @@ input:checked + .slider:before {
         SW.GM_deleteValue(CONFIG.FONT_SIZE);
         SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
         SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
+        SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
+        
+        // Przywróć domyślne ustawienia dodatków
+        currentAddons = ADDONS.map(addon => ({
+            ...addon,
+            enabled: addon.id === 'kcs-icons' ? true : false,
+            favorite: false
+        }));
         
         // Pokaż komunikat w panelu
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
-            resetMessage.textContent = 'Ustawienia zresetowane! Panel zostanie odświeżony.';
+            resetMessage.textContent = 'Ustawienia zresetowane!';
             resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
             resetMessage.style.color = '#00ccff';
             resetMessage.style.border = '1px solid #00ccff';
@@ -1252,6 +1601,7 @@ input:checked + .slider:before {
         
         // Odśwież ustawienia
         loadSavedState();
+        renderAddons();
     }
 
     function updateBackgroundVisibility(isVisible) {
@@ -1315,176 +1665,27 @@ input:checked + .slider:before {
             updateBackgroundVisibility(backgroundVisible);
         }
         
-        // Załaduj stan suwaka KCS Icons
-        const kcsToggle = document.getElementById('kcsIconsToggle');
-        if (kcsToggle) {
-            const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
-            kcsToggle.checked = isKcsEnabled;
-            console.log('📍 KCS Icons state loaded:', isKcsEnabled);
-        }
-        
         console.log('✅ Saved state loaded');
     }
 
-    // 🔹 Reszta funkcji pozostaje bez zmian
-    function getUserAccountId() {
-        // Metoda 1: Próba pobrania z localStorage Margonem
-        try {
-            const margonemData = localStorage.getItem('margonem_user_data');
-            if (margonemData) {
-                const userData = JSON.parse(margonemData);
-                if (userData.account_id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (account_id):', userData.account_id);
-                    return userData.account_id;
-                }
-                if (userData.user_id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (user_id):', userData.user_id);
-                    return userData.user_id;
-                }
-                if (userData.id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (id):', userData.id);
-                    return userData.id;
-                }
-            }
-        } catch (e) {
-            console.warn('❌ Nie udało się pobrać danych z localStorage Margonem:', e);
-        }
-
-        // Metoda 2: Sprawdzenie globalnych zmiennych gry
-        if (typeof g !== 'undefined' && g.user) {
-            if (g.user.account_id) {
-                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.account_id);
-                return g.user.account_id;
-            }
-            if (g.user.id) {
-                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.id);
-                return g.user.id;
-            }
-        }
-
-        // Metoda 3: Parsowanie URL strony profilu
-        if (window.location.href.includes('margonem.pl/profile')) {
-            const match = window.location.href.match(/profile\/view,(\d+)/);
-            if (match && match[1]) {
-                console.log('✅ Znaleziono ID konta w URL:', match[1]);
-                return match[1];
-            }
-        }
-
-        // Metoda 4: Sprawdzenie elementów DOM
-        const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
-        for (const link of profileLinks) {
-            const match = link.href.match(/profile\/view,(\d+)/);
-            if (match && match[1]) {
-                console.log('✅ Znaleziono ID konta w linku do profilu:', match[1]);
-                return match[1];
-            }
-        }
-
-        console.error('❌ Nie udało się pobrać ID konta z żadnego źródła');
-        return null;
-    }
-
-    function showMessage(message, type) {
-        const messageEl = document.getElementById('swLicenseMessage');
-        if (messageEl) {
-            messageEl.textContent = message;
-            messageEl.style.background = type === 'success' ? 'rgba(0,255,170,0.1)' : 
-                                      type === 'info' ? 'rgba(0,204,255,0.1)' : 'rgba(255,50,100,0.1)';
-            messageEl.style.color = type === 'success' ? '#00ffaa' : 
-                                 type === 'info' ? '#00ccff' : '#ff3366';
-            messageEl.style.border = `1px solid ${type === 'success' ? '#00ffaa' : 
-                                 type === 'info' ? '#00ccff' : '#ff3366'}`;
-        }
-    }
-
-    function updateLicenseStatus(isVerified, accountId) {
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountIdEl = document.getElementById('swAccountId');
+    function loadAddonsState() {
+        // Załaduj zapisane ulubione
+        const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
         
-        if (statusEl) {
-            if (isVerified) {
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
-                statusEl.className = 'license-status-valid';
-            } else {
-                statusEl.textContent = 'Nieaktywna';
-                statusEl.style.color = '#ff3366';
-                statusEl.className = 'license-status-invalid';
-            }
-        }
+        // Załaduj stan KCS Icons
+        const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
         
-        if (accountIdEl) {
-            accountIdEl.textContent = accountId || '-';
-            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
-        }
-    }
-
-    function fetchLicenseList() {
-        return new Promise((resolve, reject) => {
-            SW.GM_xmlhttpRequest({
-                method: 'GET',
-                url: CONFIG.LICENSE_LIST_URL + '?t=' + Date.now(),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        const lines = response.responseText.split('\n');
-                        const accounts = lines
-                            .map(line => line.trim())
-                            .filter(line => line && !line.startsWith('#') && !isNaN(line))
-                            .map(line => parseInt(line))
-                            .filter(id => !isNaN(id));
-                        resolve(accounts);
-                    } else {
-                        reject(new Error('Nie udało się pobrać listy licencji'));
-                    }
-                },
-                onerror: function(error) {
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    async function verifyAccount() {
-        const accountId = getUserAccountId();
-        userAccountId = accountId;
+        // Aktualizuj listę dodatków
+        currentAddons = ADDONS.map(addon => ({
+            ...addon,
+            enabled: addon.id === 'kcs-icons' ? kcsEnabled : false,
+            favorite: favoriteIds.includes(addon.id)
+        }));
         
-        if (!accountId) {
-            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
-            updateLicenseStatus(false, null);
-            return false;
-        }
-
-        console.log('🔍 Weryfikuję licencję dla ID konta:', accountId);
-
-        try {
-            const allowedAccounts = await fetchLicenseList();
-            console.log('📋 Lista dozwolonych kont:', allowedAccounts);
-            
-            const isAllowed = allowedAccounts.includes(parseInt(accountId));
-            console.log('✅ Wynik weryfikacji:', isAllowed);
-
-            if (isAllowed) {
-                showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
-                updateLicenseStatus(true, accountId);
-                isLicenseVerified = true;
-                return true;
-            } else {
-                showMessage('❌ Brak dostępu do panelu.', 'error');
-                updateLicenseStatus(false, accountId);
-                isLicenseVerified = false;
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Błąd podczas weryfikacji licencji:', error);
-            showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
-            updateLicenseStatus(false, accountId);
-            isLicenseVerified = false;
-            return false;
-        }
+        console.log('✅ Addons state loaded');
     }
 
-    function loadAddons() {
+    function loadEnabledAddons() {
         console.log('🔓 Ładowanie dodatków...');
         
         if (!isLicenseVerified) {
@@ -1493,9 +1694,8 @@ input:checked + .slider:before {
         }
         
         // Sprawdź czy KCS Icons jest włączony
-        const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
-        
-        if (isKcsEnabled) {
+        const kcsAddon = currentAddons.find(a => a.id === 'kcs-icons');
+        if (kcsAddon && kcsAddon.enabled) {
             console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
             setTimeout(initKCSIcons, 100);
         } else {
@@ -1503,301 +1703,7 @@ input:checked + .slider:before {
         }
     }
 
-    async function checkLicenseOnStart() {
-        console.log('🔍 Checking license on start...');
-        return await verifyAccount();
-    }
-
-    // 🔹 DODATEK KCS ICONS - OSADZONY KOD
-    function initKCSIcons() {
-        'use strict';
-        console.log("✅ Dodatek KCS Icons załadowany");
-
-        // --- PEŁNA LISTA MONSTERMAPPINGS ---
-        const monsterMappings = {
-            // Elity 2
-            "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
-            "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
-            // ... (reszta mappingów)
-        };
-
-        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
-        const ICON_CLASS_NAME = 'kcs-monster-icon';
-        let isEnabled = true;
-        let tooltipObserver = null;
-        let dynamicItemObserver = null;
-
-        // 🔹 Główne funkcje dodatku
-        const kcsIconsAddon = {
-            enable: function() {
-                if (isEnabled) return;
-                isEnabled = true;
-                this.start();
-                console.log("✅ KCS Icons włączony");
-            },
-
-            disable: function() {
-                if (!isEnabled) return;
-                isEnabled = false;
-                this.stop();
-                console.log("❌ KCS Icons wyłączony");
-            },
-
-            start: function() {
-                if (tooltipObserver || dynamicItemObserver) {
-                    this.stop();
-                }
-
-                this.setupObservers();
-                this.applyIconsFromCache();
-            },
-
-            stop: function() {
-                if (tooltipObserver) {
-                    tooltipObserver.disconnect();
-                    tooltipObserver = null;
-                }
-
-                if (dynamicItemObserver) {
-                    dynamicItemObserver.disconnect();
-                    dynamicItemObserver = null;
-                }
-
-                // Usuń wszystkie ikony
-                document.querySelectorAll(`.${ICON_CLASS_NAME}`).forEach(icon => icon.remove());
-            },
-
-            setupObservers: function() {
-                // Observer dla tooltipów
-                tooltipObserver = new MutationObserver((mutationsList) => {
-                    if (!isEnabled) return;
-                    
-                    for (const mutation of mutationsList) {
-                        if (mutation.type === 'childList') {
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === Node.ELEMENT_NODE && 
-                                    (node.classList.contains('tip-wrapper') || node.classList.contains('tooltip'))) {
-                                    this.processTooltip(node);
-                                }
-                            });
-                        }
-                    }
-                });
-
-                // Observer dla dynamicznie dodawanych itemów
-                dynamicItemObserver = new MutationObserver((mutationsList) => {
-                    if (!isEnabled) return;
-                    
-                    for (const mutation of mutationsList) {
-                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            let newItemsFound = false;
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === Node.ELEMENT_NODE) {
-                                    if (node.matches('.item, .inventory-item, .eq-item, [class*="item"]') || 
-                                        node.querySelector('.item, .inventory-item, .eq-item, [class*="item"]')) {
-                                        newItemsFound = true;
-                                    }
-                                }
-                            });
-                            if (newItemsFound) {
-                                this.applyIconsFromCache();
-                            }
-                        }
-                    }
-                });
-
-                // Rozpocznij obserwację
-                tooltipObserver.observe(document.body, { childList: true, subtree: true });
-                dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
-            },
-
-            getCache: function() {
-                try {
-                    return SW.GM_getValue(CACHE_KEY, {});
-                } catch (e) {
-                    console.error("[KCS Icons] Error reading cache:", e);
-                    return {};
-                }
-            },
-
-            saveCache: function(cache) {
-                try {
-                    SW.GM_setValue(CACHE_KEY, cache);
-                } catch (e) {
-                    console.error("[KCS Icons] Error saving cache:", e);
-                }
-            },
-
-            getMapNameFromTooltipText: function(text) {
-                if (!text) return null;
-                const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
-                const match = text.match(mapRegex);
-                if (match && match[1]) {
-                    return match[1].trim().replace(/\n/g, ' ');
-                }
-                return null;
-            },
-
-            addMonsterIcon: function(itemElement, monsterImgUrl) {
-                if (!itemElement || !isEnabled) return;
-
-                let existingIcon = itemElement.querySelector(`.${ICON_CLASS_NAME}`);
-                if (existingIcon) {
-                    if (existingIcon.src === monsterImgUrl) {
-                        return;
-                    }
-                    existingIcon.remove();
-                }
-
-                const img = document.createElement('img');
-                img.src = monsterImgUrl;
-                img.classList.add(ICON_CLASS_NAME);
-                img.style.position = 'absolute';
-                img.style.bottom = '2px';
-                img.style.right = '2px';
-                img.style.width = '32px';
-                img.style.height = '32px';
-                img.style.zIndex = '5';
-                img.style.pointerEvents = 'none';
-                img.style.borderRadius = '3px';
-                img.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                
-                itemElement.style.position = 'relative';
-                itemElement.appendChild(img);
-            },
-
-            processTooltip: function(tooltipNode) {
-                if (!isEnabled) return;
-                
-                const itemDivInTooltip = tooltipNode.querySelector('.item-head .item, .item-container, [class*="item"]');
-                if (!itemDivInTooltip) return;
-
-                const itemNameElement = tooltipNode.querySelector('.item-name, .name, [class*="name"]');
-                if (!itemNameElement) return;
-
-                const itemName = itemNameElement.textContent;
-                if (!(itemName.includes("Kamień Czerwonego Smoka") || 
-                      itemName.includes("Zwój Czerwonego Smoka") || 
-                      itemName.includes("Niepozorny Kamień Czerwonego Smoka") ||  
-                      itemName.includes("Ulotny zwój czerwonego smoka"))) {
-                    return;
-                }
-
-                let itemId = null;
-                for (const cls of itemDivInTooltip.classList) {
-                    if (cls.startsWith('item-id-')) {
-                        itemId = cls.substring('item-id-'.length);
-                        break;
-                    }
-                }
-                if (!itemId) return;
-
-                const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7, .item-description, .item-properties');
-                if (!mapTextElement) return;
-
-                const rawMapText = mapTextElement.textContent;
-                const parsedMapName = this.getMapNameFromTooltipText(rawMapText);
-
-                if (parsedMapName && monsterMappings[parsedMapName]) {
-                    const monsterImgUrl = monsterMappings[parsedMapName];
-                    const inventoryItem = document.querySelector(`.item.item-id-${itemId}, [class*="item-id-${itemId}"]`);
-                    if (inventoryItem) {
-                        this.addMonsterIcon(inventoryItem, monsterImgUrl);
-                        const cache = this.getCache();
-                        if (cache[itemId] !== monsterImgUrl) {
-                            cache[itemId] = monsterImgUrl;
-                            this.saveCache(cache);
-                        }
-                    }
-                }
-            },
-
-            applyIconsFromCache: function() {
-                if (!isEnabled) return;
-                
-                const cache = this.getCache();
-                if (Object.keys(cache).length === 0) return;
-
-                const itemSelectors = [
-                    '.item', '.inventory-item', '.eq-item',
-                    '[class*="item"]', '[data-type="item"]'
-                ];
-
-                let allItems = [];
-                itemSelectors.forEach(selector => {
-                    const items = document.querySelectorAll(selector);
-                    if (items.length > 0) {
-                        allItems = [...allItems, ...items];
-                    }
-                });
-
-                allItems.forEach(itemElement => {
-                    let itemId = null;
-                    for (const cls of itemElement.classList) {
-                        if (cls.startsWith('item-id-')) {
-                            itemId = cls.substring('item-id-'.length);
-                            break;
-                        }
-                    }
-                    if (itemId && cache[itemId]) {
-                        this.addMonsterIcon(itemElement, cache[itemId]);
-                    }
-                });
-            },
-
-            init: function() {
-                console.log("🎮 Sprawdzam czy gra jest załadowana...");
-
-                // Sprawdź czy gra jest gotowa
-                const gameSelectors = [
-                    '.items', '.inventory', '.eq', '.item-list',
-                    '#eq', '#items', '#inventory',
-                    '[class*="item"]', '[class*="eq"]'
-                ];
-
-                for (const selector of gameSelectors) {
-                    if (document.querySelector(selector)) {
-                        console.log("🎯 Gra załadowana! Inicjalizacja dodatku...");
-                        this.start();
-                        return true;
-                    }
-                }
-                
-                console.log("⏳ Gra nie jest jeszcze gotowa, czekam...");
-                return false;
-            }
-        };
-
-        // 🔹 Udostępnij dodatek globalnie
-        window.kcsIconsAddon = kcsIconsAddon;
-
-        // 🔹 Sprawdź zapisany stan i zainicjuj
-        let savedState = true;
-        try {
-            savedState = SW.GM_getValue('kcs_icons_enabled', true);
-        } catch (e) {
-            console.error("Błąd odczytu stanu dodatku:", e);
-        }
-
-        isEnabled = savedState;
-
-        // 🔹 CZEKAJ NA PEŁNE ZAŁADOWANIE STRONY
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(() => {
-                    if (isEnabled) {
-                        kcsIconsAddon.init();
-                    }
-                }, 2000);
-            });
-        } else {
-            setTimeout(() => {
-                if (isEnabled) {
-                    kcsIconsAddon.init();
-                }
-            }, 1000);
-        }
-    }
+    // 🔹 Reszta funkcji pozostaje bez zmian (getUserAccountId, showMessage, updateLicenseStatus, fetchLicenseList, verifyAccount, checkLicenseOnStart, initKCSIcons)
 
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
