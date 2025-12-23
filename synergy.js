@@ -1,17 +1,17 @@
-// synergy.js - Główny kod panelu z nowymi ustawieniami
+// synergy.js - Główny kod panelu z kompaktowym wyglądem
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.3 loaded');
+    console.log('🚀 SynergyWraith Panel v1.4 loaded');
 
-    // 🔹 Konfiguracja
+    // 🔹 Konfiguracja - USUNIĘTO ZAPISYWANIE ROZMIARU CZCIONKI
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
         FAVORITE_ADDONS: "sw_favorite_addons",
-        FONT_SIZE: "sw_panel_font_size",
+        // USUNIĘTO: FONT_SIZE: "sw_panel_font_size",
         BACKGROUND_VISIBLE: "sw_panel_background",
         LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/LICENSE"
     };
@@ -36,27 +36,6 @@
             id: 'quest-helper',
             name: 'Pomocnik Questów',
             description: 'Wskazuje lokalizację zadań i wymagane przedmioty',
-            enabled: false,
-            favorite: false
-        },
-        {
-            id: 'enhanced-stats',
-            name: 'Rozszerzone Statystyki',
-            description: 'Pokazuje szczegółowe statystyki postaci i przedmiotów',
-            enabled: false,
-            favorite: false
-        },
-        {
-            id: 'trade-helper',
-            name: 'Asystent Handlu',
-            description: 'Pomaga w handlu, wyświetla ceny rynkowe',
-            enabled: false,
-            favorite: false
-        },
-        {
-            id: 'combat-log',
-            name: 'Dziennik Walki',
-            description: 'Szczegółowy log obrażeń i efektów w walce',
             enabled: false,
             favorite: false
         }
@@ -110,7 +89,7 @@
     let userAccountId = null;
     let currentAddons = [...ADDONS];
 
-    // 🔹 Wstrzyknij CSS
+    // 🔹 Wstrzyknij CSS - ZMODYFIKOWANY DLA KOMPAKTOWOŚCI
     function injectCSS() {
         const style = document.createElement('style');
         style.textContent = `
@@ -182,21 +161,12 @@
     animation: savePulse 1.5s ease-in-out;
 }
 
-/* Prevent text selection during drag */
-#swPanelToggle.dragging::selection {
-    background: transparent;
-}
-
-#swPanelToggle.dragging::-moz-selection {
-    background: transparent;
-}
-
-/* 🔹 MAIN PANEL 🔹 */
+/* 🔹 MAIN PANEL - STAŁY ROZMIAR 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
-    width: 350px;
+    width: 320px !important; /* STAŁA SZEROKOŚĆ */
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 3px solid #00ff00;
     border-radius: 10px;
@@ -207,7 +177,8 @@
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
-    font-size: 12px;
+    font-size: 11px !important; /* STAŁY ROZMIAR CZCIONKI */
+    line-height: 1.2;
 }
 
 /* Neonowy efekt na krawędziach */
@@ -232,12 +203,13 @@
 
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 12px;
+    padding: 8px 12px !important;
     text-align: center;
     border-bottom: 1px solid #00ff00;
     cursor: grab;
     position: relative;
     overflow: hidden;
+    font-size: 12px !important;
 }
 
 #swPanelHeader::after {
@@ -257,7 +229,7 @@
 }
 
 .sw-tab-content {
-    padding: 15px;
+    padding: 10px !important;
     background: rgba(10, 10, 10, 0.9);
 }
 
@@ -266,7 +238,7 @@
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
     border-bottom: 1px solid #00ff00;
-    padding: 0 5px;
+    padding: 0 3px !important;
 }
 
 .tablink {
@@ -275,44 +247,23 @@
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 12px 5px;
-    margin: 0 5px;
+    padding: 8px 3px !important;
+    margin: 0 2px;
     transition: all 0.2s ease;
     color: #aaaaaa;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 10px !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     border-bottom: 2px solid transparent;
     position: relative;
     overflow: hidden;
 }
 
-.tablink::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: #00ff00;
-    transition: width 0.3s ease;
-}
-
-.tablink:hover::before {
-    width: 80%;
-}
-
 .tablink.active {
     color: #00ff00;
     text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-}
-
-.tablink.active::before {
-    width: 100%;
-    background: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    border-bottom: 2px solid #00ff00;
 }
 
 .tablink:hover:not(.active) {
@@ -323,47 +274,23 @@
 /* 🔹 TAB CONTENT 🔹 */
 .tabcontent {
     display: none;
-    padding: 15px;
+    padding: 10px !important;
 }
 
 .tabcontent.active {
     display: block;
-    animation: fadeEffect 0.3s ease;
-}
-
-@keyframes fadeEffect {
-    from { 
-        opacity: 0; 
-        transform: translateY(5px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
 }
 
 .tabcontent h3 {
-    margin: 0 0 15px 0;
+    margin: 0 0 10px 0;
     color: #00ff00;
-    font-size: 14px;
+    font-size: 11px !important;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     border-bottom: 1px solid #333;
-    padding-bottom: 8px;
+    padding-bottom: 5px;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-    position: relative;
-}
-
-.tabcontent h3::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 50px;
-    height: 1px;
-    background: #ff0000;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
 /* 🔹 ADDONS CATEGORIES 🔹 */
@@ -371,25 +298,25 @@
     display: flex;
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
-    padding: 5px;
-    margin-bottom: 15px;
-    gap: 2px;
+    border-radius: 4px;
+    padding: 3px !important;
+    margin-bottom: 10px;
+    gap: 1px;
 }
 
 .addon-category {
     flex: 1;
     background: none;
     border: none;
-    padding: 8px 5px;
+    padding: 6px 2px !important;
     color: #888;
-    font-size: 11px;
+    font-size: 9px !important;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .addon-category:hover {
@@ -400,45 +327,40 @@
 .addon-category.active {
     color: #00ff00;
     background: rgba(0, 255, 0, 0.15);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
 }
 
-/* 🔹 ADDONS LIST - KOMPAKTOWY 🔹 */
+/* 🔹 ADDONS LIST - BARDZO KOMPAKTOWY 🔹 */
 .addon-category-content {
     display: none;
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 3px;
 }
 
 .addon-category-content.active {
     display: block;
-    animation: fadeEffect 0.3s ease;
 }
 
 .addon-list-empty {
     text-align: center;
     color: #666;
-    font-size: 11px;
-    padding: 15px;
+    font-size: 10px;
+    padding: 10px;
     font-style: italic;
 }
 
 .addon-item {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
-    padding: 8px;
-    margin-bottom: 6px;
-    transition: all 0.3s ease;
+    border-radius: 4px;
+    padding: 6px 8px !important;
+    margin-bottom: 5px;
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.addon-item:hover {
-    background: rgba(40, 40, 40, 0.9);
-    border-color: #444;
+    gap: 6px;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    overflow: hidden;
 }
 
 .addon-item-header {
@@ -446,29 +368,28 @@
     align-items: center;
     justify-content: space-between;
     flex: 1;
+    min-height: 20px;
 }
 
 .addon-item-title {
     font-weight: 600;
     color: #00ff00;
-    font-size: 11px;
+    font-size: 10px !important;
     text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
 }
 
 .addon-item-description {
-    color: #888;
-    font-size: 10px;
-    margin-top: 3px;
-    line-height: 1.3;
+    display: none; /* UKRYWAMY OPIS DLA KOMPAKTOWOŚCI */
 }
 
 .addon-item-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -477,31 +398,24 @@
     border: none;
     color: #888;
     cursor: pointer;
-    padding: 2px;
-    font-size: 12px;
+    padding: 1px;
+    font-size: 10px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 3px;
-}
-
-.favorite-btn:hover {
-    color: #ffaa00;
-    transform: scale(1.1);
 }
 
 .favorite-btn.favorite {
     color: #ffaa00;
-    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
 }
 
-/* 🔹 SWITCH STYLE - KOMPAKTOWY 🔹 */
+/* 🔹 SWITCH STYLE - BARDZO MAŁY 🔹 */
 .switch {
     position: relative;
     display: inline-block;
-    width: 28px;
-    height: 14px;
+    width: 24px !important;
+    height: 12px !important;
 }
 
 .switch input {
@@ -519,21 +433,20 @@
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 14px;
+    border-radius: 12px;
     border: 1px solid #555;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 10px;
-    width: 10px;
+    height: 8px;
+    width: 8px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 input:checked + .slider {
@@ -542,121 +455,35 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(14px);
-    background-color: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+    transform: translateX(12px);
 }
 
-/* 🔹 LICENSE SYSTEM 🔹 */
-.license-container {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.license-input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 5px;
-    color: #00ff00;
-    font-size: 12px;
-    transition: all 0.3s ease;
-}
-
-.license-input:focus {
-    outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-.license-button {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.license-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
-}
-
-.license-message {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    text-align: center;
-    border: 1px solid;
-}
-
-.license-success {
-    background: rgba(0, 100, 0, 0.2);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.license-error {
-    background: rgba(100, 0, 0, 0.2);
-    color: #ff0000;
-    border-color: #ff0000;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-}
-
-.license-info {
-    background: rgba(0, 50, 100, 0.2);
-    color: #00aaff;
-    border-color: #00aaff;
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
-}
-
-/* 🔹 LICENSE STATUS IN TAB 🔹 */
+/* 🔹 LICENSE STATUS 🔹 */
 .license-status-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
-    padding: 15px;
-    margin-top: 20px;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 10px;
 }
 
 .license-status-header {
     color: #00ff00;
-    font-size: 13px;
+    font-size: 10px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     border-bottom: 1px solid #333;
-    padding-bottom: 8px;
+    padding-bottom: 5px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 .license-status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 12px;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
-}
-
-.license-status-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+    margin-bottom: 6px;
+    font-size: 9px;
+    padding: 3px 0;
 }
 
 .license-status-label {
@@ -673,96 +500,48 @@ input:checked + .slider:before {
 
 .license-status-valid {
     color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 .license-status-invalid {
     color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
-/* 🔹 SETTINGS TAB 🔹 */
+/* 🔹 SETTINGS TAB - USUNIĘTO SUWAK CZCIONKI 🔹 */
 .settings-item {
-    margin-bottom: 15px;
-    padding: 12px;
+    margin-bottom: 10px;
+    padding: 8px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
-    transition: all 0.3s ease;
+    border-radius: 4px;
 }
 
 .settings-label {
     display: block;
     color: #00ff00;
-    font-size: 12px;
-    margin-bottom: 8px;
+    font-size: 10px;
+    margin-bottom: 5px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
-/* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
-.font-size-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.font-size-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 6px;
-    background: #333;
-    border-radius: 3px;
-    outline: none;
-}
-
-.font-size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #00ff00;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.font-size-slider::-webkit-slider-thumb:hover {
-    background: #00cc00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.font-size-value {
-    color: #00ff00;
-    font-weight: bold;
-    font-size: 12px;
-    min-width: 30px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-}
-
-/* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
+/* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
 .background-toggle-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .background-toggle-label {
     color: #00ff00;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 .background-toggle {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 18px;
+    width: 30px;
+    height: 14px;
 }
 
 .background-toggle input {
@@ -780,21 +559,20 @@ input:checked + .slider:before {
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 18px;
+    border-radius: 14px;
     border: 1px solid #555;
 }
 
 .background-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
+    height: 10px;
+    width: 10px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
 .background-toggle input:checked + .background-toggle-slider {
@@ -803,15 +581,13 @@ input:checked + .slider:before {
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(18px);
-    background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: translateX(16px);
 }
 
 /* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
 .reset-settings-container {
-    margin-top: 20px;
-    padding-top: 15px;
+    margin-top: 15px;
+    padding-top: 10px;
     border-top: 1px solid #333;
 }
 
@@ -819,130 +595,62 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 5px;
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
+    border-radius: 4px;
     color: #ff0000;
     cursor: pointer;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover {
-    background: rgba(50, 30, 30, 0.9);
-    border-color: #ff0000;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
-}
-
-.reset-settings-button:active {
-    transform: translateY(0);
+    letter-spacing: 0.3px;
 }
 
 .reset-settings-icon {
     color: #ff0000;
-    font-size: 14px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover .reset-settings-icon {
-    transform: rotate(180deg);
-    color: #ffffff;
+    font-size: 10px;
 }
 
 /* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
 #swAddonsPanel.transparent-background {
     background: transparent;
     backdrop-filter: none;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
 }
 
-#swAddonsPanel.transparent-background .sw-tab-content,
-#swAddonsPanel.transparent-background .addon-item,
-#swAddonsPanel.transparent-background .settings-item,
-#swAddonsPanel.transparent-background .license-status-container {
-    background: rgba(10, 10, 10, 0.9);
-    backdrop-filter: blur(5px);
+/* 🔹 SCROLLBAR STYLES 🔹 */
+.addon-category-content::-webkit-scrollbar {
+    width: 4px;
 }
 
-#swAddonsPanel.transparent-background .tab-container {
-    background: rgba(20, 20, 20, 0.9);
+.addon-category-content::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+}
+
+.addon-category-content::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 2px;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 400px) {
     #swAddonsPanel {
-        width: 300px;
+        width: 280px !important;
         left: 10px;
     }
-    
-    .tablink {
-        padding: 10px 5px;
-        font-size: 11px;
-    }
-    
-    .license-status-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
-    }
-    
-    .license-status-value {
-        max-width: 100%;
-        text-align: left;
-    }
-    
-    .font-size-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .font-size-slider {
-        width: 100%;
-    }
-    
-    .background-toggle-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-}
-
-/* 🔹 SCROLLBAR STYLES 🔹 */
-.addon-category-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.addon-category-content::-webkit-scrollbar-track {
-    background: rgba(20, 20, 20, 0.8);
-    border-radius: 3px;
-}
-
-.addon-category-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 3px;
-}
-
-.addon-category-content::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #00ff00, #009900);
 }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected');
+        console.log('✅ CSS injected with compact styles');
     }
 
     // 🔹 Główne funkcje
     async function initPanel() {
         console.log('✅ Initializing panel...');
         
-        // Wstrzyknij CSS
+        // Wstrzyknij CSS - TERAZ PIERWSZE!
         injectCSS();
         
         // Ładujemy zapisane dodatki
@@ -952,7 +660,7 @@ input:checked + .slider:before {
         createToggleButton();
         createMainPanel();
         
-        // Ładujemy zapisany stan (w tym pozycję przycisku)
+        // Ładujemy zapisany stan (BEZ zmiany rozmiaru czcionki)
         loadSavedState();
         
         // Inicjujemy przeciąganie
@@ -975,7 +683,6 @@ input:checked + .slider:before {
     }
 
     function createToggleButton() {
-        // Usuń stary przycisk jeśli istnieje
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
         
@@ -983,7 +690,6 @@ input:checked + .slider:before {
         toggleBtn.id = "swPanelToggle";
         toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
         
-        // Użyj obrazka zamiast tekstu
         toggleBtn.innerHTML = `
             <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg" 
                  alt="SW" 
@@ -991,8 +697,6 @@ input:checked + .slider:before {
         `;
         
         document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created');
-        
         return toggleBtn;
     }
 
@@ -1002,13 +706,10 @@ input:checked + .slider:before {
         let initialLeft, initialTop;
         let clickCount = 0;
         let clickTimer = null;
-        let animationFrame = null;
         
-        // Pobierz aktualną pozycję przycisku (już załadowaną z zapisanych ustawień)
         let currentX = parseInt(toggleBtn.style.left) || 70;
         let currentY = parseInt(toggleBtn.style.top) || 70;
         
-        // Ustaw pozycję na podstawie zmiennych currentX/Y
         toggleBtn.style.left = currentX + 'px';
         toggleBtn.style.top = currentY + 'px';
 
@@ -1022,95 +723,49 @@ input:checked + .slider:before {
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-            document.addEventListener('mouseleave', onMouseUp);
             
             e.preventDefault();
         });
 
         function onMouseMove(e) {
             if (!isDragging) {
-                startDragging();
+                isDragging = true;
+                toggleBtn.style.cursor = 'grabbing';
+                toggleBtn.classList.add('dragging');
             }
             
-            if (isDragging) {
-                // Anuluj poprzednią animację jeśli istnieje
-                if (animationFrame) {
-                    cancelAnimationFrame(animationFrame);
-                }
-                
-                // Oblicz nową pozycję
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
-                
-                const newLeft = initialLeft + deltaX;
-                const newTop = initialTop + deltaY;
-                
-                const maxX = window.innerWidth - toggleBtn.offsetWidth;
-                const maxY = window.innerHeight - toggleBtn.offsetHeight;
-                
-                currentX = Math.max(0, Math.min(newLeft, maxX));
-                currentY = Math.max(0, Math.min(newTop, maxY));
-                
-                // Użyj requestAnimationFrame dla płynności
-                animationFrame = requestAnimationFrame(() => {
-                    toggleBtn.style.left = currentX + 'px';
-                    toggleBtn.style.top = currentY + 'px';
-                });
-            }
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            const newLeft = initialLeft + deltaX;
+            const newTop = initialTop + deltaY;
+            
+            const maxX = window.innerWidth - toggleBtn.offsetWidth;
+            const maxY = window.innerHeight - toggleBtn.offsetHeight;
+            
+            currentX = Math.max(0, Math.min(newLeft, maxX));
+            currentY = Math.max(0, Math.min(newTop, maxY));
+            
+            toggleBtn.style.left = currentX + 'px';
+            toggleBtn.style.top = currentY + 'px';
         }
 
-        function startDragging() {
-            isDragging = true;
-            
-            toggleBtn.style.cursor = 'grabbing';
-            toggleBtn.classList.add('dragging');
-            
-            clickCount = 0;
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-            }
-        }
-
-        function onMouseUp(e) {
-            // Usuń nasłuchiwacze
+        function onMouseUp() {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            document.removeEventListener('mouseleave', onMouseUp);
-            
-            // Anuluj animację jeśli istnieje
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-                animationFrame = null;
-            }
             
             if (isDragging) {
-                stopDragging();
+                isDragging = false;
+                toggleBtn.style.cursor = 'grab';
+                toggleBtn.classList.remove('dragging');
+                
+                SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+                    left: currentX + 'px',
+                    top: currentY + 'px'
+                });
             } else {
                 handleClick();
             }
-        }
-
-        function stopDragging() {
-            isDragging = false;
-            
-            toggleBtn.style.cursor = 'grab';
-            toggleBtn.classList.remove('dragging');
-            toggleBtn.classList.add('saved');
-            
-            SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
-                left: currentX + 'px',
-                top: currentY + 'px'
-            });
-            
-            console.log('💾 Saved button position:', {
-                left: currentX + 'px',
-                top: currentY + 'px'
-            });
-            
-            setTimeout(() => {
-                toggleBtn.classList.remove('saved');
-            }, 1500);
         }
 
         function handleClick() {
@@ -1133,14 +788,10 @@ input:checked + .slider:before {
                 const isVisible = panel.style.display === 'block';
                 panel.style.display = isVisible ? 'none' : 'block';
                 SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-                console.log('🎯 Panel toggled:', !isVisible);
             }
         }
 
-        // Dodaj nasłuchiwanie kliknięcia
         toggleBtn.addEventListener('click', handleClick);
-
-        console.log('✅ Advanced toggle drag functionality added');
     }
 
     function createMainPanel() {
@@ -1170,19 +821,11 @@ input:checked + .slider:before {
                     <button class="addon-category" data-category="favorites">Ulubione</button>
                 </div>
                 
-                <div id="addon-enabled" class="addon-category-content active">
-                    <!-- Włączone dodatki zostaną dodane dynamicznie -->
-                </div>
+                <div id="addon-enabled" class="addon-category-content active"></div>
+                <div id="addon-disabled" class="addon-category-content"></div>
+                <div id="addon-favorites" class="addon-category-content"></div>
                 
-                <div id="addon-disabled" class="addon-category-content">
-                    <!-- Wyłączone dodatki zostaną dodane dynamicznie -->
-                </div>
-                
-                <div id="addon-favorites" class="addon-category-content">
-                    <!-- Ulubione dodatki zostaną dodane dynamicznie -->
-                </div>
-                
-                <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
+                <div id="swAddonsMessage" style="display:none; font-size:9px; padding:5px; margin-top:8px; background:rgba(0,255,0,0.1); color:#00ff00; border-radius:3px;"></div>
             </div>
 
             <div id="status" class="tabcontent">
@@ -1198,19 +841,11 @@ input:checked + .slider:before {
                         <span id="swAccountId" class="license-status-value">-</span>
                     </div>
                 </div>
-                <div id="swLicenseMessage" class="license-message"></div>
+                <div id="swLicenseMessage" style="font-size:9px; padding:5px; margin-top:8px;"></div>
             </div>
 
             <div id="settings" class="tabcontent">
                 <h3>Ustawienia Panelu</h3>
-                
-                <div class="settings-item">
-                    <div class="font-size-container">
-                        <label class="settings-label">Rozmiar czcionki:</label>
-                        <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider">
-                        <span class="font-size-value" id="fontSizeValue">12px</span>
-                    </div>
-                </div>
                 
                 <div class="settings-item">
                     <div class="background-toggle-container">
@@ -1229,73 +864,64 @@ input:checked + .slider:before {
                     </button>
                 </div>
                 
-                <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+                <div id="swResetMessage" style="display:none; font-size:9px; padding:5px; margin-top:8px; background:rgba(0,255,0,0.1); color:#00ff00; border-radius:3px;"></div>
             </div>
         `;
         
         document.body.appendChild(panel);
         renderAddons();
-        console.log('✅ Panel created');
     }
 
     function renderAddons() {
-        const enabledContainer = document.getElementById('addon-enabled');
-        const disabledContainer = document.getElementById('addon-disabled');
-        const favoritesContainer = document.getElementById('addon-favorites');
+        const containers = {
+            enabled: document.getElementById('addon-enabled'),
+            disabled: document.getElementById('addon-disabled'),
+            favorites: document.getElementById('addon-favorites')
+        };
         
         // Wyczyść kontenery
-        enabledContainer.innerHTML = '';
-        disabledContainer.innerHTML = '';
-        favoritesContainer.innerHTML = '';
-        
-        // Liczniki
-        let enabledCount = 0;
-        let disabledCount = 0;
-        let favoritesCount = 0;
-        
-        // Sortuj dodatki: najpierw ulubione, potem włączone, potem wyłączone
-        const sortedAddons = [...currentAddons].sort((a, b) => {
-            if (a.favorite && !b.favorite) return -1;
-            if (!a.favorite && b.favorite) return 1;
-            if (a.enabled && !b.enabled) return -1;
-            if (!a.enabled && b.enabled) return 1;
-            return a.name.localeCompare(b.name);
+        Object.values(containers).forEach(container => {
+            container.innerHTML = '';
         });
         
-        // Renderuj każdy dodatek
-        sortedAddons.forEach(addon => {
-            const addonElement = createAddonElement(addon);
+        // Liczniki
+        let counts = { enabled: 0, disabled: 0, favorites: 0 };
+        
+        currentAddons.forEach(addon => {
+            const element = createAddonElement(addon);
             
-            // Dodaj do odpowiedniego kontenera
             if (addon.favorite) {
-                favoritesContainer.appendChild(addonElement.cloneNode(true));
-                favoritesCount++;
+                containers.favorites.appendChild(element.cloneNode(true));
+                counts.favorites++;
             }
             
             if (addon.enabled) {
-                enabledContainer.appendChild(addonElement.cloneNode(true));
-                enabledCount++;
+                containers.enabled.appendChild(element.cloneNode(true));
+                counts.enabled++;
             } else {
-                disabledContainer.appendChild(addonElement.cloneNode(true));
-                disabledCount++;
+                containers.disabled.appendChild(element.cloneNode(true));
+                counts.disabled++;
             }
         });
         
-        // Jeśli kontenery są puste, dodaj komunikat
-        if (enabledCount === 0) {
-            enabledContainer.innerHTML = '<div class="addon-list-empty">Brak włączonych dodatków</div>';
+        // Puste komunikaty
+        if (counts.enabled === 0) {
+            containers.enabled.innerHTML = '<div class="addon-list-empty">Brak włączonych dodatków</div>';
+        }
+        if (counts.disabled === 0) {
+            containers.disabled.innerHTML = '<div class="addon-list-empty">Brak wyłączonych dodatków</div>';
+        }
+        if (counts.favorites === 0) {
+            containers.favorites.innerHTML = '<div class="addon-list-empty">Brak ulubionych dodatków</div>';
         }
         
-        if (disabledCount === 0) {
-            disabledContainer.innerHTML = '<div class="addon-list-empty">Brak wyłączonych dodatków</div>';
-        }
-        
-        if (favoritesCount === 0) {
-            favoritesContainer.innerHTML = '<div class="addon-list-empty">Brak ulubionych dodatków</div>';
-        }
-        
-        // Aktualizuj liczniki w przyciskach kategorii
-        updateCategoryCounts(enabledCount, disabledCount, favoritesCount);
+        // Aktualizuj przyciski
+        document.querySelector('.addon-category[data-category="enabled"]').textContent = 
+            counts.enabled > 0 ? `Włączone (${counts.enabled})` : 'Włączone';
+        document.querySelector('.addon-category[data-category="disabled"]').textContent = 
+            counts.disabled > 0 ? `Wyłączone (${counts.disabled})` : 'Wyłączone';
+        document.querySelector('.addon-category[data-category="favorites"]').textContent = 
+            counts.favorites > 0 ? `Ulubione (${counts.favorites})` : 'Ulubione';
     }
 
     function createAddonElement(addon) {
@@ -1306,11 +932,8 @@ input:checked + .slider:before {
         div.innerHTML = `
             <div class="addon-item-header">
                 <div>
-                    <div class="addon-item-title">
+                    <div class="addon-item-title" title="${addon.description}">
                         ${addon.name}
-                    </div>
-                    <div class="addon-item-description">
-                        ${addon.description}
                     </div>
                 </div>
                 <div class="addon-item-actions">
@@ -1328,88 +951,34 @@ input:checked + .slider:before {
         return div;
     }
 
-    function updateCategoryCounts(enabled, disabled, favorites) {
-        const enabledBtn = document.querySelector('.addon-category[data-category="enabled"]');
-        const disabledBtn = document.querySelector('.addon-category[data-category="disabled"]');
-        const favoritesBtn = document.querySelector('.addon-category[data-category="favorites"]');
-        
-        if (enabledBtn) {
-            enabledBtn.textContent = enabled > 0 ? `Włączone (${enabled})` : 'Włączone';
-        }
-        
-        if (disabledBtn) {
-            disabledBtn.textContent = disabled > 0 ? `Wyłączone (${disabled})` : 'Wyłączone';
-        }
-        
-        if (favoritesBtn) {
-            favoritesBtn.textContent = favorites > 0 ? `Ulubione (${favorites})` : 'Ulubione';
-        }
-    }
-
     function setupTabs() {
-        const tabs = document.querySelectorAll('.tablink');
-        
-        tabs.forEach(tab => {
+        // Główne zakładki
+        document.querySelectorAll('.tablink').forEach(tab => {
             tab.addEventListener('click', function(e) {
-                e.preventDefault();
                 e.stopPropagation();
+                const tabName = this.dataset.tab;
                 
-                const tabName = this.getAttribute('data-tab');
+                document.querySelectorAll('.tablink').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tabcontent').forEach(c => c.classList.remove('active'));
                 
-                // Usuń aktywny stan ze wszystkich zakładek
-                tabs.forEach(t => {
-                    t.classList.remove('active');
-                });
-                
-                // Dodaj aktywny stan do klikniętej zakładki
                 this.classList.add('active');
-                
-                // Ukryj wszystkie zakładki
-                const tabContents = document.querySelectorAll('.tabcontent');
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Pokaż wybraną zakładkę
-                const tabContent = document.getElementById(tabName);
-                if (tabContent) {
-                    tabContent.classList.add('active');
-                }
+                document.getElementById(tabName).classList.add('active');
             });
         });
 
         // Kategorie dodatków
-        const addonCategories = document.querySelectorAll('.addon-category');
-        addonCategories.forEach(category => {
+        document.querySelectorAll('.addon-category').forEach(category => {
             category.addEventListener('click', function(e) {
-                e.preventDefault();
                 e.stopPropagation();
+                const categoryName = this.dataset.category;
                 
-                const categoryName = this.getAttribute('data-category');
+                document.querySelectorAll('.addon-category').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.addon-category-content').forEach(c => c.classList.remove('active'));
                 
-                // Usuń aktywny stan ze wszystkich kategorii
-                addonCategories.forEach(c => {
-                    c.classList.remove('active');
-                });
-                
-                // Dodaj aktywny stan do klikniętej kategorii
                 this.classList.add('active');
-                
-                // Ukryj wszystkie kategorie treści
-                const categoryContents = document.querySelectorAll('.addon-category-content');
-                categoryContents.forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Pokaż wybraną kategorię
-                const categoryContent = document.getElementById(`addon-${categoryName}`);
-                if (categoryContent) {
-                    categoryContent.classList.add('active');
-                }
+                document.getElementById(`addon-${categoryName}`).classList.add('active');
             });
         });
-        
-        console.log('✅ Tabs setup complete');
     }
 
     function setupDrag() {
@@ -1428,7 +997,7 @@ input:checked + .slider:before {
             const rect = panel.getBoundingClientRect();
             offsetX = e.clientX - rect.left;
             offsetY = e.clientY - rect.top;
-            panel.style.opacity = '0.9';
+            
             document.addEventListener('mousemove', onPanelDrag);
             document.addEventListener('mouseup', stopPanelDrag);
         });
@@ -1440,10 +1009,7 @@ input:checked + .slider:before {
         }
 
         function stopPanelDrag() {
-            if (!isDragging) return;
             isDragging = false;
-            panel.style.opacity = '1';
-            
             SW.GM_setValue(CONFIG.PANEL_POSITION, {
                 left: panel.style.left,
                 top: panel.style.top
@@ -1452,269 +1018,162 @@ input:checked + .slider:before {
             document.removeEventListener('mousemove', onPanelDrag);
             document.removeEventListener('mouseup', stopPanelDrag);
         }
-        console.log('✅ Panel drag setup complete');
     }
 
     function setupEventListeners() {
-        // Rozmiar czcionki
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeSlider && fontSizeValue) {
-            fontSizeSlider.addEventListener('input', function() {
-                const size = this.value;
-                fontSizeValue.textContent = size + 'px';
-                const panel = document.getElementById('swAddonsPanel');
-                if (panel) {
-                    panel.style.fontSize = size + 'px';
-                }
-                SW.GM_setValue(CONFIG.FONT_SIZE, size);
-            });
-        }
-
         // Widoczność tła
         const backgroundToggle = document.getElementById('backgroundToggle');
         if (backgroundToggle) {
             backgroundToggle.addEventListener('change', function() {
-                const isVisible = this.checked;
-                SW.GM_setValue(CONFIG.BACKGROUND_VISIBLE, isVisible);
-                updateBackgroundVisibility(isVisible);
+                SW.GM_setValue(CONFIG.BACKGROUND_VISIBLE, this.checked);
+                updateBackgroundVisibility(this.checked);
             });
         }
 
         // Resetowanie ustawień
-        const resetBtn = document.getElementById('swResetButton');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', function() {
-                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
-                    resetAllSettings();
-                }
-            });
-        }
-
-        // Delegowane nasłuchiwanie dla dodatków
-        document.addEventListener('click', function(e) {
-            // Obsługa ulubionych
-            if (e.target.classList.contains('favorite-btn') || e.target.closest('.favorite-btn')) {
-                const btn = e.target.classList.contains('favorite-btn') ? e.target : e.target.closest('.favorite-btn');
-                const addonId = btn.dataset.id;
-                toggleFavorite(addonId);
-            }
-            
-            // Obsługa przełączników
-            if (e.target.type === 'checkbox' && e.target.closest('.addon-item')) {
-                const addonId = e.target.dataset.id;
-                const isEnabled = e.target.checked;
-                toggleAddon(addonId, isEnabled);
+        document.getElementById('swResetButton').addEventListener('click', function() {
+            if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                resetAllSettings();
             }
         });
 
-        console.log('✅ Event listeners setup complete');
+        // Delegowane nasłuchiwanie dla dodatków
+        document.addEventListener('click', function(e) {
+            // Ulubione
+            if (e.target.closest('.favorite-btn')) {
+                const btn = e.target.closest('.favorite-btn');
+                toggleFavorite(btn.dataset.id);
+            }
+            
+            // Przełączniki
+            if (e.target.type === 'checkbox' && e.target.closest('.addon-item')) {
+                toggleAddon(e.target.dataset.id, e.target.checked);
+            }
+        });
     }
 
     function toggleFavorite(addonId) {
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        if (addonIndex === -1) return;
+        const addon = currentAddons.find(a => a.id === addonId);
+        if (!addon) return;
         
-        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
-        
-        // Zapisz ulubione
-        const favoriteIds = currentAddons
-            .filter(a => a.favorite)
-            .map(a => a.id);
-        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, favoriteIds);
-        
-        // Przerenderuj dodatki
+        addon.favorite = !addon.favorite;
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, 
+            currentAddons.filter(a => a.favorite).map(a => a.id)
+        );
         renderAddons();
-        
-        console.log(`⭐ Toggle favorite for ${addonId}: ${currentAddons[addonIndex].favorite}`);
     }
 
     function toggleAddon(addonId, isEnabled) {
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        if (addonIndex === -1) return;
+        const addon = currentAddons.find(a => a.id === addonId);
+        if (!addon) return;
         
-        currentAddons[addonIndex].enabled = isEnabled;
+        addon.enabled = isEnabled;
         
-        // Dla KCS Icons dodatku
         if (addonId === 'kcs-icons') {
             SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+            showAddonMessage(`KCS Icons ${isEnabled ? 'włączony' : 'wyłączony'}. Odśwież grę.`);
             
-            const message = isEnabled ? 
-                'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
-                'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
-            
-            const messageEl = document.getElementById('swAddonsMessage');
-            if (messageEl) {
-                messageEl.textContent = message;
-                messageEl.className = 'license-message license-info';
-                messageEl.style.display = 'block';
-                
-                setTimeout(() => {
-                    messageEl.style.display = 'none';
-                }, 5000);
-            }
-            
-            console.log('💾 KCS Icons ' + (isEnabled ? 'włączony' : 'wyłączony') + ' - wymagane odświeżenie gry');
-            
-            // Jeśli licencja zweryfikowana i KCS włączony, uruchom dodatek
             if (isLicenseVerified && isEnabled) {
                 setTimeout(initKCSIcons, 100);
             }
         }
         
-        // Przerenderuj dodatki
         renderAddons();
-        
-        console.log(`🔧 Toggle ${addonId}: ${isEnabled ? 'enabled' : 'disabled'}`);
+    }
+
+    function showAddonMessage(text) {
+        const messageEl = document.getElementById('swAddonsMessage');
+        if (messageEl) {
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
     }
 
     function resetAllSettings() {
-        // Resetuj wszystkie ustawienia
         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
         SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
-        SW.GM_deleteValue(CONFIG.FONT_SIZE);
         SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
         SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
         SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
         
-        // Przywróć domyślne ustawienia dodatków
         currentAddons = ADDONS.map(addon => ({
             ...addon,
-            enabled: addon.id === 'kcs-icons' ? true : false,
+            enabled: addon.id === 'kcs-icons',
             favorite: false
         }));
         
-        // Pokaż komunikat w panelu
-        const resetMessage = document.getElementById('swResetMessage');
-        if (resetMessage) {
-            resetMessage.textContent = 'Ustawienia zresetowane!';
-            resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
-            resetMessage.style.color = '#00ccff';
-            resetMessage.style.border = '1px solid #00ccff';
-            resetMessage.style.display = 'block';
-            
-            setTimeout(() => {
-                resetMessage.style.display = 'none';
-            }, 5000);
-        }
+        document.getElementById('swResetMessage').textContent = 'Ustawienia zresetowane!';
+        document.getElementById('swResetMessage').style.display = 'block';
+        setTimeout(() => document.getElementById('swResetMessage').style.display = 'none', 3000);
         
-        // Odśwież ustawienia
         loadSavedState();
         renderAddons();
     }
 
     function updateBackgroundVisibility(isVisible) {
         const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            if (isVisible) {
-                panel.classList.remove('transparent-background');
-            } else {
-                panel.classList.add('transparent-background');
-            }
-        }
+        panel.classList.toggle('transparent-background', !isVisible);
     }
 
     function loadSavedState() {
-        if (!SW || !SW.GM_getValue) return;
-        
-        // Załaduj zapisaną pozycję PRZYCISKU
+        // Pozycja przycisku
         const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn && savedBtnPosition) {
             toggleBtn.style.left = savedBtnPosition.left;
             toggleBtn.style.top = savedBtnPosition.top;
-            console.log('📍 Loaded button position:', savedBtnPosition);
-        } else if (toggleBtn) {
-            toggleBtn.style.left = '70px';
-            toggleBtn.style.top = '70px';
         }
         
-        // Załaduj zapisaną pozycję PANELU
+        // Pozycja panelu
         const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
         const panel = document.getElementById('swAddonsPanel');
         if (panel && savedPosition) {
             panel.style.left = savedPosition.left;
             panel.style.top = savedPosition.top;
-        } else if (panel) {
-            panel.style.left = '70px';
-            panel.style.top = '140px';
         }
         
-        // Załaduj zapisaną widoczność
+        // Widoczność panelu
         const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
-        if (panel) {
-            panel.style.display = isVisible ? 'block' : 'none';
-        }
+        if (panel) panel.style.display = isVisible ? 'block' : 'none';
         
-        // Załaduj rozmiar czcionki
-        const fontSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeSlider && fontSizeValue && panel) {
-            fontSizeSlider.value = fontSize;
-            fontSizeValue.textContent = fontSize + 'px';
-            panel.style.fontSize = fontSize + 'px';
-        }
-        
-        // Załaduj widoczność tła
+        // Widoczność tła
         const backgroundVisible = SW.GM_getValue(CONFIG.BACKGROUND_VISIBLE, true);
         const backgroundToggle = document.getElementById('backgroundToggle');
-        if (backgroundToggle && panel) {
+        if (backgroundToggle) {
             backgroundToggle.checked = backgroundVisible;
             updateBackgroundVisibility(backgroundVisible);
         }
-        
-        console.log('✅ Saved state loaded');
     }
 
     function loadAddonsState() {
-        // Załaduj zapisane ulubione
         const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
-        
-        // Załaduj stan KCS Icons
         const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
         
-        // Aktualizuj listę dodatków
         currentAddons = ADDONS.map(addon => ({
             ...addon,
             enabled: addon.id === 'kcs-icons' ? kcsEnabled : false,
             favorite: favoriteIds.includes(addon.id)
         }));
-        
-        console.log('✅ Addons state loaded');
     }
 
     function loadEnabledAddons() {
-        console.log('🔓 Ładowanie dodatków...');
+        if (!isLicenseVerified) return;
         
-        if (!isLicenseVerified) {
-            console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
-            return;
-        }
-        
-        // Sprawdź czy KCS Icons jest włączony
         const kcsAddon = currentAddons.find(a => a.id === 'kcs-icons');
         if (kcsAddon && kcsAddon.enabled) {
-            console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
             setTimeout(initKCSIcons, 100);
-        } else {
-            console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
         }
     }
 
-    // 🔹 Reszta funkcji pozostaje bez zmian (getUserAccountId, showMessage, updateLicenseStatus, fetchLicenseList, verifyAccount, checkLicenseOnStart, initKCSIcons)
+    // 🔹 Reszta funkcji (bez zmian dla licencji i KCS Icons)
+    // ... (funkcje getUserAccountId, showMessage, updateLicenseStatus, fetchLicenseList, verifyAccount, checkLicenseOnStart, initKCSIcons)
 
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOM loaded, initializing panel...');
-            initPanel();
-            console.log('✅ SynergyWraith panel ready!');
-        });
+        document.addEventListener('DOMContentLoaded', initPanel);
     } else {
-        console.log('✅ DOM already loaded, initializing panel...');
         initPanel();
-        console.log('✅ SynergyWraith panel ready!');
     }
 })();
