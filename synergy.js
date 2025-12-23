@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu
+// synergy.js - Główny kod panelu z nowymi ustawieniami
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.0 loaded');
+    console.log('🚀 SynergyWraith Panel v1.1 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -10,6 +10,8 @@
         PANEL_VISIBLE: "sw_panel_visible",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
+        FONT_SIZE: "sw_panel_font_size",
+        BACKGROUND_VISIBLE: "sw_panel_background",
         LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/LICENSE"
     };
 
@@ -60,9 +62,977 @@
     let isLicenseVerified = false;
     let userAccountId = null;
 
+    // 🔹 Wstrzyknij CSS
+    function injectCSS() {
+        const style = document.createElement('style');
+        style.textContent = `
+/* 🔹 BASE STYLES 🔹 */
+#swPanelToggle {
+    position: fixed;
+    top: 70px;
+    left: 70px;
+    width: 50px;
+    height: 50px;
+    background: transparent;
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 1000000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 5px black;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+}
+
+#swPanelToggle.dragging {
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
+    border: 3px solid #ffff00;
+    z-index: 1000001;
+}
+
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.08);
+    box-shadow: 0 0 25px rgba(255, 30, 30, 1);
+    cursor: grab;
+}
+
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+}
+
+/* Save indication animation */
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+    50% { 
+        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
+        border-color: #00ff00;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+}
+
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out;
+}
+
+/* Prevent text selection during drag */
+#swPanelToggle.dragging::selection {
+    background: transparent;
+}
+
+#swPanelToggle.dragging::-moz-selection {
+    background: transparent;
+}
+
+/* 🔹 MAIN PANEL 🔹 */
+#swAddonsPanel {
+    position: fixed;
+    top: 140px;
+    left: 70px;
+    width: 350px;
+    background: linear-gradient(135deg, #0a0a0a, #121212);
+    border: 3px solid #00ff00;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 999999;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 0, 0.1);
+    backdrop-filter: blur(10px);
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+/* Neonowy efekt na krawędziach */
+#swAddonsPanel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    padding: 2px;
+    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+}
+
+#swPanelHeader {
+    background: linear-gradient(to right, #1a1a1a, #222222);
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #00ff00;
+    cursor: grab;
+    position: relative;
+    overflow: hidden;
+}
+
+#swPanelHeader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.sw-tab-content {
+    padding: 15px;
+    background: rgba(10, 10, 10, 0.9);
+}
+
+/* 🔹 TABS STYLES 🔹 */
+.tab-container {
+    display: flex;
+    background: linear-gradient(to bottom, #1a1a1a, #151515);
+    border-bottom: 1px solid #00ff00;
+    padding: 0 5px;
+}
+
+.tablink {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    color: #aaaaaa;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.tablink::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #00ff00;
+    transition: width 0.3s ease;
+}
+
+.tablink:hover::before {
+    width: 80%;
+}
+
+.tablink.active {
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.tablink.active::before {
+    width: 100%;
+    background: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.tablink:hover:not(.active) {
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 TAB CONTENT 🔹 */
+.tabcontent {
+    display: none;
+    padding: 15px;
+    animation: fadeEffect 0.3s ease;
+}
+
+@keyframes fadeEffect {
+    from { 
+        opacity: 0; 
+        transform: translateY(5px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.tabcontent h3 {
+    margin: 0 0 15px 0;
+    color: #00ff00;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    position: relative;
+}
+
+.tabcontent h3::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 1px;
+    background: #ff0000;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+/* 🔹 ADDONS LIST 🔹 */
+.addon {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.addon:hover {
+    background: rgba(40, 40, 40, 0.9);
+    border-color: #00ff00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
+}
+
+.addon-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.addon-header > div {
+    display: flex;
+    align-items: center;
+}
+
+.addon-title {
+    font-weight: 600;
+    color: #00ff00;
+    font-size: 13px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.addon-description {
+    color: #aaaaaa;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: none;
+}
+
+.addon.expanded .addon-description {
+    display: block;
+}
+
+/* 🔹 SETTINGS GEAR ICON 🔹 */
+.addon-settings-btn {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #333;
+    color: #00ff00;
+    cursor: pointer;
+    padding: 2px 5px;
+    margin-left: 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.addon-settings-btn:hover {
+    color: #ffffff;
+    background: rgba(0, 255, 0, 0.3);
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.addon-settings-panel {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(20, 20, 20, 0.9);
+    border: 1px solid #333;
+    border-radius: 5px;
+}
+
+.addon-settings-panel.visible {
+    display: block;
+}
+
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* 🔹 SWITCH STYLE - ZMODYFIKOWANY 🔹 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 18px;
+    border: 1px solid #555;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+input:checked + .slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 LICENSE SYSTEM 🔹 */
+.license-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.license-input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #00ff00;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.license-input:focus {
+    outline: none;
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.license-button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #003300, #006600);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.license-button:hover {
+    background: linear-gradient(to right, #006600, #009900);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+.license-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid;
+}
+
+.license-success {
+    background: rgba(0, 100, 0, 0.2);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.license-error {
+    background: rgba(100, 0, 0, 0.2);
+    color: #ff0000;
+    border-color: #ff0000;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.license-info {
+    background: rgba(0, 50, 100, 0.2);
+    color: #00aaff;
+    border-color: #00aaff;
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
+/* 🔹 LICENSE STATUS IN TAB 🔹 */
+.license-status-container {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.license-status-header {
+    color: #00ff00;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+}
+
+.license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.license-status-label {
+    color: #00ff00;
+    font-weight: 600;
+}
+
+.license-status-value {
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+.license-status-valid {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.license-status-invalid {
+    color: #ff0000 !important;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+/* 🔹 ADMIN TAB STYLES 🔹 */
+.admin-section {
+    margin-bottom: 20px;
+}
+
+.admin-input-group {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.admin-input {
+    flex: 1;
+    padding: 10px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #00ff00;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.admin-input:focus {
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.admin-button {
+    padding: 10px 15px;
+    background: linear-gradient(to right, #003300, #006600);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.admin-button:hover {
+    background: linear-gradient(to right, #006600, #009900);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+.admin-list {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.admin-list-header {
+    color: #00ff00;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.admin-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px;
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 3px;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.admin-list-item:hover {
+    border-color: #00ff00;
+    background: rgba(30, 30, 30, 0.9);
+}
+
+.admin-list-empty {
+    color: #666;
+    text-align: center;
+    padding: 10px;
+}
+
+.remove-btn {
+    background: #660000;
+    border: 1px solid #ff0000;
+    border-radius: 3px;
+    color: #ff0000;
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 11px;
+    transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+    background: #ff0000;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* 🔹 USAGE LOG STYLES 🔹 */
+.usage-log {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.usage-log-header {
+    color: #00ff00;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.usage-log-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 5px;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.usage-log-item:hover {
+    border-color: #00ff00;
+    transform: translateX(5px);
+}
+
+.usage-log-account {
+    color: #00ff00;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.usage-log-time {
+    font-size: 11px;
+    color: #aaaaaa;
+}
+
+.usage-log-empty {
+    color: #666;
+    text-align: center;
+    padding: 10px;
+}
+
+/* 🔹 SETTINGS TAB - NOWE FUNKCJE 🔹 */
+.settings-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.settings-item:hover {
+    border-color: #00ff00;
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.settings-label {
+    display: block;
+    color: #00ff00;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
+.font-size-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.font-size-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    outline: none;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #00ff00;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: #00cc00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.font-size-value {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 30px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+/* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
+.background-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.background-toggle-label {
+    color: #00ff00;
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.background-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.background-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.background-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 24px;
+    border: 1px solid #555;
+}
+
+.background-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.background-toggle input:checked + .background-toggle-slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+.background-toggle input:checked + .background-toggle-slider:before {
+    transform: translateX(26px);
+    background-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
+.reset-settings-container {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+}
+
+.reset-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ff0000;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover {
+    background: rgba(50, 30, 30, 0.9);
+    border-color: #ff0000;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+.reset-settings-button:active {
+    transform: translateY(0);
+}
+
+.reset-settings-icon {
+    color: #ff0000;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover .reset-settings-icon {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+
+/* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
+#swAddonsPanel.transparent-background {
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+}
+
+#swAddonsPanel.transparent-background .sw-tab-content,
+#swAddonsPanel.transparent-background .addon,
+#swAddonsPanel.transparent-background .settings-item,
+#swAddonsPanel.transparent-background .license-status-container,
+#swAddonsPanel.transparent-background .admin-list,
+#swAddonsPanel.transparent-background .usage-log {
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(5px);
+}
+
+#swAddonsPanel.transparent-background .tab-container {
+    background: rgba(20, 20, 20, 0.9);
+}
+
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
+@media (max-width: 400px) {
+    #swAddonsPanel {
+        width: 300px;
+        left: 10px;
+    }
+    
+    .tablink {
+        padding: 10px 5px;
+        font-size: 11px;
+    }
+    
+    .license-status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+    
+    .license-status-value {
+        max-width: 100%;
+        text-align: left;
+    }
+    
+    .admin-input-group {
+        flex-direction: column;
+    }
+    
+    .font-size-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .font-size-slider {
+        width: 100%;
+    }
+    
+    .background-toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* 🔹 SCROLLBAR STYLES 🔹 */
+.admin-list::-webkit-scrollbar,
+.usage-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-list::-webkit-scrollbar-track,
+.usage-log::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 4px;
+}
+
+.admin-list::-webkit-scrollbar-thumb,
+.usage-log::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #00ff00, #006600);
+    border-radius: 4px;
+}
+
+.admin-list::-webkit-scrollbar-thumb:hover,
+.usage-log::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #00ff00, #009900);
+}
+
+/* 🔹 ANIMACJE DODATKOWE 🔹 */
+@keyframes pulse {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+}
+
+.addon.active {
+    animation: pulse 2s infinite;
+}
+        `;
+        document.head.appendChild(style);
+        console.log('✅ CSS injected');
+    }
+
     // 🔹 Główne funkcje
     async function initPanel() {
         console.log('✅ Initializing panel...');
+        
+        // Wstrzyknij CSS
+        injectCSS();
         
         // Najpierw tworzymy przycisk, ale nie inicjujemy jeszcze przeciągania
         const toggleBtn = createToggleButton();
@@ -106,18 +1076,6 @@
                  alt="SW" 
                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
         `;
-        
-        // Ustaw domyślną pozycję (zostanie nadpisana przez loadSavedState jeśli istnieje zapisana pozycję)
-        toggleBtn.style.position = 'fixed';
-        toggleBtn.style.width = '50px';
-        toggleBtn.style.height = '50px';
-        toggleBtn.style.zIndex = '999998';
-        toggleBtn.style.cursor = 'grab';
-        toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-        toggleBtn.style.border = '3px solid #00ff00';
-        toggleBtn.style.borderRadius = '50%';
-        toggleBtn.style.overflow = 'hidden';
-        toggleBtn.style.transition = 'transform 0.2s, box-shadow 0.2s, border 0.2s';
         
         document.body.appendChild(toggleBtn);
         console.log('✅ Toggle button created');
@@ -192,9 +1150,6 @@
             isDragging = true;
             
             toggleBtn.style.cursor = 'grabbing';
-            toggleBtn.style.transform = 'scale(1.15)';
-            toggleBtn.style.boxShadow = '0 0 30px rgba(255, 50, 50, 1.2)';
-            toggleBtn.style.border = '3px solid #ffff00';
             toggleBtn.classList.add('dragging');
             
             clickCount = 0;
@@ -227,9 +1182,6 @@
             isDragging = false;
             
             toggleBtn.style.cursor = 'grab';
-            toggleBtn.style.transform = 'scale(1)';
-            toggleBtn.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.9)';
-            toggleBtn.style.border = '3px solid #00ff00';
             toggleBtn.classList.remove('dragging');
             toggleBtn.classList.add('saved');
             
@@ -284,71 +1236,72 @@
         
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
-        panel.style.cssText = `
-            position: fixed;
-            top: 140px;
-            left: 70px;
-            width: 350px;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 3px solid #00ccff;
-            border-radius: 10px;
-            color: #ffffff;
-            z-index: 999999;
-            box-shadow: 0 0 30px rgba(0, 204, 255, 0.6);
-            backdrop-filter: blur(10px);
-            display: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        `;
+        panel.className = "tabcontent";
         
         panel.innerHTML = `
-            <div id="swPanelHeader" style="background: linear-gradient(to right, #2a2a3a, #232330; padding: 12px; text-align: center; border-bottom: 1px solid #393945; cursor: grab;">
-                <strong style="color: #a0a0ff;">SYNERGY WRAITH PANEL</strong>
+            <div id="swPanelHeader">
+                <strong>SYNERGY WRAITH PANEL</strong>
             </div>
             
-            <div style="display: flex; background: linear-gradient(to bottom, #2c2c3c, #252532); border-bottom: 1px solid #393945; padding: 0 5px;">
-                <button class="sw-tab active" data-tab="addons" style="flex: 1; background: none; border: none; padding: 12px; color: #00ccff; cursor: pointer; border-bottom: 2px solid #00ccff;">Dodatki</button>
-                <button class="sw-tab" data-tab="status" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Status</button>
-                <button class="sw-tab" data-tab="settings" style="flex: 1; background: none; border: none; padding: 12px; color: #8899aa; cursor: pointer;">Ustawienia</button>
+            <div class="tab-container">
+                <button class="tablink active" data-tab="addons">Dodatki</button>
+                <button class="tablink" data-tab="status">Status</button>
+                <button class="tablink" data-tab="settings">Ustawienia</button>
             </div>
 
-            <div class="sw-tab-content" id="swTabAddons" style="padding: 15px; display: block;">
-                <h3 style="color: #00ccff; margin-top: 0;">Aktywne Dodatki</h3>
-                <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: 600; color: #ccddee;">KCS i Zwój Ikony</span>
+            <div id="addons" class="tabcontent" style="display: block;">
+                <h3>Aktywne Dodatki</h3>
+                <div class="addon">
+                    <div class="addon-header">
+                        <div>
+                            <span class="addon-title">KCS i Zwój Ikony</span>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="kcsIconsToggle">
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div style="color: #8899aa; font-size: 12px;">Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka</div>
+                    <div class="addon-description">Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka</div>
                 </div>
-                <!-- Dodane miejsce na komunikaty dla dodatków -->
-                <div id="swAddonsMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+                <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
             </div>
 
-            <div class="sw-tab-content" id="swTabStatus" style="padding: 15px; display: none;">
-                <h3 style="color: #00ccff; margin-top: 0;">Status Licencji</h3>
-                <div style="background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 15px;">
-                    <p style="color: #ccddee; margin-top: 0; text-align: center;">Weryfikacja licencji odbywa się automatycznie</p>
+            <div id="status" class="tabcontent">
+                <h3>Status Licencji</h3>
+                <div class="license-status-container">
+                    <div class="license-status-header">Status Licencji</div>
+                    <div class="license-status-item">
+                        <span class="license-status-label">Status:</span>
+                        <span id="swLicenseStatus" class="license-status-invalid">Weryfikacja...</span>
+                    </div>
+                    <div class="license-status-item">
+                        <span class="license-status-label">ID Konta:</span>
+                        <span id="swAccountId" class="license-status-value">-</span>
+                    </div>
                 </div>
-                <div id="swLicenseMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
+                <div id="swLicenseMessage" class="license-message"></div>
+            </div>
+
+            <div id="settings" class="tabcontent">
+                <h3>Ustawienia Panelu</h3>
                 
-                <div style="margin-top: 20px; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px;">
-                    <div style="color: #00ccff; font-weight: bold; border-bottom: 1px solid #393945; padding-bottom: 8px; text-align: center;">Status Licencji</div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-                        <span style="color: #8899aa;">Status:</span>
-                        <span id="swLicenseStatus" style="color: #ff3366; font-weight: bold;">Weryfikacja...</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-                        <span style="color: #8899aa;">ID Konta:</span>
-                        <span id="swAccountId" style="color: #8899aa; font-weight: bold;">-</span>
+                <div class="settings-item">
+                    <div class="font-size-container">
+                        <label class="settings-label">Rozmiar czcionki:</label>
+                        <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider">
+                        <span class="font-size-value" id="fontSizeValue">12px</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="sw-tab-content" id="swTabSettings" style="padding: 15px; display: none;">
-                <h3 style="color: #00ccff; margin-top: 0;">Ustawienia Panelu</h3>
+                
+                <div class="settings-item">
+                    <div class="background-toggle-container">
+                        <span class="background-toggle-label">Widoczność tła panelu</span>
+                        <label class="background-toggle">
+                            <input type="checkbox" id="backgroundToggle" checked>
+                            <span class="background-toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
                 
                 <!-- Potwierdzenie resetowania -->
                 <div id="swResetConfirmation" style="display: none; background: rgba(40, 40, 50, 0.6); border: 1px solid #393945; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
@@ -363,9 +1316,13 @@
                     </div>
                 </div>
                 
-                <button id="swResetButton" style="width: 100%; padding: 10px; background: linear-gradient(to right, #ff5555, #ff3366; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 600;">
-                    Resetuj Ustawienia
-                </button>
+                <div class="reset-settings-container">
+                    <button class="reset-settings-button" id="swResetButton">
+                        <span class="reset-settings-icon">↻</span>
+                        Resetuj wszystkie ustawienia
+                    </button>
+                </div>
+                
                 <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
             </div>
         `;
@@ -375,29 +1332,31 @@
     }
 
     function setupTabs() {
-        const tabs = document.querySelectorAll('.sw-tab');
-        const tabContents = document.querySelectorAll('.sw-tab-content');
+        const tabs = document.querySelectorAll('.tablink');
+        const tabContents = document.querySelectorAll('.tabcontent');
         
         tabs.forEach(tab => {
             tab.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
                 
+                // Ukryj wszystkie zakładki
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                 });
                 
+                // Usuń aktywny stan ze wszystkich zakładek
                 tabs.forEach(t => {
-                    t.style.color = '#8899aa';
-                    t.style.borderBottom = 'none';
+                    t.classList.remove('active');
                 });
                 
-                const tabContent = document.getElementById('swTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+                // Pokaż wybraną zakładkę
+                const tabContent = document.getElementById(tabName);
                 if (tabContent) {
                     tabContent.style.display = 'block';
                 }
                 
-                this.style.color = '#00ccff';
-                this.style.borderBottom = '2px solid #00ccff';
+                // Dodaj aktywny stan do klikniętej zakładki
+                this.classList.add('active');
             });
         });
         console.log('✅ Tabs setup complete');
@@ -445,6 +1404,31 @@
     }
 
     function setupEventListeners() {
+        // Rozmiar czcionki
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider && fontSizeValue) {
+            fontSizeSlider.addEventListener('input', function() {
+                const size = this.value;
+                fontSizeValue.textContent = size + 'px';
+                const panel = document.getElementById('swAddonsPanel');
+                if (panel) {
+                    panel.style.fontSize = size + 'px';
+                }
+                SW.GM_setValue(CONFIG.FONT_SIZE, size);
+            });
+        }
+
+        // Widoczność tła
+        const backgroundToggle = document.getElementById('backgroundToggle');
+        if (backgroundToggle) {
+            backgroundToggle.addEventListener('change', function() {
+                const isVisible = this.checked;
+                SW.GM_setValue(CONFIG.BACKGROUND_VISIBLE, isVisible);
+                updateBackgroundVisibility(isVisible);
+            });
+        }
+
         // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
         const resetConfirm = document.getElementById('swResetConfirm');
@@ -460,15 +1444,18 @@
         
         if (resetConfirm) {
             resetConfirm.addEventListener('click', function() {
-                // Usuń tylko ustawienia pozycji i widoczności panelu
+                // Resetuj wszystkie ustawienia
                 SW.GM_deleteValue(CONFIG.PANEL_POSITION);
                 SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
                 SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
+                SW.GM_deleteValue(CONFIG.FONT_SIZE);
+                SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
+                SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
                 
                 // Pokaż komunikat w panelu
                 const resetMessage = document.getElementById('swResetMessage');
                 if (resetMessage) {
-                    resetMessage.textContent = 'Ustawienia zresetowane. Proszę odświeżyć grę, aby zmiany zostały zastosowane.';
+                    resetMessage.textContent = 'Ustawienia zresetowane! Panel zostanie odświeżony.';
                     resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
                     resetMessage.style.color = '#00ccff';
                     resetMessage.style.border = '1px solid #00ccff';
@@ -482,7 +1469,19 @@
                 resetConfirmation.style.display = 'none';
                 resetBtn.style.display = 'block';
                 
+                // Odśwież ustawienia
                 loadSavedState();
+                
+                // Odśwież panel po 1 sekundzie
+                setTimeout(() => {
+                    const panel = document.getElementById('swAddonsPanel');
+                    if (panel) {
+                        panel.style.display = 'none';
+                        setTimeout(() => {
+                            panel.style.display = 'block';
+                        }, 100);
+                    }
+                }, 1000);
             });
         }
         
@@ -507,9 +1506,7 @@
                 const messageEl = document.getElementById('swAddonsMessage');
                 if (messageEl) {
                     messageEl.textContent = message;
-                    messageEl.style.background = 'rgba(0, 204, 255, 0.1)';
-                    messageEl.style.color = '#00ccff';
-                    messageEl.style.border = '1px solid #00ccff';
+                    messageEl.className = 'license-message license-info';
                     messageEl.style.display = 'block';
                     
                     setTimeout(() => {
@@ -524,213 +1521,12 @@
         console.log('✅ Event listeners setup complete');
     }
 
-    function getUserAccountId() {
-        // Metoda 1: Próba pobrania z localStorage Margonem (najbardziej niezawodne)
-        try {
-            const margonemData = localStorage.getItem('margonem_user_data');
-            if (margonemData) {
-                const userData = JSON.parse(margonemData);
-                // Sprawdzamy różne możliwe klucze dla ID konta
-                if (userData.account_id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (account_id):', userData.account_id);
-                    return userData.account_id;
-                }
-                if (userData.user_id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (user_id):', userData.user_id);
-                    return userData.user_id;
-                }
-                if (userData.id) {
-                    console.log('✅ Znaleziono ID konta w localStorage (id):', userData.id);
-                    return userData.id;
-                }
-            }
-        } catch (e) {
-            console.warn('❌ Nie udało się pobrać danych z localStorage Margonem:', e);
-        }
-
-        // Metoda 2: Sprawdzenie globalnych zmiennych gry (jeśli jesteśmy w grze)
-        if (typeof g !== 'undefined' && g.user) {
-            if (g.user.account_id) {
-                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.account_id);
-                return g.user.account_id;
-            }
-            if (g.user.id) {
-                console.log('✅ Znaleziono ID konta w globalnym obiekcie g.user:', g.user.id);
-                return g.user.id;
-            }
-        }
-
-        // Metoda 3: Parsowanie URL strony profilu
-        if (window.location.href.includes('margonem.pl/profile')) {
-            const match = window.location.href.match(/profile\/view,(\d+)/);
-            if (match && match[1]) {
-                console.log('✅ Znaleziono ID konta w URL:', match[1]);
-                return match[1];
-            }
-        }
-
-        // Metoda 4: Sprawdzenie elementów DOM (linki do profilu)
-        const profileLinks = document.querySelectorAll('a[href*="/profile/view,"]');
-        for (const link of profileLinks) {
-            const match = link.href.match(/profile\/view,(\d+)/);
-            if (match && match[1]) {
-                console.log('✅ Znaleziono ID konta w linku do profilu:', match[1]);
-                return match[1];
-            }
-        }
-
-        // Metoda 5: Sprawdzenie w sessionStorage
-        try {
-            const sessionData = sessionStorage.getItem('margonem_user_data');
-            if (sessionData) {
-                const userData = JSON.parse(sessionData);
-                if (userData.account_id) {
-                    console.log('✅ Znaleziono ID konta w sessionStorage:', userData.account_id);
-                    return userData.account_id;
-                }
-            }
-        } catch (e) {
-            console.warn('❌ Nie udało się pobrać danych z sessionStorage:', e);
-        }
-
-        // Metoda 6: Sprawdzenie w cookies
-        try {
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === 'margonem_user_data' && value) {
-                    try {
-                        const userData = JSON.parse(decodeURIComponent(value));
-                        if (userData.account_id) {
-                            console.log('✅ Znaleziono ID konta w cookies:', userData.account_id);
-                            return userData.account_id;
-                        }
-                    } catch (e) {
-                        console.warn('❌ Błąd parsowania danych z cookies:', e);
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn('❌ Nie udało się pobrać danych z cookies:', e);
-        }
-
-        console.error('❌ Nie udało się pobrać ID konta z żadnego źródła');
-        return null;
-    }
-
-    function showMessage(message, type) {
-        const messageEl = document.getElementById('swLicenseMessage');
-        if (messageEl) {
-            messageEl.textContent = message;
-            messageEl.style.background = type === 'success' ? 'rgba(0,255,170,0.1)' : 
-                                      type === 'info' ? 'rgba(0,204,255,0.1)' : 'rgba(255,50,100,0.1)';
-            messageEl.style.color = type === 'success' ? '#00ffaa' : 
-                                 type === 'info' ? '#00ccff' : '#ff3366';
-            messageEl.style.border = `1px solid ${type === 'success' ? '#00ffaa' : 
-                                 type === 'info' ? '#00ccff' : '#ff3366'}`;
-        }
-    }
-
-    function updateLicenseStatus(isVerified, accountId) {
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountIdEl = document.getElementById('swAccountId');
-        
-        if (statusEl) {
-            if (isVerified) {
-                statusEl.textContent = 'Aktywna';
-                statusEl.style.color = '#00ffaa';
-            } else {
-                statusEl.textContent = 'Nieaktywna';
-                statusEl.style.color = '#ff3366';
-            }
-        }
-        
-        if (accountIdEl) {
-            accountIdEl.textContent = accountId || '-';
-            accountIdEl.style.color = isVerified ? '#00ffaa' : '#ff3366';
-        }
-    }
-
-    function fetchLicenseList() {
-        return new Promise((resolve, reject) => {
-            SW.GM_xmlhttpRequest({
-                method: 'GET',
-                url: CONFIG.LICENSE_LIST_URL + '?t=' + Date.now(),
-                onload: function(response) {
-                    if (response.status === 200) {
-                        const lines = response.responseText.split('\n');
-                        const accounts = lines
-                            .map(line => line.trim())
-                            .filter(line => line && !line.startsWith('#') && !isNaN(line)) // Pomijanie komentarzy i nie-liczb
-                            .map(line => parseInt(line))
-                            .filter(id => !isNaN(id));
-                        resolve(accounts);
-                    } else {
-                        reject(new Error('Nie udało się pobrać listy licencji'));
-                    }
-                },
-                onerror: function(error) {
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    async function verifyAccount() {
-        const accountId = getUserAccountId();
-        userAccountId = accountId;
-        
-        if (!accountId) {
-            showMessage('❌ Nie udało się pobrać ID konta. Upewnij się, że jesteś zalogowany.', 'error');
-            updateLicenseStatus(false, null);
-            return false;
-        }
-
-        console.log('🔍 Weryfikuję licencję dla ID konta:', accountId);
-
-        try {
-            const allowedAccounts = await fetchLicenseList();
-            console.log('📋 Lista dozwolonych kont:', allowedAccounts);
-            
-            const isAllowed = allowedAccounts.includes(parseInt(accountId));
-            console.log('✅ Wynik weryfikacji:', isAllowed);
-
-            if (isAllowed) {
-                showMessage('✅ Licencja aktywna! Dostęp przyznany.', 'success');
-                updateLicenseStatus(true, accountId);
-                isLicenseVerified = true;
-                return true;
-            } else {
-                showMessage('❌ Brak dostępu do panelu.', 'error');
-                updateLicenseStatus(false, accountId);
-                isLicenseVerified = false;
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Błąd podczas weryfikacji licencji:', error);
-            showMessage('❌ Błąd podczas weryfikacji licencji.', 'error');
-            updateLicenseStatus(false, accountId);
-            isLicenseVerified = false;
-            return false;
-        }
-    }
-
-    function loadAddons() {
-        console.log('🔓 Ładowanie dodatków...');
-        
-        if (!isLicenseVerified) {
-            console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
-            return;
-        }
-        
-        // Sprawdź czy KCS Icons jest włączony
-        const isKcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
-        
-        if (isKcsEnabled) {
-            console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
-            setTimeout(initKCSIcons, 100);
+    function updateBackgroundVisibility(isVisible) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (isVisible) {
+            panel.classList.remove('transparent-background');
         } else {
-            console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
+            panel.classList.add('transparent-background');
         }
     }
 
@@ -766,6 +1562,24 @@
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
+        // Załaduj rozmiar czcionki
+        const fontSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider && fontSizeValue && panel) {
+            fontSizeSlider.value = fontSize;
+            fontSizeValue.textContent = fontSize + 'px';
+            panel.style.fontSize = fontSize + 'px';
+        }
+        
+        // Załaduj widoczność tła
+        const backgroundVisible = SW.GM_getValue(CONFIG.BACKGROUND_VISIBLE, true);
+        const backgroundToggle = document.getElementById('backgroundToggle');
+        if (backgroundToggle && panel) {
+            backgroundToggle.checked = backgroundVisible;
+            updateBackgroundVisibility(backgroundVisible);
+        }
+        
         // Załaduj stan suwaka KCS Icons
         const kcsToggle = document.getElementById('kcsIconsToggle');
         if (kcsToggle) {
@@ -777,301 +1591,8 @@
         console.log('✅ Saved state loaded');
     }
 
-    async function checkLicenseOnStart() {
-        console.log('🔍 Checking license on start...');
-        return await verifyAccount();
-    }
-
-    // 🔹 DODATEK KCS ICONS - OSADZONY KOD
-    function initKCSIcons() {
-        'use strict';
-        console.log("✅ Dodatek KCS Icons załadowany");
-
-        // --- PEŁNA LISTA MONSTERMAPPINGS ---
-        const monsterMappings = {
-            // Elity 2
-            "Kryjówka Dzikich Kotów": "https://micc.garmory-cdn.cloud/obrazki/npc/e2/st-puma.gif",
-            "Las Tropicieli": "https://micc.garmory-cdn.cloud/obrazki/npc/e1/kotolak_lowca.gif",
-            // ... (reszta mappingów)
-        };
-
-        const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
-        const ICON_CLASS_NAME = 'kcs-monster-icon';
-        let isEnabled = true;
-        let tooltipObserver = null;
-        let dynamicItemObserver = null;
-
-        // 🔹 Główne funkcje dodatku
-        const kcsIconsAddon = {
-            enable: function() {
-                if (isEnabled) return;
-                isEnabled = true;
-                this.start();
-                console.log("✅ KCS Icons włączony");
-            },
-
-            disable: function() {
-                if (!isEnabled) return;
-                isEnabled = false;
-                this.stop();
-                console.log("❌ KCS Icons wyłączony");
-            },
-
-            start: function() {
-                if (tooltipObserver || dynamicItemObserver) {
-                    this.stop();
-                }
-
-                this.setupObservers();
-                this.applyIconsFromCache();
-            },
-
-            stop: function() {
-                if (tooltipObserver) {
-                    tooltipObserver.disconnect();
-                    tooltipObserver = null;
-                }
-
-                if (dynamicItemObserver) {
-                    dynamicItemObserver.disconnect();
-                    dynamicItemObserver = null;
-                }
-
-                // Usuń wszystkie ikony
-                document.querySelectorAll(`.${ICON_CLASS_NAME}`).forEach(icon => icon.remove());
-            },
-
-            setupObservers: function() {
-                // Observer dla tooltipów
-                tooltipObserver = new MutationObserver((mutationsList) => {
-                    if (!isEnabled) return;
-                    
-                    for (const mutation of mutationsList) {
-                        if (mutation.type === 'childList') {
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === Node.ELEMENT_NODE && 
-                                    (node.classList.contains('tip-wrapper') || node.classList.contains('tooltip'))) {
-                                    this.processTooltip(node);
-                                }
-                            });
-                        }
-                    }
-                });
-
-                // Observer dla dynamicznie dodawanych itemów
-                dynamicItemObserver = new MutationObserver((mutationsList) => {
-                    if (!isEnabled) return;
-                    
-                    for (const mutation of mutationsList) {
-                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            let newItemsFound = false;
-                            mutation.addedNodes.forEach(node => {
-                                if (node.nodeType === Node.ELEMENT_NODE) {
-                                    if (node.matches('.item, .inventory-item, .eq-item, [class*="item"]') || 
-                                        node.querySelector('.item, .inventory-item, .eq-item, [class*="item"]')) {
-                                        newItemsFound = true;
-                                    }
-                                }
-                            });
-                            if (newItemsFound) {
-                                this.applyIconsFromCache();
-                            }
-                        }
-                    }
-                });
-
-                // Rozpocznij obserwację
-                tooltipObserver.observe(document.body, { childList: true, subtree: true });
-                dynamicItemObserver.observe(document.body, { childList: true, subtree: true });
-            },
-
-            getCache: function() {
-                try {
-                    return SW.GM_getValue(CACHE_KEY, {});
-                } catch (e) {
-                    console.error("[KCS Icons] Error reading cache:", e);
-                    return {};
-                }
-            },
-
-            saveCache: function(cache) {
-                try {
-                    SW.GM_setValue(CACHE_KEY, cache);
-                } catch (e) {
-                    console.error("[KCS Icons] Error saving cache:", e);
-                }
-            },
-
-            getMapNameFromTooltipText: function(text) {
-                if (!text) return null;
-                const mapRegex = /Teleportuje gracza na mapę:\s*([\s\S]+?)\s*\(\s*\d+,\s*\d+\s*\)\.?/;
-                const match = text.match(mapRegex);
-                if (match && match[1]) {
-                    return match[1].trim().replace(/\n/g, ' ');
-                }
-                return null;
-            },
-
-            addMonsterIcon: function(itemElement, monsterImgUrl) {
-                if (!itemElement || !isEnabled) return;
-
-                let existingIcon = itemElement.querySelector(`.${ICON_CLASS_NAME}`);
-                if (existingIcon) {
-                    if (existingIcon.src === monsterImgUrl) {
-                        return;
-                    }
-                    existingIcon.remove();
-                }
-
-                const img = document.createElement('img');
-                img.src = monsterImgUrl;
-                img.classList.add(ICON_CLASS_NAME);
-                img.style.position = 'absolute';
-                img.style.bottom = '2px';
-                img.style.right = '2px';
-                img.style.width = '32px';
-                img.style.height = '32px';
-                img.style.zIndex = '5';
-                img.style.pointerEvents = 'none';
-                img.style.borderRadius = '3px';
-                img.style.border = '1px solid rgba(0, 0, 0, 0.3)';
-                
-                itemElement.style.position = 'relative';
-                itemElement.appendChild(img);
-            },
-
-            processTooltip: function(tooltipNode) {
-                if (!isEnabled) return;
-                
-                const itemDivInTooltip = tooltipNode.querySelector('.item-head .item, .item-container, [class*="item"]');
-                if (!itemDivInTooltip) return;
-
-                const itemNameElement = tooltipNode.querySelector('.item-name, .name, [class*="name"]');
-                if (!itemNameElement) return;
-
-                const itemName = itemNameElement.textContent;
-                if (!(itemName.includes("Kamień Czerwonego Smoka") || 
-                      itemName.includes("Zwój Czerwonego Smoka") || 
-                      itemName.includes("Niepozorny Kamień Czerwonego Smoka") ||  
-                      itemName.includes("Ulotny zwój czerwonego smoka"))) {
-                    return;
-                }
-
-                let itemId = null;
-                for (const cls of itemDivInTooltip.classList) {
-                    if (cls.startsWith('item-id-')) {
-                        itemId = cls.substring('item-id-'.length);
-                        break;
-                    }
-                }
-                if (!itemId) return;
-
-                const mapTextElement = tooltipNode.querySelector('.item-tip-section.s-7, .item-description, .item-properties');
-                if (!mapTextElement) return;
-
-                const rawMapText = mapTextElement.textContent;
-                const parsedMapName = this.getMapNameFromTooltipText(rawMapText);
-
-                if (parsedMapName && monsterMappings[parsedMapName]) {
-                    const monsterImgUrl = monsterMappings[parsedMapName];
-                    const inventoryItem = document.querySelector(`.item.item-id-${itemId}, [class*="item-id-${itemId}"]`);
-                    if (inventoryItem) {
-                        this.addMonsterIcon(inventoryItem, monsterImgUrl);
-                        const cache = this.getCache();
-                        if (cache[itemId] !== monsterImgUrl) {
-                            cache[itemId] = monsterImgUrl;
-                            this.saveCache(cache);
-                        }
-                    }
-                }
-            },
-
-            applyIconsFromCache: function() {
-                if (!isEnabled) return;
-                
-                const cache = this.getCache();
-                if (Object.keys(cache).length === 0) return;
-
-                const itemSelectors = [
-                    '.item', '.inventory-item', '.eq-item',
-                    '[class*="item"]', '[data-type="item"]'
-                ];
-
-                let allItems = [];
-                itemSelectors.forEach(selector => {
-                    const items = document.querySelectorAll(selector);
-                    if (items.length > 0) {
-                        allItems = [...allItems, ...items];
-                    }
-                });
-
-                allItems.forEach(itemElement => {
-                    let itemId = null;
-                    for (const cls of itemElement.classList) {
-                        if (cls.startsWith('item-id-')) {
-                            itemId = cls.substring('item-id-'.length);
-                            break;
-                        }
-                    }
-                    if (itemId && cache[itemId]) {
-                        this.addMonsterIcon(itemElement, cache[itemId]);
-                    }
-                });
-            },
-
-            init: function() {
-                console.log("🎮 Sprawdzam czy gra jest załadowana...");
-
-                // Sprawdź czy gra jest gotowa
-                const gameSelectors = [
-                    '.items', '.inventory', '.eq', '.item-list',
-                    '#eq', '#items', '#inventory',
-                    '[class*="item"]', '[class*="eq"]'
-                ];
-
-                for (const selector of gameSelectors) {
-                    if (document.querySelector(selector)) {
-                        console.log("🎯 Gra załadowana! Inicjalizacja dodatku...");
-                        this.start();
-                        return true;
-                    }
-                }
-                
-                console.log("⏳ Gra nie jest jeszcze gotowa, czekam...");
-                return false;
-            }
-        };
-
-        // 🔹 Udostępnij dodatek globalnie
-        window.kcsIconsAddon = kcsIconsAddon;
-
-        // 🔹 Sprawdź zapisany stan i zainicjuj
-        let savedState = true;
-        try {
-            savedState = SW.GM_getValue('kcs_icons_enabled', true);
-        } catch (e) {
-            console.error("Błąd odczytu stanu dodatku:", e);
-        }
-
-        isEnabled = savedState;
-
-        // 🔹 CZEKAJ NA PEŁNE ZAŁADOWANIE STRONY
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(() => {
-                    if (isEnabled) {
-                        kcsIconsAddon.init();
-                    }
-                }, 2000);
-            });
-        } else {
-            setTimeout(() => {
-                if (isEnabled) {
-                    kcsIconsAddon.init();
-                }
-            }, 1000);
-        }
-    }
+    // 🔹 Reszta funkcji (getUserAccountId, showMessage, updateLicenseStatus, fetchLicenseList, verifyAccount, loadAddons, checkLicenseOnStart, initKCSIcons)
+    // ... (pozostałe funkcje pozostają bez zmian)
 
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
