@@ -703,18 +703,213 @@ input:checked + .slider:before {
     padding: 10px;
 }
 
-/* 🔹 SETTINGS TAB 🔹 */
+/* 🔹 SETTINGS TAB - NOWE FUNKCJE 🔹 */
 .settings-item {
     margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.settings-item:hover {
+    border-color: #00ff00;
+    background: rgba(40, 40, 40, 0.9);
 }
 
 .settings-label {
     display: block;
     color: #00ff00;
     font-size: 12px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
+.font-size-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.font-size-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    outline: none;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #00ff00;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: #00cc00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.font-size-value {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 30px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+/* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
+.background-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.background-toggle-label {
+    color: #00ff00;
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.background-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.background-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.background-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 24px;
+    border: 1px solid #555;
+}
+
+.background-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.background-toggle input:checked + .background-toggle-slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+.background-toggle input:checked + .background-toggle-slider:before {
+    transform: translateX(26px);
+    background-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
+.reset-settings-container {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+}
+
+.reset-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ff0000;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover {
+    background: rgba(50, 30, 30, 0.9);
+    border-color: #ff0000;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+.reset-settings-button:active {
+    transform: translateY(0);
+}
+
+.reset-settings-icon {
+    color: #ff0000;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover .reset-settings-icon {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+
+/* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
+#swAddonsPanel.transparent-background {
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+}
+
+#swAddonsPanel.transparent-background .sw-tab-content,
+#swAddonsPanel.transparent-background .addon,
+#swAddonsPanel.transparent-background .settings-item,
+#swAddonsPanel.transparent-background .license-status-container,
+#swAddonsPanel.transparent-background .admin-list,
+#swAddonsPanel.transparent-background .usage-log {
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(5px);
+}
+
+#swAddonsPanel.transparent-background .tab-container {
+    background: rgba(20, 20, 20, 0.9);
+}
+
+/* 🔹 OPCJE W TYTUŁACH DODATKÓW 🔹 */
+.addon-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* 🔹 BUTTONS 🔹 */
@@ -764,6 +959,17 @@ input:checked + .slider:before {
     background: linear-gradient(to bottom, #00ff00, #009900);
 }
 
+/* 🔹 ANIMACJE DODATKOWE 🔹 */
+@keyframes pulse {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+}
+
+.addon.active {
+    animation: pulse 2s infinite;
+}
+
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 400px) {
     #swAddonsPanel {
@@ -790,15 +996,19 @@ input:checked + .slider:before {
     .admin-input-group {
         flex-direction: column;
     }
-}
-
-/* 🔹 ANIMACJE DODATKOWE 🔹 */
-@keyframes pulse {
-    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-}
-
-.addon.active {
-    animation: pulse 2s infinite;
+    
+    .font-size-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .font-size-slider {
+        width: 100%;
+    }
+    
+    .background-toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
 }
