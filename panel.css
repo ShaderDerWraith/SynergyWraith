@@ -1,470 +1,734 @@
-/* 🔹 OUR SEPARATE WIDGET - UNIQUE CLASSES 🔹 */
-.sw-custom-manager {
-    position: fixed !important;
-    width: 44px !important;
-    height: 44px !important;
-    background: rgba(26, 26, 46, 0.95) !important;
-    border: 2px solid #00ff00 !important;
-    border-radius: 10px !important;
-    cursor: move !important;
+/* 🔹 BASE STYLES - HALF SIZE 🔹 */
+#swPanelToggle {
+    position: fixed;
+    top: 70px;
+    left: 70px;
+    width: 25px !important; /* ZMIENIONE: było 50px, teraz 25px */
+    height: 25px !important; /* ZMIENIONE: było 50px, teraz 25px */
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ff00; /* ZMIENIONE: było 3px, teraz 2px */
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 1000000;
     box-shadow: 
-        0 0 20px rgba(0, 255, 0, 0.8),
-        inset 0 0 10px rgba(0, 255, 0, 0.3),
-        0 4px 12px rgba(0, 0, 0, 0.5) !important;
-    color: white !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.3s ease !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    z-index: 1000000 !important;
-    backdrop-filter: blur(8px) !important;
-    animation: swGlow 3s infinite alternate !important;
-    top: 70px !important;
-    left: 70px !important;
+        0 0 10px rgba(255, 0, 0, 0.9),
+        inset 0 0 5px rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: bold;
+    font-size: 12px !important; /* ZMIENIONE: było 20px, teraz 12px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 3px black;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+    backdrop-filter: blur(4px);
 }
 
-@keyframes swGlow {
-    0% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.7), inset 0 0 8px rgba(0, 255, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.4); }
-    100% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.9), inset 0 0 12px rgba(0, 255, 255, 0.4), 0 6px 15px rgba(0, 0, 0, 0.6); }
+/* Plus icon inside */
+#swPanelToggle::before {
+    content: "+";
+    font-size: 16px;
+    font-weight: bold;
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.7);
+    transition: all 0.2s ease;
 }
 
-/* Our icon - completely different from game's icon */
-.sw-custom-icon {
-    width: 30px !important;
-    height: 30px !important;
-    background: linear-gradient(135deg, #00ff00, #00cc00) !important;
-    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>') !important;
-    -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>') !important;
-    mask-size: contain !important;
-    -webkit-mask-size: contain !important;
-    mask-repeat: no-repeat !important;
-    -webkit-mask-repeat: no-repeat !important;
-    mask-position: center !important;
-    -webkit-mask-position: center !important;
-    transition: all 0.3s ease !important;
-    filter: drop-shadow(0 0 2px rgba(0, 255, 0, 0.5)) !important;
-}
-
-/* Hover effects for OUR widget only */
-.sw-custom-manager:hover {
-    transform: scale(1.1) rotate(5deg) !important;
-    border-color: #00ffff !important;
+/* Dragging state */
+#swPanelToggle.dragging {
+    cursor: grabbing;
+    transform: scale(1.1);
     box-shadow: 
-        0 0 30px rgba(0, 255, 255, 1),
-        inset 0 0 15px rgba(0, 255, 255, 0.5),
-        0 6px 20px rgba(0, 0, 0, 0.7) !important;
+        0 0 15px rgba(255, 50, 50, 1.2),
+        inset 0 0 8px rgba(255, 255, 255, 0.3);
+    border: 2px solid #ffff00;
+    z-index: 1000001;
 }
 
-.sw-custom-manager:hover .sw-custom-icon {
-    background: linear-gradient(135deg, #00ffff, #00cccc) !important;
-    transform: rotate(90deg) !important;
-    filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.8)) !important;
+#swPanelToggle.dragging::before {
+    color: #ffff00;
+    transform: rotate(45deg);
 }
 
-/* Active/dragging state for OUR widget */
-.sw-custom-manager.sw-dragging {
-    cursor: grabbing !important;
-    transform: scale(1.15) !important;
-    border-color: #ffff00 !important;
+/* Hover effects */
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.1);
     box-shadow: 
-        0 0 35px rgba(255, 255, 0, 1),
-        inset 0 0 18px rgba(255, 255, 0, 0.6),
-        0 8px 25px rgba(0, 0, 0, 0.8) !important;
-    z-index: 1000001 !important;
+        0 0 15px rgba(255, 30, 30, 1),
+        inset 0 0 8px rgba(255, 255, 255, 0.25);
+    cursor: grab;
+    background: rgba(20, 20, 20, 0.8);
 }
 
-.sw-custom-manager.sw-dragging .sw-custom-icon {
-    background: linear-gradient(135deg, #ffff00, #ffcc00) !important;
-    transform: scale(1.2) !important;
+#swPanelToggle:hover:not(.dragging)::before {
+    transform: scale(1.2);
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.9);
 }
 
-/* 🔹 COLLISION DETECTION - OUR WIDGET ONLY 🔹 */
-.sw-custom-manager.sw-collision {
+/* Active state */
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+}
+
+/* Save indication animation */
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(0, 255, 0, 1.2);
+        border-color: #00ff00;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+}
+
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out;
+}
+
+/* Prevent text selection during drag */
+#swPanelToggle.dragging::selection {
+    background: transparent;
+}
+
+#swPanelToggle.dragging::-moz-selection {
+    background: transparent;
+}
+
+/* Tooltip on hover */
+#swPanelToggle[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    border: 1px solid #00ff00;
+    pointer-events: none;
+    z-index: 1000001;
+    backdrop-filter: blur(5px);
+}
+
+/* 🔹 MAIN PANEL - REMAINS UNCHANGED 🔹 */
+#swAddonsPanel {
+    position: fixed;
+    top: 140px;
+    left: 70px;
+    width: 350px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 3px solid #00ccff;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 999999;
+    box-shadow: 0 0 30px rgba(0, 204, 255, 0.6);
+    backdrop-filter: blur(10px);
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#swPanelHeader {
+    background: linear-gradient(to right, #2a2a3a, #232330);
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #393945;
+    cursor: grab;
+}
+
+.sw-tab-content {
+    padding: 15px;
+}
+
+/* 🔹 TABS STYLES 🔹 */
+.tab-container {
+    display: flex;
+    background: linear-gradient(to bottom, #2c2c3c, #252532);
+    border-bottom: 1px solid #393945;
+    padding: 0 5px;
+}
+
+.tablink {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    color: #8899aa;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid transparent;
+}
+
+.tablink.active {
+    color: #00ccff;
+    border-bottom: 2px solid #00ccff;
+    background: rgba(0, 204, 255, 0.1);
+}
+
+.tablink:hover:not(.active) {
+    color: #aaccff;
+    border-bottom: 2px solid #8899aa;
+}
+
+/* 🔹 TAB CONTENT 🔹 */
+.tabcontent {
+    display: none;
+    padding: 15px;
+    animation: fadeEffect 0.3s ease;
+}
+
+@keyframes fadeEffect {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tabcontent h3 {
+    margin: 0 0 15px 0;
+    color: #00ccff;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+}
+
+/* 🔹 ADDONS LIST 🔹 */
+.addon {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+
+.addon:hover {
+    background: rgba(50, 50, 60, 0.8);
+    border-color: #4a4a5a;
+    transform: translateY(-1px);
+}
+
+.addon-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.addon-header > div {
+    display: flex;
+    align-items: center;
+}
+
+.addon-title {
+    font-weight: 600;
+    color: #ccddee;
+    font-size: 13px;
+}
+
+.addon-description {
+    color: #8899aa;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: none;
+}
+
+.addon.expanded .addon-description {
+    display: block;
+}
+
+/* 🔹 SETTINGS GEAR ICON 🔹 */
+.addon-settings-btn {
+    background: none;
+    border: none;
+    color: #8899aa;
+    cursor: pointer;
+    padding: 2px 5px;
+    margin-left: 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.addon-settings-btn:hover {
+    color: #00ccff;
+    background: rgba(0, 204, 255, 0.1);
+}
+
+.addon-settings-panel {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(30, 30, 40, 0.8);
+    border: 1px solid #393945;
+    border-radius: 5px;
+}
+
+.addon-settings-panel.visible {
+    display: block;
+}
+
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.settings-label {
+    font-size: 11px;
+    color: #ccddee;
+}
+
+.settings-value {
+    font-size: 11px;
+    color: #00ffaa;
+}
+
+/* 🔹 SWITCH STYLE 🔹 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #393945;
+    transition: .3s;
+    border-radius: 18px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ccddee;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #00ccff;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: white;
+}
+
+/* 🔹 LICENSE SYSTEM 🔹 */
+.license-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.license-input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 5px;
+    color: #ccddee;
+    font-size: 12px;
+}
+
+.license-input:focus {
+    outline: none;
+    border-color: #00ccff;
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+}
+
+.license-button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #00ccff, #0099ff);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.license-button:hover {
+    background: linear-gradient(to right, #0099ff, #0077cc);
+    transform: translateY(-1px);
+}
+
+.license-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.license-success {
+    background: rgba(0, 255, 170, 0.1);
+    color: #00ffaa;
+    border: 1px solid #00ffaa;
+}
+
+.license-error {
+    background: rgba(255, 50, 100, 0.1);
+    color: #ff3366;
+    border: 1px solid #ff3366;
+}
+
+.license-info {
+    background: rgba(0, 204, 255, 0.1);
+    color: #00ccff;
+    border: 1px solid #00ccff;
+}
+
+/* 🔹 LICENSE STATUS IN TAB 🔹 */
+.license-status-container {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.license-status-header {
+    color: #00ccff;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    text-align: center;
+}
+
+.license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(57, 57, 69, 0.5);
+}
+
+.license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.license-status-label {
+    color: #8899aa;
+    font-weight: 600;
+}
+
+.license-status-value {
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+.license-status-valid {
+    color: #00ffaa !important;
+}
+
+.license-status-invalid {
+    color: #ff3366 !important;
+}
+
+/* 🔹 ADMIN TAB STYLES 🔹 */
+.admin-section {
+    margin-bottom: 20px;
+}
+
+.admin-input-group {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.admin-input {
+    flex: 1;
+    padding: 10px;
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 5px;
+    color: #ccddee;
+    font-size: 12px;
+}
+
+.admin-button {
+    padding: 10px 15px;
+    background: linear-gradient(to right, #00ccff, #0099ff);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.admin-list {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.admin-list-header {
+    color: #00ccff;
+    font-weight: bold;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.admin-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px;
+    background: rgba(30, 30, 40, 0.5);
+    border-radius: 3px;
+}
+
+.admin-list-empty {
+    color: #8899aa;
+    text-align: center;
+    padding: 10px;
+}
+
+.remove-btn {
+    background: #ff5555;
+    border: none;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+/* 🔹 USAGE LOG STYLES 🔹 */
+.usage-log {
+    background: rgba(40, 40, 50, 0.6);
+    border: 1px solid #393945;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.usage-log-header {
+    color: #00ccff;
+    font-weight: bold;
+    border-bottom: 1px solid #393945;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.usage-log-item {
+    margin-bottom: 15px;
+}
+
+.usage-log-account {
+    color: #00ccff;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.usage-log-time {
+    font-size: 11px;
+    color: #8899aa;
+}
+
+.usage-log-empty {
+    color: #8899aa;
+    text-align: center;
+    padding: 10px;
+}
+
+/* 🔹 SETTINGS TAB 🔹 */
+.settings-item {
+    margin-bottom: 15px;
+}
+
+.settings-label {
+    display: block;
+    color: #ccddee;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+/* 🔹 BUTTONS 🔹 */
+#reset-settings {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #ff5555, #ff3366);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+
+#reset-settings:hover {
+    background: linear-gradient(to right, #ff3366, #ff2288);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 50, 100, 0.3);
+}
+
+/* 🔹 COLLISION DETECTION FOR SMALL BUTTON 🔹 */
+#swPanelToggle.collision-detected {
     border-color: #ff5555 !important;
     box-shadow: 
-        0 0 25px rgba(255, 85, 85, 0.9),
-        inset 0 0 15px rgba(255, 85, 85, 0.5),
-        0 6px 20px rgba(0, 0, 0, 0.7) !important;
-    animation: swCollisionWarning 0.6s infinite alternate !important;
+        0 0 15px rgba(255, 85, 85, 0.9),
+        inset 0 0 8px rgba(255, 85, 85, 0.5) !important;
+    animation: collisionWarning 0.6s infinite alternate !important;
 }
 
-@keyframes swCollisionWarning {
+@keyframes collisionWarning {
     0% { 
         border-color: #ff5555 !important;
-        box-shadow: 0 0 20px rgba(255, 85, 85, 0.9), inset 0 0 12px rgba(255, 85, 85, 0.4), 0 4px 15px rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 0 10px rgba(255, 85, 85, 0.9), inset 0 0 6px rgba(255, 85, 85, 0.4) !important;
     }
     100% { 
         border-color: #ff8888 !important;
-        box-shadow: 0 0 30px rgba(255, 120, 120, 1.2), inset 0 0 18px rgba(255, 120, 120, 0.7), 0 8px 20px rgba(0, 0, 0, 0.8) !important;
+        box-shadow: 0 0 20px rgba(255, 120, 120, 1.2), inset 0 0 10px rgba(255, 120, 120, 0.7) !important;
     }
 }
 
-.sw-custom-manager.sw-safe {
+#swPanelToggle.safe-position {
     border-color: #00ffaa !important;
     box-shadow: 
-        0 0 25px rgba(0, 255, 170, 0.8),
-        inset 0 0 12px rgba(0, 255, 170, 0.4),
-        0 6px 20px rgba(0, 0, 0, 0.7) !important;
-    animation: swSafePosition 1.5s ease !important;
+        0 0 15px rgba(0, 255, 170, 0.8),
+        inset 0 0 8px rgba(0, 255, 170, 0.4) !important;
+    animation: safePosition 1.5s ease !important;
 }
 
-@keyframes swSafePosition {
+@keyframes safePosition {
     0% { 
         transform: scale(1.2) !important;
         border-color: #00ffaa !important;
-        box-shadow: 0 0 30px rgba(0, 255, 170, 1), inset 0 0 15px rgba(0, 255, 170, 0.6), 0 8px 25px rgba(0, 0, 0, 0.8) !important;
+        box-shadow: 0 0 20px rgba(0, 255, 170, 1), inset 0 0 10px rgba(0, 255, 170, 0.6) !important;
     }
     100% { 
         transform: scale(1) !important;
         border-color: #00ff00 !important;
-        box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), inset 0 0 10px rgba(0, 255, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.8), inset 0 0 5px rgba(0, 255, 0, 0.3) !important;
     }
 }
 
-/* Collision warning indicator */
-.sw-custom-manager.sw-collision::before {
+/* Collision warning indicator for small button */
+#swPanelToggle.collision-detected::after {
     content: '⚠' !important;
     position: absolute !important;
-    top: -10px !important;
-    right: -10px !important;
+    top: -8px !important;
+    right: -8px !important;
     background: #ff5555 !important;
     color: white !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 14px !important;
+    height: 14px !important;
     border-radius: 50% !important;
-    font-size: 12px !important;
+    font-size: 9px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    animation: swWarningBounce 0.8s infinite alternate !important;
+    animation: warningBounce 0.8s infinite alternate !important;
     z-index: 1000002 !important;
-    box-shadow: 0 0 10px rgba(255, 85, 85, 0.8) !important;
+    box-shadow: 0 0 8px rgba(255, 85, 85, 0.8) !important;
 }
 
-@keyframes swWarningBounce {
+@keyframes warningBounce {
     0% { transform: scale(1); }
     100% { transform: scale(1.3); }
 }
 
-/* 🔹 OUR PANEL - COMPLETELY SEPARATE 🔹 */
-#sw-custom-panel {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 400px !important;
-    max-width: 90vw !important;
-    background: linear-gradient(135deg, rgba(10, 20, 40, 0.98), rgba(5, 15, 30, 0.98)) !important;
-    border: 3px solid #00ff00 !important;
-    border-radius: 15px !important;
-    color: #ffffff !important;
-    z-index: 1000000 !important;
-    box-shadow: 
-        0 0 50px rgba(0, 255, 0, 0.6),
-        0 15px 40px rgba(0, 0, 0, 0.8),
-        inset 0 0 20px rgba(0, 255, 0, 0.2) !important;
-    backdrop-filter: blur(20px) saturate(200%) !important;
-    display: none !important;
-    font-family: 'Segoe UI', system-ui, sans-serif !important;
-    overflow: hidden !important;
-    animation: swPanelAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-}
-
-@keyframes swPanelAppear {
-    from {
-        opacity: 0 !important;
-        transform: translate(-50%, -50%) scale(0.7) !important;
-    }
-    to {
-        opacity: 1 !important;
-        transform: translate(-50%, -50%) scale(1) !important;
-    }
-}
-
-/* Panel Header */
-.sw-panel-header {
-    background: linear-gradient(to right, rgba(0, 40, 80, 0.9), rgba(0, 30, 60, 0.9)) !important;
-    padding: 18px !important;
-    text-align: center !important;
-    border-bottom: 2px solid rgba(0, 255, 0, 0.5) !important;
-    cursor: move !important;
-    font-size: 18px !important;
-    font-weight: 700 !important;
-    letter-spacing: 1.5px !important;
-    text-transform: uppercase !important;
-    color: #00ff00 !important;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5) !important;
-    position: relative !important;
-}
-
-.sw-panel-header::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: -2px !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 2px !important;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        #00ff00 20%, 
-        #00ff00 80%, 
-        transparent 100%) !important;
-}
-
-/* Panel Content */
-.sw-tab-content {
-    padding: 20px !important;
-    max-height: 70vh !important;
-    overflow-y: auto !important;
-    background: rgba(5, 15, 30, 0.7) !important;
-}
-
-/* Custom scrollbar */
-.sw-tab-content::-webkit-scrollbar {
-    width: 8px !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-track {
-    background: rgba(0, 30, 60, 0.4) !important;
-    border-radius: 4px !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #00ff00, #00cc00) !important;
-    border-radius: 4px !important;
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3) !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #00ffff, #00cccc) !important;
-}
-
-/* Tabs */
-.sw-tab-container {
-    display: flex !important;
-    background: linear-gradient(to bottom, 
-        rgba(0, 40, 80, 0.9), 
-        rgba(0, 30, 60, 0.9)) !important;
-    border-bottom: 2px solid rgba(0, 255, 0, 0.3) !important;
-    padding: 0 10px !important;
-    backdrop-filter: blur(15px) !important;
-}
-
-.sw-tablink {
-    flex: 1 !important;
-    background: none !important;
-    border: none !important;
-    outline: none !important;
-    cursor: pointer !important;
-    padding: 15px 5px !important;
-    margin: 0 5px !important;
-    transition: all 0.3s ease !important;
-    color: #88ccaa !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-    border-bottom: 3px solid transparent !important;
-    position: relative !important;
-}
-
-.sw-tablink.active {
-    color: #00ff00 !important;
-    border-bottom: 3px solid #00ff00 !important;
-    background: rgba(0, 255, 0, 0.15) !important;
-    text-shadow: 0 0 8px rgba(0, 255, 0, 0.5) !important;
-}
-
-.sw-tablink:hover:not(.active) {
-    color: #aaffcc !important;
-    border-bottom: 3px solid #88ccaa !important;
-    background: rgba(0, 255, 0, 0.08) !important;
-}
-
-/* Addons in panel */
-.sw-addon {
-    background: rgba(10, 30, 50, 0.8) !important;
-    border: 1px solid rgba(0, 255, 0, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 15px !important;
-    margin-bottom: 12px !important;
-    transition: all 0.3s ease !important;
-}
-
-.sw-addon:hover {
-    background: rgba(15, 40, 65, 0.9) !important;
-    border-color: rgba(0, 255, 0, 0.6) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
-}
-
-.sw-addon-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    margin-bottom: 10px !important;
-    cursor: pointer !important;
-}
-
-.sw-addon-title {
-    font-weight: 700 !important;
-    color: #aaffcc !important;
-    font-size: 14px !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3) !important;
-}
-
-/* Switch */
-.sw-switch {
-    position: relative !important;
-    display: inline-block !important;
-    width: 40px !important;
-    height: 20px !important;
-}
-
-.sw-switch input {
-    opacity: 0 !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-.sw-slider {
-    position: absolute !important;
-    cursor: pointer !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background-color: rgba(0, 60, 120, 0.8) !important;
-    transition: .4s !important;
-    border-radius: 20px !important;
-    border: 1px solid rgba(0, 255, 0, 0.3) !important;
-}
-
-.sw-slider:before {
-    position: absolute !important;
-    content: "" !important;
-    height: 16px !important;
-    width: 16px !important;
-    left: 2px !important;
-    bottom: 1px !important;
-    background-color: #88ccaa !important;
-    transition: .4s !important;
-    border-radius: 50% !important;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) !important;
-}
-
-input:checked + .sw-slider {
-    background-color: #00ff00 !important;
-    border-color: #00ff00 !important;
-}
-
-input:checked + .sw-slider:before {
-    transform: translateX(20px) !important;
-    background-color: white !important;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8) !important;
-}
-
-/* 🔹 RESPONSIVE DESIGN 🔹 */
+/* 🔹 RESPONSYWNOŚĆ DLA MAŁEGO PRZYCISKU 🔹 */
 @media (max-width: 768px) {
-    .sw-custom-manager {
-        width: 40px !important;
-        height: 40px !important;
+    #swPanelToggle {
+        width: 22px !important;
+        height: 22px !important;
         top: 50px !important;
         left: 50px !important;
+        font-size: 10px !important;
+        border-width: 1.5px !important;
     }
     
-    .sw-custom-icon {
-        width: 26px !important;
-        height: 26px !important;
+    #swPanelToggle::before {
+        font-size: 14px;
     }
     
-    #sw-custom-panel {
-        width: 350px !important;
-    }
-    
-    .sw-tablink {
-        padding: 12px 3px !important;
-        font-size: 12px !important;
+    #swPanelToggle.collision-detected::after {
+        width: 12px !important;
+        height: 12px !important;
+        font-size: 8px !important;
     }
 }
 
 @media (max-width: 480px) {
-    .sw-custom-manager {
-        width: 36px !important;
-        height: 36px !important;
+    #swPanelToggle {
+        width: 20px !important;
+        height: 20px !important;
         top: 30px !important;
         left: 30px !important;
+        font-size: 9px !important;
     }
     
-    .sw-custom-icon {
-        width: 24px !important;
-        height: 24px !important;
+    #swPanelToggle::before {
+        font-size: 12px;
     }
     
-    #sw-custom-panel {
-        width: 320px !important;
-        max-width: 95vw !important;
+    #swAddonsPanel {
+        left: 10px;
+        top: 100px;
     }
-    
-    .sw-panel-header {
-        padding: 15px !important;
-        font-size: 16px !important;
-    }
-}
-
-/* 🔹 HIGH CONTRAST MODE SUPPORT 🔹 */
-@media (prefers-contrast: high) {
-    .sw-custom-manager {
-        border-width: 3px !important;
-        box-shadow: 0 0 0 2px black, 0 0 20px rgba(0, 255, 0, 1) !important;
-    }
-    
-    #sw-custom-panel {
-        border-width: 4px !important;
-        box-shadow: 0 0 0 3px black, 0 0 40px rgba(0, 255, 0, 0.8) !important;
-    }
-}
-
-/* 🔹 DARK MODE SUPPORT 🔹 */
-@media (prefers-color-scheme: dark) {
-    .sw-custom-manager {
-        background: rgba(5, 10, 20, 0.95) !important;
-    }
-    
-    #sw-custom-panel {
-        background: linear-gradient(135deg, rgba(5, 10, 20, 0.98), rgba(2, 5, 10, 0.98)) !important;
-    }
-}
-
-/* 🔹 ANIMATION FOR AUTO-POSITIONING 🔹 */
-@keyframes swAutoPosition {
-    0% { 
-        opacity: 0.5;
-        transform: scale(0.9);
-    }
-    50% { 
-        opacity: 1;
-        transform: scale(1.1);
-    }
-    100% { 
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.sw-custom-manager.sw-auto-positioned {
-    animation: swAutoPosition 1s ease !important;
-}
-
-/* Ensure our widget is always on top of game UI */
-.sw-custom-manager {
-    z-index: 1000000 !important;
-}
-
-/* Game's original widget should be below ours */
-.widget-ADDON_MANAGER {
-    z-index: auto !important;
 }
