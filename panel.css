@@ -1,4 +1,4 @@
-/* 🔹 BASE STYLES - WIDGET VERSION 🔹 */
+/* 🔹 WIDGET STYLES WITH COLLISION DETECTION 🔹 */
 .widget-ADDON_MANAGER {
     width: 44px !important;
     height: 44px !important;
@@ -19,13 +19,18 @@
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
     -ms-user-select: none !important;
-    overflow: hidden !important;
     position: absolute !important;
     backdrop-filter: blur(5px) !important;
     z-index: 100 !important;
+    animation: subtlePulse 3s infinite alternate !important;
 }
 
-/* Widget icon inside */
+@keyframes subtlePulse {
+    0% { box-shadow: 0 0 15px rgba(0, 204, 255, 0.7), inset 0 0 10px rgba(0, 204, 255, 0.3); }
+    100% { box-shadow: 0 0 18px rgba(0, 204, 255, 0.8), inset 0 0 12px rgba(0, 204, 255, 0.4); }
+}
+
+/* Icon inside widget */
 .icon.ADDON_MANAGER {
     width: 32px !important;
     height: 32px !important;
@@ -41,7 +46,7 @@
     transition: all 0.3s ease !important;
 }
 
-/* Dragging state */
+/* Dragging states */
 .ui-draggable-handle:active,
 .widget-ADDON_MANAGER.ui-draggable-handle:active {
     cursor: grabbing !important;
@@ -53,7 +58,6 @@
     z-index: 101 !important;
 }
 
-/* Hover effect */
 .widget-ADDON_MANAGER:hover:not(:active) {
     transform: scale(1.05) !important;
     box-shadow: 
@@ -67,41 +71,69 @@
     transform: rotate(15deg) !important;
 }
 
-/* Disabled state */
-.ui-draggable-disabled {
-    cursor: not-allowed !important;
-    opacity: 0.6 !important;
-}
-
-.ui-draggable-disabled:hover {
-    transform: none !important;
+/* Collision states */
+.widget-ADDON_MANAGER.collision-detected {
+    border-color: #ff5555 !important;
     box-shadow: 
-        0 0 15px rgba(0, 204, 255, 0.7),
-        inset 0 0 10px rgba(0, 204, 255, 0.3) !important;
+        0 0 20px rgba(255, 85, 85, 0.9),
+        inset 0 0 15px rgba(255, 85, 85, 0.5) !important;
+    animation: collisionWarning 0.5s infinite alternate !important;
+    cursor: not-allowed !important;
+    z-index: 101 !important;
 }
 
-/* Save indication animation */
-@keyframes widgetSavePulse {
+@keyframes collisionWarning {
     0% { 
-        box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
-        border-color: #00ccff;
-    }
-    50% { 
-        box-shadow: 0 0 30px rgba(0, 255, 170, 0.9);
-        border-color: #00ffaa;
-        transform: scale(1.08);
+        border-color: #ff5555 !important;
+        box-shadow: 0 0 20px rgba(255, 85, 85, 0.9) !important;
     }
     100% { 
-        box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
-        border-color: #00ccff;
+        border-color: #ff8888 !important;
+        box-shadow: 0 0 25px rgba(255, 120, 120, 1) !important;
     }
 }
 
-.widget-ADDON_MANAGER.saved {
-    animation: widgetSavePulse 1.5s ease-in-out !important;
+.widget-ADDON_MANAGER.safe-position {
+    border-color: #00ffaa !important;
+    box-shadow: 
+        0 0 18px rgba(0, 255, 170, 0.8),
+        inset 0 0 12px rgba(0, 255, 170, 0.4) !important;
+    animation: safePosition 2s ease !important;
 }
 
-/* Tooltip styling */
+@keyframes safePosition {
+    0% { 
+        transform: scale(1.1) !important;
+        border-color: #00ffaa !important;
+        box-shadow: 0 0 25px rgba(0, 255, 170, 1) !important;
+    }
+    100% { 
+        transform: scale(1) !important;
+        border-color: #00ccff !important;
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.7) !important;
+    }
+}
+
+.widget-ADDON_MANAGER.auto-positioned {
+    animation: autoPositioned 1.5s ease !important;
+}
+
+@keyframes autoPositioned {
+    0% { 
+        transform: scale(0.8) !important;
+        opacity: 0.5 !important;
+    }
+    50% { 
+        transform: scale(1.1) !important;
+        opacity: 1 !important;
+    }
+    100% { 
+        transform: scale(1) !important;
+        opacity: 1 !important;
+    }
+}
+
+/* Tooltip */
 [tip-id="1169"]::after {
     content: attr(tooltip-content) !important;
     position: absolute !important;
@@ -125,22 +157,7 @@
     opacity: 1 !important;
 }
 
-/* Widget in interface bar context */
-.widget-in-interface-bar {
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)) !important;
-}
-
-.widget-in-interface-bar:hover {
-    filter: drop-shadow(0 4px 8px rgba(0, 204, 255, 0.5)) !important;
-}
-
-/* Top-right specific positioning */
-[widget-pos="top-right"] {
-    /* Position will be set by game/JS */
-    /* left: 132px; - This should be set inline or by JS */
-}
-
-/* 🔹 MAIN PANEL 🔹 */
+/* Main Panel */
 #swAddonsPanel {
     position: fixed !important;
     top: 50% !important;
@@ -160,25 +177,21 @@
     display: none !important;
     font-family: 'Segoe UI', system-ui, sans-serif !important;
     overflow: hidden !important;
-}
-
-/* Make panel appear from widget */
-.widget-ADDON_MANAGer + #swAddonsPanel {
     animation: panelAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 @keyframes panelAppear {
     from {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0 !important;
+        transform: translate(-50%, -50%) scale(0.8) !important;
     }
     to {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+        opacity: 1 !important;
+        transform: translate(-50%, -50%) scale(1) !important;
     }
 }
 
-/* 🔹 PANEL HEADER 🔹 */
+/* Panel Header */
 #swPanelHeader {
     background: linear-gradient(to right, rgba(42, 42, 58, 0.9), rgba(35, 35, 48, 0.9)) !important;
     padding: 15px !important;
@@ -207,14 +220,210 @@
         transparent 100%) !important;
 }
 
-/* 🔹 REST OF THE PANEL STYLES (remain mostly the same) 🔹 */
+/* Tabs */
+.tab-container {
+    display: flex !important;
+    background: linear-gradient(to bottom, 
+        rgba(44, 44, 60, 0.9), 
+        rgba(37, 37, 50, 0.9)) !important;
+    border-bottom: 1px solid rgba(57, 57, 69, 0.8) !important;
+    padding: 0 5px !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.tablink {
+    flex: 1 !important;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    cursor: pointer !important;
+    padding: 12px 5px !important;
+    margin: 0 5px !important;
+    transition: all 0.2s ease !important;
+    color: #8899aa !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+.tablink.active {
+    color: #00ccff !important;
+    border-bottom: 2px solid #00ccff !important;
+    background: rgba(0, 204, 255, 0.1) !important;
+}
+
+.tablink:hover:not(.active) {
+    color: #aaccff !important;
+    border-bottom: 2px solid #8899aa !important;
+}
+
+/* Tab Content */
+.tabcontent {
+    display: none !important;
+    padding: 15px !important;
+    animation: fadeEffect 0.3s ease !important;
+}
+
+@keyframes fadeEffect {
+    from { opacity: 0 !important; transform: translateY(5px) !important; }
+    to { opacity: 1 !important; transform: translateY(0) !important; }
+}
+
+.tabcontent h3 {
+    margin: 0 0 15px 0 !important;
+    color: #00ccff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    border-bottom: 1px solid #393945 !important;
+    padding-bottom: 8px !important;
+}
+
+/* Addons List */
+.addon {
+    background: rgba(40, 40, 50, 0.6) !important;
+    border: 1px solid #393945 !important;
+    border-radius: 6px !important;
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.addon:hover {
+    background: rgba(50, 50, 60, 0.8) !important;
+    border-color: #4a4a5a !important;
+    transform: translateY(-1px) !important;
+}
+
+.addon-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important;
+    cursor: pointer !important;
+}
+
+.addon-header > div {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.addon-title {
+    font-weight: 600 !important;
+    color: #ccddee !important;
+    font-size: 13px !important;
+}
+
+.addon-description {
+    color: #8899aa !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 8px !important;
+    display: none !important;
+}
+
+.addon.expanded .addon-description {
+    display: block !important;
+}
+
+/* Switch */
+.switch {
+    position: relative !important;
+    display: inline-block !important;
+    width: 36px !important;
+    height: 18px !important;
+}
+
+.switch input {
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.slider {
+    position: absolute !important;
+    cursor: pointer !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: #393945 !important;
+    transition: .3s !important;
+    border-radius: 18px !important;
+}
+
+.slider:before {
+    position: absolute !important;
+    content: "" !important;
+    height: 14px !important;
+    width: 14px !important;
+    left: 2px !important;
+    bottom: 2px !important;
+    background-color: #ccddee !important;
+    transition: .3s !important;
+    border-radius: 50% !important;
+}
+
+input:checked + .slider {
+    background-color: #00ccff !important;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px) !important;
+    background-color: white !important;
+}
+
+/* License System */
+.license-container {
+    text-align: center !important;
+    padding: 20px 0 !important;
+}
+
+.license-input {
+    width: 100% !important;
+    padding: 10px !important;
+    margin: 10px 0 !important;
+    background: rgba(40, 40, 50, 0.6) !important;
+    border: 1px solid #393945 !important;
+    border-radius: 5px !important;
+    color: #ccddee !important;
+    font-size: 12px !important;
+}
+
+.license-input:focus {
+    outline: none !important;
+    border-color: #00ccff !important;
+    box-shadow: 0 0 5px rgba(0, 204, 255, 0.3) !important;
+}
+
+.license-button {
+    width: 100% !important;
+    padding: 10px !important;
+    background: linear-gradient(to right, #00ccff, #0099ff) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    transition: all 0.2s ease !important;
+}
+
+.license-button:hover {
+    background: linear-gradient(to right, #0099ff, #0077cc) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Panel content styling */
 .sw-tab-content {
     padding: 15px !important;
     max-height: 70vh !important;
     overflow-y: auto !important;
 }
 
-/* Custom scrollbar for panel */
 .sw-tab-content::-webkit-scrollbar {
     width: 6px !important;
 }
@@ -229,20 +438,64 @@
     border-radius: 3px !important;
 }
 
-/* Keep all the previous panel styles (tabs, addons, license, etc.) */
-.tab-container {
-    display: flex !important;
-    background: linear-gradient(to bottom, 
-        rgba(44, 44, 60, 0.9), 
-        rgba(37, 37, 50, 0.9)) !important;
-    border-bottom: 1px solid rgba(57, 57, 69, 0.8) !important;
-    padding: 0 5px !important;
-    backdrop-filter: blur(10px) !important;
+/* Save animation */
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
+        border-color: #00ccff;
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(0, 255, 170, 0.9);
+        border-color: #00ffaa;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.7);
+        border-color: #00ccff;
+    }
 }
 
-/* ... rest of your existing panel styles remain unchanged ... */
+.widget-ADDON_MANAGER.saved {
+    animation: savePulse 1.5s ease-in-out !important;
+}
 
-/* 🔹 RESPONSIVENESS 🔹 */
+/* Collision warning text */
+.widget-ADDON_MANAGER.collision-detected::after {
+    content: 'Move me!' !important;
+    position: absolute !important;
+    top: -30px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: rgba(255, 85, 85, 0.9) !important;
+    color: white !important;
+    padding: 3px 10px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    animation: bounceUpDown 1s infinite alternate !important;
+    pointer-events: none !important;
+    z-index: 102 !important;
+}
+
+@keyframes bounceUpDown {
+    0% { transform: translateX(-50%) translateY(0) !important; }
+    100% { transform: translateX(-50%) translateY(-3px) !important; }
+}
+
+/* Disabled state */
+.ui-draggable-disabled {
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+.ui-draggable-disabled:hover {
+    transform: none !important;
+    box-shadow: 
+        0 0 15px rgba(0, 204, 255, 0.7),
+        inset 0 0 10px rgba(0, 204, 255, 0.3) !important;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .widget-ADDON_MANAGER {
         width: 40px !important;
@@ -256,6 +509,12 @@
     
     #swAddonsPanel {
         width: 350px !important;
+    }
+    
+    .widget-ADDON_MANAGER.collision-detected::after {
+        content: 'Overlap!' !important;
+        font-size: 10px !important;
+        top: -25px !important;
     }
 }
 
@@ -276,7 +535,7 @@
     }
 }
 
-/* Ensure widget stays on top of game UI */
+/* Ensure widget stays on top */
 .ui-draggable-handle {
     z-index: 9999 !important;
 }
