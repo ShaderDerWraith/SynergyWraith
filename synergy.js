@@ -73,7 +73,7 @@
         releaseDate: "2024-01-15",
         patchNotes: [
             "     Dodano wyszukiwarkę dodatków",
-            "Dodano konfigurowalne skróty klawiszowe",
+            "-----Dodano konfigurowalne skróty klawiszowe",
             "Nowa zakładka 'Skróty'",
             "Nowa zakładka 'Informacje'",
             "Rozszerzona sekcja licencji",
