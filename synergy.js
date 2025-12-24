@@ -72,13 +72,13 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "🎯 Dodano wyszukiwarkę dodatków",
-            "⌨️ Dodano konfigurowalne skróty klawiszowe",
-            "📋 Nowa zakładka 'Skróty'",
-            "📝 Nowa zakładka 'Informacje'",
-            "🔐 Rozszerzona sekcja licencji",
-            "❌ Przycisk zamykania panelu",
-            "✨ Ulepszenia interfejsu"
+            "Dodano wyszukiwarkę dodatków",
+            "Dodano konfigurowalne skróty klawiszowe",
+            "Nowa zakładka 'Skróty'",
+            "Nowa zakładka 'Informacje'",
+            "Rozszerzona sekcja licencji",
+            "Przycisk zamykania panelu",
+            "Ulepszenia interfejsu"
         ]
     };
 
@@ -553,41 +553,6 @@
     box-sizing: border-box !important;
 }
 
-/* 🔹 WYSZUKIWARKA DODATKÓW 🔹 */
-.search-container {
-    margin-bottom: 15px;
-    position: relative;
-    flex-shrink: 0 !important;
-}
-
-.search-input {
-    width: 100%;
-    padding: 10px 35px 10px 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff9900;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    box-sizing: border-box !important;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #ff9900;
-    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-.search-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #ff9900;
-    font-size: 14px;
-}
-
 /* 🔹 CATEGORY FILTERS 🔹 */
 .category-filters {
     display: flex;
@@ -681,6 +646,38 @@
     transform: translateX(17px);
     background-color: #ff9900;
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
+}
+
+/* 🔹 WYSZUKIWARKA DODATKÓW 🔹 */
+.search-container {
+    margin-bottom: 15px;
+    position: relative;
+    flex-shrink: 0 !important;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ff9900;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box !important;
+    height: 50px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ff9900;
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.search-input::placeholder {
+    color: #666;
+    font-size: 14px;
 }
 
 /* 🔹 ADDONS LIST 🔹 */
@@ -1117,14 +1114,14 @@ input:checked + .slider:before {
 
 .shortcut-input {
     flex: 1;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
     color: #ff9900;
     font-size: 13px;
-    text-align: center;
-    max-width: 60px;
+    text-align: left;
+    width: 150px;
     transition: all 0.3s ease;
 }
 
@@ -1138,8 +1135,9 @@ input:checked + .slider:before {
 .shortcut-preview {
     color: #888;
     font-size: 12px;
-    text-align: center;
+    text-align: left;
     margin-top: 5px;
+    padding-left: 5px;
 }
 
 /* 🔹 ROZMIAR CZCIONKI 🔹 */
@@ -1317,14 +1315,6 @@ input:checked + .slider:before {
     margin-bottom: 15px;
     text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-}
-
-.info-version {
-    color: #888;
-    font-size: 12px;
-    text-align: center;
-    margin-bottom: 20px;
-    font-style: italic;
 }
 
 .info-section {
@@ -1711,11 +1701,6 @@ input:checked + .slider:before {
 
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div class="search-container">
-                        <input type="text" class="search-input" id="searchAddons" placeholder="Szukaj dodatków...">
-                        <span class="search-icon">🔍</span>
-                    </div>
-                    
                     <div class="category-filters">
                         <div class="category-filter-item">
                             <div class="category-filter-label">
@@ -1744,6 +1729,10 @@ input:checked + .slider:before {
                                 <span class="category-slider"></span>
                             </label>
                         </div>
+                    </div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="searchAddons" placeholder="Szukaj dodatków...">
                     </div>
                     
                     <div class="addon-list" id="addon-list">
@@ -1824,12 +1813,11 @@ input:checked + .slider:before {
                     <div class="settings-item">
                         <div class="shortcut-input-container">
                             <span class="shortcut-input-label">Skrót do widgetu:</span>
-                            <input type="text" class="shortcut-input" id="shortcutInput" maxlength="1" value="A">
-                            <span class="shortcut-input-label">(Ctrl + klawisz)</span>
+                            <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" placeholder="np. Ctrl+Shift+A">
                         </div>
                         <div class="shortcut-preview" id="shortcutPreview">Aktualny skrót: Ctrl+A</div>
                         <div class="settings-description">
-                            Naciśnij dowolny klawisz (A-Z, 0-9) aby zmienić skrót
+                            Wpisz dowolny skrót klawiszowy (np. Ctrl+Shift+A, Alt+X)
                         </div>
                     </div>
                     
@@ -1848,22 +1836,12 @@ input:checked + .slider:before {
                 <div class="sw-tab-content">
                     <div class="info-container">
                         <div class="info-header">Synergy Wraith Panel</div>
-                        <div class="info-version">Wersja ${VERSION_INFO.version} • Data wydania: ${VERSION_INFO.releaseDate}</div>
                         
                         <div class="info-section">
-                            <div class="info-section-title">Patch Notes</div>
+                            <div class="info-section-title">Historia zmian</div>
                             <ul class="info-patch-notes">
                                 ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                             </ul>
-                        </div>
-                        
-                        <div class="info-section">
-                            <div class="info-section-title">O Panelu</div>
-                            <p style="color: #aaa; font-size: 12px; line-height: 1.5; margin: 0;">
-                                Synergy Wraith Panel to zaawansowany system zarządzania dodatkami do gry. 
-                                Panel umożliwia łatwe włączanie/wyłączanie funkcji, zarządzanie ulubionymi 
-                                oraz konfigurację skrótów klawiszowych.
-                            </p>
                         </div>
                         
                         <div class="info-footer">
@@ -2104,25 +2082,56 @@ input:checked + .slider:before {
 
     // 🔹 Setup skrótu klawiszowego
     function setupKeyboardShortcut() {
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key.toUpperCase() === customShortcut) {
-                e.preventDefault();
-                const toggleBtn = document.getElementById('swPanelToggle');
-                if (toggleBtn) {
-                    toggleBtn.click();
-                    toggleBtn.click(); // Podwójne kliknięcie dla toggle
-                }
-            }
+        // Usuń poprzednie nasłuchiwania
+        document.removeEventListener('keydown', handleKeyboardShortcut);
+        
+        // Dodaj nowe nasłuchiwanie
+        document.addEventListener('keydown', handleKeyboardShortcut);
+        
+        console.log(`✅ Keyboard shortcut setup: ${customShortcut || 'brak'}`);
+    }
+
+    // 🔹 Obsługa skrótu klawiszowego
+    function handleKeyboardShortcut(e) {
+        // Sprawdź czy skrót jest ustawiony
+        if (!customShortcut || customShortcut.trim() === '') return;
+        
+        // Parsuj skrót
+        const shortcutParts = customShortcut.toLowerCase().split('+');
+        let ctrlRequired = false;
+        let shiftRequired = false;
+        let altRequired = false;
+        let keyRequired = '';
+        
+        shortcutParts.forEach(part => {
+            const trimmed = part.trim();
+            if (trimmed === 'ctrl') ctrlRequired = true;
+            else if (trimmed === 'shift') shiftRequired = true;
+            else if (trimmed === 'alt') altRequired = true;
+            else keyRequired = trimmed;
         });
         
-        console.log(`✅ Keyboard shortcut setup: Ctrl+${customShortcut}`);
+        // Sprawdź warunki
+        const ctrlMatch = ctrlRequired ? e.ctrlKey : !e.ctrlKey;
+        const shiftMatch = shiftRequired ? e.shiftKey : !e.shiftKey;
+        const altMatch = altRequired ? e.altKey : !e.altKey;
+        const keyMatch = e.key.toLowerCase() === keyRequired.toLowerCase();
+        
+        if (ctrlMatch && shiftMatch && altMatch && keyMatch) {
+            e.preventDefault();
+            const toggleBtn = document.getElementById('swPanelToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+                toggleBtn.click(); // Podwójne kliknięcie dla toggle
+            }
+        }
     }
 
     // 🔹 Update podglądu skrótu
     function updateShortcutPreview() {
         const preview = document.getElementById('shortcutPreview');
         if (preview) {
-            preview.textContent = `Aktualny skrót: Ctrl+${customShortcut}`;
+            preview.textContent = customShortcut ? `Aktualny skrót: ${customShortcut}` : 'Skrót nieustawiony';
         }
     }
 
@@ -2159,27 +2168,28 @@ input:checked + .slider:before {
             });
         }
 
-        // Skrót klawiszowy
+        // Skrót klawiszowy - NOWA IMPLEMENTACJA
         const shortcutInput = document.getElementById('shortcutInput');
         if (shortcutInput) {
+            // Załaduj zapisany skrót
+            const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
+            customShortcut = savedShortcut;
             shortcutInput.value = customShortcut;
             
+            // Zapisz skrót przy zmianie
             shortcutInput.addEventListener('input', function() {
-                const value = this.value.toUpperCase();
-                if (value.length > 0) {
-                    // Ogranicz do jednego znaku
-                    this.value = value.charAt(0);
-                    customShortcut = value.charAt(0);
-                    SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
-                    updateShortcutPreview();
-                    setupKeyboardShortcut(); // Przestaw skrót
-                }
+                customShortcut = this.value.trim();
+                SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
+                updateShortcutPreview();
+                setupKeyboardShortcut(); // Przestaw skrót
             });
             
+            // Pozwól na puste pole
             shortcutInput.addEventListener('keydown', function(e) {
-                // Zapobiegaj wpisywaniu Ctrl, Alt itp.
-                if (e.key.length > 1 && !e.key.match(/^[A-Z0-9]$/)) {
+                // Zezwól na wszystkie klawisze - użytkownik może wpisać dowolny skrót
+                if (e.key === 'Enter') {
                     e.preventDefault();
+                    this.blur();
                 }
             });
         }
@@ -2501,7 +2511,7 @@ input:checked + .slider:before {
             favorites: true
         };
         
-        customShortcut = 'A';
+        customShortcut = 'Ctrl+A';
         searchQuery = '';
         
         const resetMessage = document.getElementById('swResetMessage');
@@ -2539,13 +2549,16 @@ input:checked + .slider:before {
         
         const shortcutInput = document.getElementById('shortcutInput');
         if (shortcutInput) {
-            shortcutInput.value = 'A';
+            shortcutInput.value = 'Ctrl+A';
         }
         
         const searchInput = document.getElementById('searchAddons');
         if (searchInput) {
             searchInput.value = '';
         }
+        
+        // Zresetuj skrót klawiszowy
+        setupKeyboardShortcut();
     }
 
     // 🔹 Update widoczności tła
@@ -2640,7 +2653,7 @@ input:checked + .slider:before {
 
     // 🔹 Ładowanie ustawień
     function loadSettings() {
-        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'A');
+        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         console.log('✅ Settings loaded, shortcut:', customShortcut);
     }
 
