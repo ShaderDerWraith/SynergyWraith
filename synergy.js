@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.6 loaded');
+    console.log('🚀 SynergyWraith Panel v1.7 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -122,9 +122,9 @@
         if (!panel) return;
         
         // Ustaw stałe wymiary
-        panel.style.minWidth = '320px';
-        panel.style.maxWidth = '320px';
-        panel.style.width = '320px';
+        panel.style.minWidth = '640px';
+        panel.style.maxWidth = '640px';
+        panel.style.width = '640px';
         panel.style.resize = 'none';
         
         // Obserwuj zmiany w DOM
@@ -132,9 +132,9 @@
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     // Przywróć oryginalne style jeśli zostały zmienione
-                    panel.style.minWidth = '320px';
-                    panel.style.maxWidth = '320px';
-                    panel.style.width = '320px';
+                    panel.style.minWidth = '640px';
+                    panel.style.maxWidth = '640px';
+                    panel.style.width = '640px';
                     panel.style.resize = 'none';
                 }
             });
@@ -149,7 +149,7 @@
                     // Resetuj style po dodaniu nowych elementów
                     document.querySelectorAll('.addon-item').forEach(item => {
                         item.style.minHeight = 'auto';
-                        item.style.maxHeight = '40px';
+                        item.style.maxHeight = '50px';
                     });
                 }
             });
@@ -239,25 +239,88 @@
     background: transparent;
 }
 
-/* 🔹 MAIN PANEL - MNIEJSZY 🔹 */
+/* 🔹 FIRE ANIMATION 🔹 */
+@keyframes fireBorder {
+    0%, 100% {
+        border-color: #ff3300;
+        box-shadow: 
+            0 0 15px rgba(255, 50, 0, 0.8),
+            0 0 30px rgba(255, 100, 0, 0.6),
+            inset 0 0 15px rgba(255, 50, 0, 0.3);
+    }
+    25% {
+        border-color: #ff6600;
+        box-shadow: 
+            0 0 20px rgba(255, 100, 0, 0.9),
+            0 0 35px rgba(255, 150, 0, 0.7),
+            inset 0 0 20px rgba(255, 100, 0, 0.4);
+    }
+    50% {
+        border-color: #ff9900;
+        box-shadow: 
+            0 0 18px rgba(255, 150, 0, 0.85),
+            0 0 32px rgba(255, 200, 0, 0.65),
+            inset 0 0 18px rgba(255, 150, 0, 0.35);
+    }
+    75% {
+        border-color: #ffcc00;
+        box-shadow: 
+            0 0 22px rgba(255, 200, 0, 0.95),
+            0 0 38px rgba(255, 255, 0, 0.75),
+            inset 0 0 22px rgba(255, 200, 0, 0.45);
+    }
+}
+
+@keyframes fireText {
+    0%, 100% {
+        color: #ff3300;
+        text-shadow: 
+            0 0 5px rgba(255, 50, 0, 0.8),
+            0 0 10px rgba(255, 100, 0, 0.6),
+            0 0 15px rgba(255, 50, 0, 0.4);
+    }
+    25% {
+        color: #ff6600;
+        text-shadow: 
+            0 0 6px rgba(255, 100, 0, 0.9),
+            0 0 12px rgba(255, 150, 0, 0.7),
+            0 0 18px rgba(255, 100, 0, 0.5);
+    }
+    50% {
+        color: #ff9900;
+        text-shadow: 
+            0 0 7px rgba(255, 150, 0, 0.85),
+            0 0 14px rgba(255, 200, 0, 0.65),
+            0 0 21px rgba(255, 150, 0, 0.45);
+    }
+    75% {
+        color: #ffcc00;
+        text-shadow: 
+            0 0 8px rgba(255, 200, 0, 0.95),
+            0 0 16px rgba(255, 255, 0, 0.75),
+            0 0 24px rgba(255, 200, 0, 0.55);
+    }
+}
+
+/* 🔹 MAIN PANEL - SZERSZY I WYŻSZY 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
-    width: 320px; /* Zmniejszona szerokość */
-    min-height: 250px; /* Znacznie mniejsza wysokość */
-    max-height: 400px; /* Maksymalna wysokość */
+    width: 640px; /* Podwójna szerokość */
+    min-height: 400px; /* Większa wysokość */
+    max-height: 500px; /* Maksymalna wysokość */
     background: linear-gradient(135deg, #0a0a0a, #121212);
-    border: 2px solid #00ff00;
+    border: 2px solid #ff3300;
     border-radius: 8px;
     color: #ffffff;
     z-index: 999999;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.1);
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
-    font-size: 11px; /* Mniejsza czcionka bazowa */
+    font-size: 12px;
+    animation: fireBorder 8s infinite ease-in-out; /* Powolna animacja ognia */
 }
 
 /* Neonowy efekt na krawędziach */
@@ -270,7 +333,7 @@
     bottom: 0;
     border-radius: 6px;
     padding: 1px;
-    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    background: linear-gradient(45deg, #ff3300, #ff9900, #ff3300);
     -webkit-mask: 
         linear-gradient(#fff 0 0) content-box, 
         linear-gradient(#fff 0 0);
@@ -278,17 +341,17 @@
     mask-composite: exclude;
     pointer-events: none;
     z-index: -1;
+    animation: fireBorder 8s infinite ease-in-out;
 }
 
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 8px 12px;
+    padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid #ff3300;
     cursor: grab;
     position: relative;
     overflow: hidden;
-    font-size: 12px;
 }
 
 #swPanelHeader::after {
@@ -298,8 +361,14 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-    animation: shine 3s infinite;
+    background: linear-gradient(90deg, transparent, rgba(255, 100, 0, 0.2), transparent);
+    animation: shine 6s infinite ease-in-out; /* Wolniejsza animacja */
+}
+
+#swPanelHeader strong {
+    font-size: 16px;
+    letter-spacing: 1px;
+    animation: fireText 8s infinite ease-in-out; /* Animacja tekstu ogniem */
 }
 
 @keyframes shine {
@@ -308,9 +377,9 @@
 }
 
 .sw-tab-content {
-    padding: 10px;
+    padding: 15px;
     background: rgba(10, 10, 10, 0.9);
-    height: calc(100% - 80px); /* Dostosowana wysokość */
+    height: calc(100% - 80px);
     overflow-y: auto;
 }
 
@@ -318,8 +387,8 @@
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
-    border-bottom: 1px solid #00ff00;
-    padding: 0 3px;
+    border-bottom: 1px solid #ff3300;
+    padding: 0 5px;
 }
 
 .tablink {
@@ -328,14 +397,14 @@
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 8px 3px;
+    padding: 10px 5px;
     margin: 0 2px;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     color: #aaaaaa;
     font-weight: 600;
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
     border-bottom: 2px solid transparent;
     position: relative;
     overflow: hidden;
@@ -349,7 +418,7 @@
     transform: translateX(-50%);
     width: 0;
     height: 2px;
-    background: #00ff00;
+    background: #ff3300;
     transition: width 0.3s ease;
 }
 
@@ -358,25 +427,25 @@
 }
 
 .tablink.active {
-    color: #00ff00;
-    text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+    color: #ff9900;
+    text-shadow: 0 0 8px rgba(255, 153, 0, 0.5);
 }
 
 .tablink.active::before {
     width: 100%;
-    background: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+    background: #ff9900;
+    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
 }
 
 .tablink:hover:not(.active) {
-    color: #00ff00;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+    color: #ff6600;
+    text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
 }
 
 /* 🔹 TAB CONTENT 🔹 */
 .tabcontent {
     display: none;
-    padding: 10px;
+    padding: 15px;
     height: 100%;
     overflow: hidden;
 }
@@ -397,75 +466,50 @@
     }
 }
 
-.tabcontent h3 {
-    margin: 0 0 10px 0;
-    color: #00ff00;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 6px;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
-    position: relative;
-}
-
-.tabcontent h3::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 40px;
-    height: 1px;
-    background: #ff0000;
-    box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
-}
-
-/* 🔹 CATEGORY FILTERS - NOWY STYL 🔹 */
+/* 🔹 CATEGORY FILTERS - POZIOMO 🔹 */
 .category-filters {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
-    padding: 8px;
+    border-radius: 6px;
+    padding: 10px;
 }
 
 .category-filter-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
+    flex: 1;
+    padding: 5px 10px;
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.category-filter-item:hover {
+    background: rgba(40, 40, 40, 0.8);
+    transform: translateY(-2px);
 }
 
 .category-filter-label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    color: #00ff00;
-    font-size: 11px;
+    gap: 8px;
+    color: #ff9900;
+    font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
-.category-filter-count {
-    background: rgba(0, 255, 0, 0.15);
-    color: #00ff00;
-    padding: 1px 6px;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: bold;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* 🔹 PRZEŁĄCZNIKI FILTRÓW - TAKIE SAME JAK DODATKI 🔹 */
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
 .category-switch {
     position: relative;
     display: inline-block;
-    width: 34px;
-    height: 18px;
+    width: 40px;
+    height: 20px;
     flex-shrink: 0;
 }
 
@@ -484,72 +528,73 @@
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 18px;
+    border-radius: 20px;
     border: 1px solid #555;
 }
 
 .category-slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
+    height: 16px;
+    width: 16px;
     left: 2px;
     bottom: 2px;
-    background-color: #00ff00;
+    background-color: #ff9900;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 3px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
 }
 
 .category-switch input:checked + .category-slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #331100;
+    border-color: #ff9900;
 }
 
 .category-switch input:checked + .category-slider:before {
-    transform: translateX(16px);
-    background-color: #00ff00;
-    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
+    transform: translateX(20px);
+    background-color: #ff9900;
+    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 ADDONS LIST - KOMPAKTOWY 🔹 */
+/* 🔹 ADDONS LIST 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-height: 180px; /* Zmniejszona maksymalna wysokość */
+    gap: 8px;
+    max-height: 250px;
     overflow-y: auto;
-    padding-right: 3px;
+    padding-right: 5px;
 }
 
 .addon-list-empty {
     text-align: center !important;
     color: #666 !important;
-    font-size: 10px !important;
-    padding: 15px 10px !important;
+    font-size: 12px !important;
+    padding: 20px 10px !important;
     font-style: italic !important;
     background: rgba(30, 30, 30, 0.5) !important;
-    border-radius: 4px !important;
-    margin: 5px 0 !important;
+    border-radius: 6px !important;
+    margin: 10px 0 !important;
 }
 
 .addon-item {
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
-    border-radius: 4px !important;
-    padding: 6px 8px !important;
+    border-radius: 6px !important;
+    padding: 10px 15px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    min-height: 35px !important;
-    max-height: 35px !important;
+    min-height: 50px !important;
+    max-height: 50px !important;
     overflow: hidden !important;
 }
 
 .addon-item:hover {
     background: rgba(40, 40, 40, 0.9) !important;
-    border-color: #444 !important;
+    border-color: #ff6600 !important;
+    transform: translateX(5px);
 }
 
 .addon-item-header {
@@ -558,18 +603,19 @@
     flex: 1 !important;
     min-height: auto !important;
     overflow: hidden !important;
+    padding-right: 10px;
 }
 
 .addon-item-title {
     font-weight: 600 !important;
-    color: #00ff00 !important;
-    font-size: 11px !important;
-    text-shadow: 0 0 2px rgba(0, 255, 0, 0.3) !important;
+    color: #ff9900 !important;
+    font-size: 13px !important;
+    text-shadow: 0 0 3px rgba(255, 153, 0, 0.3) !important;
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
-    line-height: 1.2 !important;
-    margin-bottom: 2px !important;
+    gap: 8px !important;
+    line-height: 1.3 !important;
+    margin-bottom: 4px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -577,10 +623,10 @@
 
 .addon-item-description {
     color: #888 !important;
-    font-size: 9px !important;
-    line-height: 1.1 !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
     display: -webkit-box !important;
-    -webkit-line-clamp: 1 !important;
+    -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
 }
@@ -588,27 +634,27 @@
 .addon-item-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 12px !important;
     flex-shrink: 0 !important;
 }
 
-/* 🔹 FAVORITE STAR - MNIEJSZY 🔹 */
+/* 🔹 FAVORITE STAR 🔹 */
 .favorite-btn {
     background: none !important;
     border: none !important;
     color: #888 !important;
     cursor: pointer !important;
-    padding: 2px !important;
-    font-size: 12px !important;
+    padding: 4px !important;
+    font-size: 16px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 2px !important;
-    width: 18px !important;
-    height: 18px !important;
-    min-width: 18px !important;
-    min-height: 18px !important;
+    border-radius: 4px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
 }
 
 .favorite-btn:hover {
@@ -618,15 +664,15 @@
 
 .favorite-btn.favorite {
     color: #ffaa00 !important;
-    text-shadow: 0 0 4px rgba(255, 170, 0, 0.5) !important;
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5) !important;
 }
 
-/* 🔹 SWITCH STYLE - TAKI SAM JAK DLA FILTRÓW 🔹 */
+/* 🔹 SWITCH STYLE 🔹 */
 .switch {
     position: relative !important;
     display: inline-block !important;
-    width: 34px !important;
-    height: 18px !important;
+    width: 40px !important;
+    height: 20px !important;
     flex-shrink: 0 !important;
 }
 
@@ -645,138 +691,138 @@
     bottom: 0 !important;
     background-color: #333 !important;
     transition: .3s !important;
-    border-radius: 18px !important;
+    border-radius: 20px !important;
     border: 1px solid #555 !important;
 }
 
 .slider:before {
     position: absolute !important;
     content: "" !important;
-    height: 14px !important;
-    width: 14px !important;
+    height: 16px !important;
+    width: 16px !important;
     left: 2px !important;
     bottom: 2px !important;
-    background-color: #00ff00 !important;
+    background-color: #ff9900 !important;
     transition: .3s !important;
     border-radius: 50% !important;
-    box-shadow: 0 0 3px rgba(0, 255, 0, 0.5) !important;
+    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5) !important;
 }
 
 input:checked + .slider {
-    background-color: #003300 !important;
-    border-color: #00ff00 !important;
+    background-color: #331100 !important;
+    border-color: #ff9900 !important;
 }
 
 input:checked + .slider:before {
-    transform: translateX(16px) !important;
-    background-color: #00ff00 !important;
-    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8) !important;
+    transform: translateX(20px) !important;
+    background-color: #ff9900 !important;
+    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8) !important;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
 .license-container {
     text-align: center;
-    padding: 15px 0;
+    padding: 20px 0;
 }
 
 .license-input {
     width: 100%;
-    padding: 8px;
-    margin: 8px 0;
+    padding: 12px;
+    margin: 12px 0;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 4px;
-    color: #00ff00;
-    font-size: 11px;
+    border-radius: 6px;
+    color: #ff9900;
+    font-size: 13px;
     transition: all 0.3s ease;
 }
 
 .license-input:focus {
     outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+    border-color: #ff9900;
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
     background: rgba(40, 40, 40, 0.9);
 }
 
 .license-button {
     width: 100%;
-    padding: 8px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
-    border-radius: 4px;
+    padding: 12px;
+    background: linear-gradient(to right, #331100, #662200);
+    color: #ff9900;
+    border: 1px solid #ff9900;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 13px;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
 }
 
 .license-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #662200, #993300);
     color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
 }
 
 .license-message {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 4px;
-    font-size: 11px;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
     text-align: center;
     border: 1px solid;
 }
 
 .license-success {
-    background: rgba(0, 100, 0, 0.2);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+    background: rgba(102, 51, 0, 0.2);
+    color: #ff9900;
+    border-color: #ff9900;
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.3);
 }
 
 .license-error {
     background: rgba(100, 0, 0, 0.2);
     color: #ff0000;
     border-color: #ff0000;
-    box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
 }
 
 .license-info {
     background: rgba(0, 50, 100, 0.2);
     color: #00aaff;
     border-color: #00aaff;
-    box-shadow: 0 0 8px rgba(0, 170, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
 }
 
 /* 🔹 LICENSE STATUS IN TAB 🔹 */
 .license-status-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
-    padding: 10px;
-    margin-top: 15px;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
 }
 
 .license-status-header {
-    color: #00ff00;
-    font-size: 11px;
+    color: #ff9900;
+    font-size: 14px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #333;
-    padding-bottom: 6px;
+    padding-bottom: 10px;
     text-align: center;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
 .license-status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
-    font-size: 11px;
-    padding: 4px 0;
+    margin-bottom: 12px;
+    font-size: 13px;
+    padding: 8px 0;
     border-bottom: 1px solid rgba(51, 51, 51, 0.5);
 }
 
@@ -786,88 +832,88 @@ input:checked + .slider:before {
 }
 
 .license-status-label {
-    color: #00ff00;
+    color: #ff9900;
     font-weight: 600;
 }
 
 .license-status-value {
     font-weight: 600;
     text-align: right;
-    max-width: 60%;
+    max-width: 70%;
     word-break: break-all;
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .license-status-valid {
-    color: #00ff00 !important;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+    color: #ff9900 !important;
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
 }
 
 .license-status-invalid {
     color: #ff0000 !important;
-    text-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
-    margin-bottom: 12px;
-    padding: 10px;
+    margin-bottom: 15px;
+    padding: 15px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
+    border-radius: 8px;
     transition: all 0.3s ease;
 }
 
 .settings-label {
     display: block;
-    color: #00ff00;
-    font-size: 11px;
-    margin-bottom: 8px;
+    color: #ff9900;
+    font-size: 13px;
+    margin-bottom: 10px;
     font-weight: 600;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
 /* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
 .font-size-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .font-size-slider {
     flex: 1;
     -webkit-appearance: none;
-    height: 5px;
+    height: 8px;
     background: #333;
-    border-radius: 3px;
+    border-radius: 4px;
     outline: none;
 }
 
 .font-size-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #00ff00;
+    width: 20px;
+    height: 20px;
+    background: #ff9900;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
     transition: all 0.3s ease;
 }
 
 .font-size-slider::-webkit-slider-thumb:hover {
-    background: #00cc00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
-    transform: scale(1.05);
+    background: #ff6600;
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.8);
+    transform: scale(1.1);
 }
 
 .font-size-value {
-    color: #00ff00;
+    color: #ff9900;
     font-weight: bold;
-    font-size: 11px;
-    min-width: 25px;
+    font-size: 13px;
+    min-width: 40px;
     text-align: center;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
@@ -875,21 +921,21 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
 }
 
 .background-toggle-label {
-    color: #00ff00;
-    font-size: 11px;
+    color: #ff9900;
+    font-size: 13px;
     font-weight: 600;
-    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
 .background-toggle {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 50px;
+    height: 24px;
 }
 
 .background-toggle input {
@@ -907,38 +953,38 @@ input:checked + .slider:before {
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 20px;
+    border-radius: 24px;
     border: 1px solid #555;
 }
 
 .background-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: #00ff00;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ff9900;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
 }
 
 .background-toggle input:checked + .background-toggle-slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #331100;
+    border-color: #ff9900;
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(20px);
-    background-color: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+    transform: translateX(26px);
+    background-color: #ff9900;
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.8);
 }
 
 /* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
 .reset-settings-container {
-    margin-top: 15px;
-    padding-top: 12px;
+    margin-top: 20px;
+    padding-top: 15px;
     border-top: 1px solid #333;
 }
 
@@ -946,27 +992,27 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 10px;
     width: 100%;
-    padding: 8px;
+    padding: 12px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
-    color: #ff0000;
+    border-radius: 6px;
+    color: #ff3300;
     cursor: pointer;
     font-weight: 600;
-    font-size: 11px;
+    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
 }
 
 .reset-settings-button:hover {
     background: rgba(50, 30, 30, 0.9);
-    border-color: #ff0000;
+    border-color: #ff3300;
     color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 .reset-settings-button:active {
@@ -974,8 +1020,8 @@ input:checked + .slider:before {
 }
 
 .reset-settings-icon {
-    color: #ff0000;
-    font-size: 12px;
+    color: #ff3300;
+    font-size: 16px;
     transition: all 0.3s ease;
 }
 
@@ -988,8 +1034,8 @@ input:checked + .slider:before {
 #swAddonsPanel.transparent-background {
     background: transparent !important;
     backdrop-filter: none !important;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6) !important;
-    border: 2px solid #00ff00 !important;
+    border: 2px solid #ff3300 !important;
+    animation: fireBorder 8s infinite ease-in-out !important;
 }
 
 #swAddonsPanel.transparent-background::before {
@@ -1017,92 +1063,75 @@ input:checked + .slider:before {
     margin: 0 !important;
     padding: 0 !important;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    line-height: 1.2 !important;
+    line-height: 1.3 !important;
 }
 
 /* 🔹 ZAPOBIEGANIE ROZCIĄGANIU 🔹 */
 #swAddonsPanel {
-    min-width: 320px !important;
-    max-width: 320px !important;
-    width: 320px !important;
+    min-width: 640px !important;
+    max-width: 640px !important;
+    width: 640px !important;
     resize: none !important;
 }
 
 /* 🔹 FIX DLA INPUTÓW 🔹 */
 #swAddonsPanel input[type="checkbox"] {
-    width: 14px !important;
-    height: 14px !important;
-    min-width: 14px !important;
-    min-height: 14px !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
 }
 
 /* 🔹 FIX DLA PRZYCISKÓW 🔹 */
 #swAddonsPanel button {
-    min-height: 24px !important;
-    max-height: 30px !important;
+    min-height: 30px !important;
+    max-height: 40px !important;
 }
 
 /* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .sw-tab-content::-webkit-scrollbar-track,
 .addon-list::-webkit-scrollbar-track {
     background: rgba(20, 20, 20, 0.8);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb,
 .addon-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 3px;
+    background: linear-gradient(to bottom, #ff9900, #993300);
+    border-radius: 4px;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb:hover,
 .addon-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #00ff00, #009900);
+    background: linear-gradient(to bottom, #ffcc00, #cc6600);
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
-@media (max-width: 350px) {
+@media (max-width: 700px) {
     #swAddonsPanel {
-        width: 300px !important;
-        min-width: 300px !important;
-        max-width: 300px !important;
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
         left: 10px !important;
     }
     
-    .tablink {
-        padding: 6px 2px;
-        font-size: 9px;
-    }
-    
-    .license-status-item {
+    .category-filters {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
+        gap: 8px;
     }
     
-    .license-status-value {
-        max-width: 100%;
-        text-align: left;
-    }
-    
-    .font-size-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .font-size-slider {
+    .category-filter-item {
         width: 100%;
     }
     
-    .background-toggle-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+    .tablink {
+        padding: 8px 3px;
+        font-size: 10px;
     }
 }
         `;
@@ -1338,13 +1367,11 @@ input:checked + .slider:before {
             </div>
 
             <div id="addons" class="tabcontent active">
-                <h3>Dodatki</h3>
                 <div class="sw-tab-content">
                     <div class="category-filters">
                         <div class="category-filter-item">
                             <div class="category-filter-label">
                                 <span>Włączone</span>
-                                <span class="category-filter-count" id="enabled-count">0</span>
                             </div>
                             <label class="category-switch">
                                 <input type="checkbox" id="filter-enabled" checked>
@@ -1354,7 +1381,6 @@ input:checked + .slider:before {
                         <div class="category-filter-item">
                             <div class="category-filter-label">
                                 <span>Wyłączone</span>
-                                <span class="category-filter-count" id="disabled-count">0</span>
                             </div>
                             <label class="category-switch">
                                 <input type="checkbox" id="filter-disabled" checked>
@@ -1364,7 +1390,6 @@ input:checked + .slider:before {
                         <div class="category-filter-item">
                             <div class="category-filter-label">
                                 <span>Ulubione</span>
-                                <span class="category-filter-count" id="favorites-count">0</span>
                             </div>
                             <label class="category-switch">
                                 <input type="checkbox" id="filter-favorites" checked>
@@ -1381,7 +1406,6 @@ input:checked + .slider:before {
             </div>
 
             <div id="status" class="tabcontent">
-                <h3>Status Licencji</h3>
                 <div class="sw-tab-content">
                     <div class="license-status-container">
                         <div class="license-status-header">Status Licencji</div>
@@ -1399,12 +1423,11 @@ input:checked + .slider:before {
             </div>
 
             <div id="settings" class="tabcontent">
-                <h3>Ustawienia Panelu</h3>
                 <div class="sw-tab-content">
                     <div class="settings-item">
                         <div class="font-size-container">
                             <label class="settings-label">Rozmiar czcionki:</label>
-                            <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider">
+                            <input type="range" min="10" max="18" value="12" class="font-size-slider" id="fontSizeSlider">
                             <span class="font-size-value" id="fontSizeValue">12px</span>
                         </div>
                     </div>
@@ -1426,7 +1449,7 @@ input:checked + .slider:before {
                         </button>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top: 10px; padding: 8px; border-radius: 4px; display: none;"></div>
+                    <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 6px; display: none;"></div>
                 </div>
             </div>
         `;
@@ -1469,23 +1492,6 @@ input:checked + .slider:before {
         
         // Wyczyść kontener
         listContainer.innerHTML = '';
-        
-        // Liczniki
-        let enabledCount = 0;
-        let disabledCount = 0;
-        let favoritesCount = 0;
-        
-        // Oblicz liczniki
-        currentAddons.forEach(addon => {
-            if (addon.enabled) enabledCount++;
-            if (!addon.enabled) disabledCount++;
-            if (addon.favorite) favoritesCount++;
-        });
-        
-        // Aktualizuj liczniki w filtrach
-        document.getElementById('enabled-count').textContent = enabledCount;
-        document.getElementById('disabled-count').textContent = disabledCount;
-        document.getElementById('favorites-count').textContent = favoritesCount;
         
         // Sortuj dodatki alfabetycznie
         const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
@@ -1802,9 +1808,9 @@ input:checked + .slider:before {
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
             resetMessage.textContent = 'Ustawienia zresetowane!';
-            resetMessage.style.background = 'rgba(0, 204, 255, 0.1)';
-            resetMessage.style.color = '#00ccff';
-            resetMessage.style.border = '1px solid #00ccff';
+            resetMessage.style.background = 'rgba(255, 102, 0, 0.1)';
+            resetMessage.style.color = '#ff6600';
+            resetMessage.style.border = '1px solid #ff6600';
             resetMessage.style.display = 'block';
             
             setTimeout(() => {
