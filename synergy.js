@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.7 loaded');
+    console.log('🚀 SynergyWraith Panel v1.8 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -308,8 +308,8 @@
     top: 140px;
     left: 70px;
     width: 640px; /* Podwójna szerokość */
-    min-height: 400px; /* Większa wysokość */
-    max-height: 500px; /* Maksymalna wysokość */
+    min-height: 450px; /* Większa wysokość */
+    max-height: 550px; /* Maksymalna wysokość */
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -381,6 +381,7 @@
     background: rgba(10, 10, 10, 0.9);
     height: calc(100% - 80px);
     overflow-y: auto;
+    overflow-x: hidden; /* Zapobiega poziomemu scrollowaniu */
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -481,12 +482,13 @@
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; /* Zmienione z space-between na flex-start */
     flex: 1;
     padding: 5px 10px;
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
+    gap: 10px; /* Odstęp między etykietą a przełącznikiem */
 }
 
 .category-filter-item:hover {
@@ -502,15 +504,17 @@
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
+    flex-grow: 1;
 }
 
-/* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW - BLIŻEJ ETYKIETY 🔹 */
 .category-switch {
     position: relative;
     display: inline-block;
     width: 40px;
     height: 20px;
     flex-shrink: 0;
+    margin-left: auto; /* Wypycha przełącznik na prawą stronę */
 }
 
 .category-switch input {
@@ -556,13 +560,14 @@
     box-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 ADDONS LIST 🔹 */
+/* 🔹 ADDONS LIST - BEZ POZIOMEGO SCROLLOWANIA 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 250px;
+    max-height: 280px; /* Zwiększona wysokość aby zmieścić więcej dodatków */
     overflow-y: auto;
+    overflow-x: hidden; /* Ukrywa poziomy scrollbar */
     padding-right: 5px;
 }
 
@@ -589,6 +594,8 @@
     min-height: 50px !important;
     max-height: 50px !important;
     overflow: hidden !important;
+    width: 100%; /* Zapewnia pełną szerokość */
+    box-sizing: border-box !important;
 }
 
 .addon-item:hover {
@@ -604,6 +611,7 @@
     min-height: auto !important;
     overflow: hidden !important;
     padding-right: 10px;
+    max-width: 75%; /* Ogranicza szerokość aby zmieścić przyciski */
 }
 
 .addon-item-title {
@@ -1139,6 +1147,28 @@ input:checked + .slider:before {
         console.log('✅ CSS injected');
     }
 
+    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
+    function setupMouseWheelScrolling() {
+        const addonList = document.getElementById('addon-list');
+        if (!addonList) return;
+        
+        addonList.addEventListener('wheel', function(e) {
+            // Zapobiegaj domyślnemu zachowaniu scrollowania
+            e.preventDefault();
+            
+            // Przewiń listę w pionie
+            this.scrollTop += e.deltaY;
+            
+            // Opcjonalnie: możesz dodać płynniejsze scrollowanie
+            // this.scrollTo({
+            //     top: this.scrollTop + e.deltaY,
+            //     behavior: 'smooth'
+            // });
+        }, { passive: false });
+        
+        console.log('✅ Mouse wheel scrolling enabled');
+    }
+
     // 🔹 Główne funkcje
     async function initPanel() {
         console.log('✅ Initializing panel...');
@@ -1156,6 +1186,9 @@ input:checked + .slider:before {
         
         // 🔹 Zapobiegaj zmianom rozmiaru
         preventPanelResize();
+        
+        // 🔹 Dodaj obsługę scrollowania myszką
+        setTimeout(setupMouseWheelScrolling, 100);
         
         // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
