@@ -1345,7 +1345,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (NAPRAWIONE KROPKI) 🔹 */
+/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (Z BULLET POMPARAŃCZOWYM) 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -1375,20 +1375,24 @@ input:checked + .slider:before {
     color: #ccc;
     font-size: 12px;
     margin-bottom: 8px;
-    padding-left: 25px;
+    padding-left: 0;
     position: relative;
     line-height: 1.4;
     text-align: left;
+    display: flex;
+    align-items: flex-start;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
-    position: absolute;
-    left: 10px;
-    top: 0;
     font-size: 16px;
     font-weight: bold;
+    margin-right: 8px;
+    flex-shrink: 0;
+    margin-top: 0;
+    display: inline-block;
+    line-height: 1.4;
 }
 
 .info-footer {
