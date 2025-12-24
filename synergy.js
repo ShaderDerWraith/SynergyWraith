@@ -145,7 +145,8 @@
         favorites: true
     };
     let searchQuery = '';
-    let customShortcut = 'Ctrl+A';
+    let customShortcut = 'A';
+    let isShortcutInputFocused = false;
 
     // 🔹 Funkcja zapobiegająca zmianom rozmiaru
     function preventPanelResize() {
@@ -189,13 +190,19 @@
         innerObserver.observe(panel, { childList: true, subtree: true });
     }
 
-    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu (z wyjątkiem nagłówka)
+    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
     function updatePanelFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        // Usuń wszystkie poprzednie style font-size z elementów poza nagłówkiem
-        const allElements = panel.querySelectorAll('*:not(#swPanelHeader):not(#swPanelHeader strong)');
+        // Usuń wszystkie poprzednie style font-size
+        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
+        
+        // Ustaw nowy rozmiar czcionki z !important
+        panel.style.setProperty('font-size', size + 'px', 'important');
+        
+        // Również ustaw dla wszystkich elementów wewnątrz panelu
+        const allElements = panel.querySelectorAll('*');
         allElements.forEach(element => {
             element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
             element.style.setProperty('font-size', size + 'px', 'important');
@@ -392,10 +399,9 @@
     animation: fireBorder 8s infinite ease-in-out;
 }
 
-/* 🔹 NAGŁÓWEK PANELU 🔹 */
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 0;
+    padding: 12px 40px 12px 12px;
     text-align: center;
     border-bottom: 1px solid #ff3300;
     cursor: grab;
@@ -404,21 +410,12 @@
     height: 46px !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #swPanelHeader strong {
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
+    font-size: 16px;
+    letter-spacing: 1px;
     animation: fireText 8s infinite ease-in-out;
-    text-align: center;
-    line-height: 1;
-    margin: 0;
-    padding: 0;
-    display: block;
 }
 
 /* 🔹 PRZYCISK ZAMYKANIA 🔹 */
@@ -566,7 +563,7 @@
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 10px 8px;
+    padding: 10px 15px;
     flex-shrink: 0 !important;
     box-sizing: border-box !important;
 }
@@ -574,13 +571,13 @@
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     flex: 1;
     padding: 5px 8px;
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
-    gap: 8px;
+    gap: 15px;
     box-sizing: border-box !important;
 }
 
@@ -597,8 +594,6 @@
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
-    text-align: center;
-    justify-content: center;
 }
 
 /* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
@@ -672,7 +667,6 @@
     transition: all 0.3s ease;
     box-sizing: border-box !important;
     height: 50px;
-    text-align: center;
 }
 
 .search-input:focus {
@@ -685,7 +679,6 @@
 .search-input::placeholder {
     color: #666;
     font-size: 14px;
-    text-align: center;
 }
 
 /* 🔹 ADDONS LIST 🔹 */
@@ -696,7 +689,7 @@
     flex: 1 !important;
     overflow-y: auto !important;
     overflow-x: hidden;
-    padding-right: 5px;
+    padding: 0 5px;
     margin-bottom: 0;
     min-height: 0 !important;
     box-sizing: border-box !important;
@@ -718,7 +711,7 @@
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
     border-radius: 6px !important;
-    padding: 10px 12px !important;
+    padding: 10px 15px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
@@ -743,9 +736,8 @@
     flex: 1 !important;
     min-height: auto !important;
     overflow: hidden !important;
-    padding-right: 10px;
+    padding-right: 15px;
     max-width: 75%;
-    margin-left: 10px;
 }
 
 .addon-item-title {
@@ -776,9 +768,8 @@
 .addon-item-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 15px !important;
     flex-shrink: 0 !important;
-    margin-right: 5px;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -881,7 +872,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 20px;
+    padding: 20px 25px;
     margin-bottom: 20px;
 }
 
@@ -914,17 +905,16 @@ input:checked + .slider:before {
 .license-status-label {
     color: #ff9900;
     font-weight: 600;
-    text-align: left;
-    padding-left: 10px;
+    padding-left: 5px;
 }
 
 .license-status-value {
     font-weight: 600;
-    text-align: left;
-    max-width: 70%;
+    text-align: right;
+    max-width: 65%;
     word-break: break-all;
     font-size: 12px;
-    padding-right: 10px;
+    padding-right: 5px;
 }
 
 .license-status-valid {
@@ -951,6 +941,7 @@ input:checked + .slider:before {
 .license-activation-container {
     text-align: center;
     margin-top: 20px;
+    padding: 0 10px;
 }
 
 .license-activation-button {
@@ -993,7 +984,7 @@ input:checked + .slider:before {
     width: 400px;
     border: 2px solid #ff3300;
     border-radius: 8px;
-    padding: 20px;
+    padding: 20px 25px;
     position: relative;
     animation: fireBorder 8s infinite ease-in-out;
 }
@@ -1031,6 +1022,7 @@ input:checked + .slider:before {
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    padding: 0 5px;
 }
 
 .license-modal-button {
@@ -1087,7 +1079,7 @@ input:checked + .slider:before {
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
-    padding: 15px;
+    padding: 15px 20px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
@@ -1101,7 +1093,6 @@ input:checked + .slider:before {
     margin-bottom: 10px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    text-align: left;
     padding-left: 5px;
 }
 
@@ -1110,14 +1101,16 @@ input:checked + .slider:before {
     font-size: 11px;
     margin-top: 5px;
     font-style: italic;
+    padding-left: 5px;
 }
 
 /* 🔹 SKRÓT KLAWISZOWY - INPUT 🔹 */
 .shortcut-input-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 15px;
+    padding: 0 5px;
 }
 
 .shortcut-input-label {
@@ -1125,21 +1118,21 @@ input:checked + .slider:before {
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
-    text-align: left;
-    width: 120px;
 }
 
 .shortcut-input {
     flex: 1;
-    padding: 10px 12px;
+    padding: 10px 15px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
     color: #ff9900;
     font-size: 13px;
-    text-align: left;
-    width: 150px;
+    text-align: center;
+    width: 120px;
     transition: all 0.3s ease;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 .shortcut-input:focus {
@@ -1154,7 +1147,7 @@ input:checked + .slider:before {
     font-size: 12px;
     text-align: left;
     margin-top: 5px;
-    padding-left: 5px;
+    padding-left: 10px;
 }
 
 /* 🔹 ROZMIAR CZCIONKI 🔹 */
@@ -1163,6 +1156,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
+    padding: 0 5px;
 }
 
 .font-size-slider {
@@ -1172,6 +1166,7 @@ input:checked + .slider:before {
     background: #333;
     border-radius: 4px;
     outline: none;
+    margin: 0 10px;
 }
 
 .font-size-slider::-webkit-slider-thumb {
@@ -1196,9 +1191,9 @@ input:checked + .slider:before {
     font-weight: bold;
     font-size: 13px;
     min-width: 40px;
-    text-align: left;
+    text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-left: 5px;
+    padding-right: 5px;
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
@@ -1207,6 +1202,7 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
+    padding: 0 5px;
 }
 
 .background-toggle-label {
@@ -1214,8 +1210,6 @@ input:checked + .slider:before {
     font-size: 13px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    text-align: left;
-    padding-left: 5px;
 }
 
 .background-toggle {
@@ -1273,13 +1267,14 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding: 0 5px;
 }
 
 .shortcut-item {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 12px 15px;
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1311,13 +1306,15 @@ input:checked + .slider:before {
 .shortcut-key {
     background: rgba(51, 17, 0, 0.8);
     color: #ff9900;
-    padding: 6px 12px;
+    padding: 6px 15px;
     border-radius: 4px;
     font-family: monospace;
     font-size: 12px;
     font-weight: 600;
     border: 1px solid #ff9900;
     text-shadow: 0 0 3px rgba(255, 153, 0, 0.3);
+    min-width: 100px;
+    text-align: center;
 }
 
 /* 🔹 ZAKŁADKA INFORMACJI 🔹 */
@@ -1325,14 +1322,16 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 20px;
+    padding: 25px 30px;
 }
 
 .info-header {
     color: #ff9900;
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
     text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
@@ -1353,22 +1352,22 @@ input:checked + .slider:before {
 .info-patch-notes {
     list-style: none;
     padding: 0;
-    margin-left: 15px;
 }
 
 .info-patch-notes li {
     color: #aaa;
     font-size: 12px;
     margin-bottom: 8px;
-    padding-left: 10px;
+    padding-left: 20px;
     position: relative;
+    line-height: 1.4;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 0;
+    left: 8px;
 }
 
 .info-footer {
@@ -1386,6 +1385,7 @@ input:checked + .slider:before {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #333;
+    padding: 15px 5px 0;
 }
 
 .reset-settings-button {
@@ -1548,6 +1548,7 @@ input:checked + .slider:before {
 #swAddonsMessage {
     flex-shrink: 0 !important;
     margin-top: 10px !important;
+    padding: 0 5px !important;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1708,7 +1709,7 @@ input:checked + .slider:before {
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH</strong>
+                <strong>SYNERGY WRAITH PANEL v${VERSION_INFO.version}</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
@@ -1834,11 +1835,12 @@ input:checked + .slider:before {
                     <div class="settings-item">
                         <div class="shortcut-input-container">
                             <span class="shortcut-input-label">Skrót do widgetu:</span>
-                            <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" placeholder="np. Ctrl+Shift+A">
+                            <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" readonly>
+                            <button class="shortcut-set-btn" id="shortcutSetBtn" style="padding: 8px 15px; background: rgba(51, 17, 0, 0.8); border: 1px solid #ff9900; color: #ff9900; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Ustaw skrót</button>
                         </div>
                         <div class="shortcut-preview" id="shortcutPreview">Aktualny skrót: Ctrl+A</div>
                         <div class="settings-description">
-                            Wpisz dowolny skrót klawiszowy (np. Ctrl+Shift+A, Alt+X, lub pojedynczy klawisz)
+                            Kliknij "Ustaw skrót", a następnie wciśnij dowolną literę (A-Z) lub cyfrę (0-9)
                         </div>
                     </div>
                     
@@ -1856,10 +1858,9 @@ input:checked + .slider:before {
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
-                        <div class="info-header">Synergy Wraith Panel</div>
+                        <div class="info-header">Historia zmian</div>
                         
                         <div class="info-section">
-                            <div class="info-section-title">Historia zmian</div>
                             <ul class="info-patch-notes">
                                 ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                             </ul>
@@ -2109,54 +2110,26 @@ input:checked + .slider:before {
         // Dodaj nowe nasłuchiwanie
         document.addEventListener('keydown', handleKeyboardShortcut);
         
-        console.log(`✅ Keyboard shortcut setup: ${customShortcut || 'brak'}`);
+        console.log(`✅ Keyboard shortcut setup: Ctrl+${customShortcut}`);
     }
 
     // 🔹 Obsługa skrótu klawiszowego
     function handleKeyboardShortcut(e) {
-        // Sprawdź czy skrót jest ustawiony
-        if (!customShortcut || customShortcut.trim() === '') return;
+        // Ignoruj jeśli użytkownik wpisuje skrót
+        if (isShortcutInputFocused) return;
         
-        // Parsuj skrót
-        const shortcutParts = customShortcut.toLowerCase().split('+');
-        let ctrlRequired = false;
-        let shiftRequired = false;
-        let altRequired = false;
-        let keyRequired = '';
-        
-        shortcutParts.forEach(part => {
-            const trimmed = part.trim();
-            if (trimmed === 'ctrl' || trimmed === 'control') ctrlRequired = true;
-            else if (trimmed === 'shift') shiftRequired = true;
-            else if (trimmed === 'alt') altRequired = true;
-            else if (trimmed !== '') keyRequired = trimmed;
-        });
-        
-        // Jeśli tylko klawisz (bez modyfikatorów)
-        if (!ctrlRequired && !shiftRequired && !altRequired && keyRequired) {
-            if (e.key.toLowerCase() === keyRequired.toLowerCase() && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+        // Sprawdź czy naciśnięto Ctrl + nasz klawisz
+        if (e.ctrlKey && !e.altKey && !e.shiftKey) {
+            const key = e.key.toUpperCase();
+            
+            // Sprawdź czy to litera A-Z lub cyfra 0-9
+            if ((key.length === 1 && /[A-Z0-9]/.test(key)) && key === customShortcut) {
                 e.preventDefault();
                 const toggleBtn = document.getElementById('swPanelToggle');
                 if (toggleBtn) {
                     toggleBtn.click();
                     toggleBtn.click(); // Podwójne kliknięcie dla toggle
                 }
-                return;
-            }
-        }
-        
-        // Sprawdź warunki dla skrótów z modyfikatorami
-        const ctrlMatch = ctrlRequired ? e.ctrlKey : !e.ctrlKey;
-        const shiftMatch = shiftRequired ? e.shiftKey : !e.shiftKey;
-        const altMatch = altRequired ? e.altKey : !e.altKey;
-        const keyMatch = e.key.toLowerCase() === keyRequired.toLowerCase();
-        
-        if (ctrlMatch && shiftMatch && altMatch && keyMatch) {
-            e.preventDefault();
-            const toggleBtn = document.getElementById('swPanelToggle');
-            if (toggleBtn) {
-                toggleBtn.click();
-                toggleBtn.click(); // Podwójne kliknięcie dla toggle
             }
         }
     }
@@ -2165,8 +2138,92 @@ input:checked + .slider:before {
     function updateShortcutPreview() {
         const preview = document.getElementById('shortcutPreview');
         if (preview) {
-            preview.textContent = customShortcut ? `Aktualny skrót: ${customShortcut}` : 'Skrót nieustawiony';
+            preview.textContent = customShortcut ? `Aktualny skrót: Ctrl+${customShortcut}` : 'Skrót nieustawiony';
         }
+    }
+
+    // 🔹 Ustawianie nowego skrótu klawiszowego
+    function setupShortcutInput() {
+        const shortcutInput = document.getElementById('shortcutInput');
+        const shortcutSetBtn = document.getElementById('shortcutSetBtn');
+        
+        if (!shortcutInput || !shortcutSetBtn) return;
+        
+        // Załaduj zapisany skrót
+        const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'A');
+        customShortcut = savedShortcut;
+        shortcutInput.value = `Ctrl+${customShortcut}`;
+        
+        // Nasłuchuj kliknięcie przycisku "Ustaw skrót"
+        shortcutSetBtn.addEventListener('click', function() {
+            isShortcutInputFocused = true;
+            shortcutInput.style.borderColor = '#ff9900';
+            shortcutInput.style.boxShadow = '0 0 10px rgba(255, 153, 0, 0.5)';
+            shortcutInput.value = 'Wciśnij klawisz...';
+            
+            // Tymczasowy nasłuchiwacz klawiatury
+            const keyHandler = function(e) {
+                // Ignoruj klawisze modyfikujące
+                if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) {
+                    return;
+                }
+                
+                const key = e.key.toUpperCase();
+                
+                // Sprawdź czy to litera A-Z lub cyfra 0-9
+                if (key.length === 1 && /[A-Z0-9]/.test(key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    customShortcut = key;
+                    shortcutInput.value = `Ctrl+${customShortcut}`;
+                    SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
+                    updateShortcutPreview();
+                    setupKeyboardShortcut();
+                    
+                    // Usuń nasłuchiwanie
+                    document.removeEventListener('keydown', keyHandler);
+                    isShortcutInputFocused = false;
+                    shortcutInput.style.borderColor = '#333';
+                    shortcutInput.style.boxShadow = 'none';
+                    
+                    // Pokaż komunikat
+                    const messageEl = document.getElementById('swResetMessage');
+                    if (messageEl) {
+                        messageEl.textContent = `Skrót ustawiony na: Ctrl+${customShortcut}`;
+                        messageEl.style.background = 'rgba(0, 255, 0, 0.1)';
+                        messageEl.style.color = '#00ff00';
+                        messageEl.style.border = '1px solid #00ff00';
+                        messageEl.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            messageEl.style.display = 'none';
+                        }, 3000);
+                    }
+                } else if (e.key === 'Escape') {
+                    // Anuluj ustawianie skrótu
+                    shortcutInput.value = `Ctrl+${customShortcut}`;
+                    document.removeEventListener('keydown', keyHandler);
+                    isShortcutInputFocused = false;
+                    shortcutInput.style.borderColor = '#333';
+                    shortcutInput.style.boxShadow = 'none';
+                }
+            };
+            
+            // Dodaj nasłuchiwanie klawiatury
+            document.addEventListener('keydown', keyHandler);
+            
+            // Usuń nasłuchiwanie po 10 sekundach
+            setTimeout(() => {
+                if (isShortcutInputFocused) {
+                    document.removeEventListener('keydown', keyHandler);
+                    isShortcutInputFocused = false;
+                    shortcutInput.value = `Ctrl+${customShortcut}`;
+                    shortcutInput.style.borderColor = '#333';
+                    shortcutInput.style.boxShadow = 'none';
+                }
+            }, 10000);
+        });
     }
 
     // 🔹 Setup event listenerów
@@ -2202,31 +2259,8 @@ input:checked + .slider:before {
             });
         }
 
-        // Skrót klawiszowy - NOWA IMPLEMENTACJA
-        const shortcutInput = document.getElementById('shortcutInput');
-        if (shortcutInput) {
-            // Załaduj zapisany skrót
-            const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
-            customShortcut = savedShortcut;
-            shortcutInput.value = customShortcut;
-            
-            // Zapisz skrót przy zmianie
-            shortcutInput.addEventListener('input', function() {
-                customShortcut = this.value.trim();
-                SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
-                updateShortcutPreview();
-                setupKeyboardShortcut(); // Przestaw skrót
-            });
-            
-            // Pozwól na puste pole
-            shortcutInput.addEventListener('keydown', function(e) {
-                // Zezwól na wszystkie klawisze - użytkownik może wpisać dowolny skrót
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.blur();
-                }
-            });
-        }
+        // Skrót klawiszowy
+        setupShortcutInput();
 
         // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
@@ -2545,7 +2579,7 @@ input:checked + .slider:before {
             favorites: true
         };
         
-        customShortcut = 'Ctrl+A';
+        customShortcut = 'A';
         searchQuery = '';
         
         const resetMessage = document.getElementById('swResetMessage');
@@ -2593,6 +2627,7 @@ input:checked + .slider:before {
         
         // Zresetuj skrót klawiszowy
         setupKeyboardShortcut();
+        setupShortcutInput();
     }
 
     // 🔹 Update widoczności tła
@@ -2687,7 +2722,7 @@ input:checked + .slider:before {
 
     // 🔹 Ładowanie ustawień
     function loadSettings() {
-        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
+        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'A');
         console.log('✅ Settings loaded, shortcut:', customShortcut);
     }
 
