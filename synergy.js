@@ -508,7 +508,7 @@
     height: calc(100% - 80px);
     overflow-y: auto;
     overflow-x: hidden; /* Zapobiega poziomemu scrollowaniu */
-    padding-bottom: 20px; /* Dodajemy padding na dole aby dodatki nie były zasłaniane */
+    padding-bottom: 15px !important; /* Zmniejszony padding na dole - USUNIĘCIE BELKI */
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -1249,7 +1249,52 @@ input:checked + .slider:before {
 
 /* 🔹 OBSŁUGA KÓŁKA MYSZY DLA SCROLLOWANIA 🔹 */
 .addon-list {
-    scroll-behavior: smooth;
+    scroll-behavior: smooth !important;
+    will-change: scroll-position !important;
+    transform: translateZ(0) !important; /* Przyspieszenie sprzętowe */
+    backface-visibility: hidden !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+/* 🔹 OPTYMALIZACJA WYDAJNOŚCI DLA WIELU ELEMENTÓW 🔹 */
+.addon-item {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    contain: content !important;
+}
+
+/* 🔹 ZAPOBIEGANIE LAGOM PRZY SCROLLOWANIU 🔹 */
+.sw-tab-content {
+    transform: translateZ(0) !important;
+    -webkit-overflow-scrolling: touch !important; /* Dla urządzeń z dotykiem */
+}
+
+/* 🔹 USUŃ NIE POTRZEBNĄ PUSTĄ PRZESTRZEŃ 🔹 */
+.sw-tab-content:after {
+    content: '' !important;
+    display: block !important;
+    height: 0 !important;
+    clear: both !important;
+}
+
+/* 🔹 POPRAWKA DLA WYSOKOŚCI KONTENERA 🔹 */
+#addons .sw-tab-content {
+    max-height: calc(100% - 60px) !important;
+    height: auto !important;
+}
+
+/* 🔹 FIX DLA KONTENERA DODATKÓW - USUŃ NIE POTRZEBNĄ BELKĘ 🔹 */
+#addons .sw-tab-content {
+    padding-bottom: 15px !important; /* Zmniejszony padding na dole */
+}
+
+.addon-list:after {
+    display: none !important; /* Ukryj ewentualne pseudo-elementy */
+}
+
+/* 🔹 FIX DLA PUSTEJ PRZESTRZENI POD LISTĄ 🔹 */
+.addon-list:empty + * {
+    display: none !important;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1280,38 +1325,84 @@ input:checked + .slider:before {
         console.log('✅ CSS injected');
     }
 
-    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
+    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków - POPRAWIONA WERSJA
     function setupMouseWheelScrolling() {
         const addonList = document.getElementById('addon-list');
         if (!addonList) return;
         
+        // FLAGI DO ZAPOBIEGANIA ZAGŁUSZENIU
+        let isScrolling = false;
+        let scrollTimer = null;
+        
         addonList.addEventListener('wheel', function(e) {
-            // Zapobiegaj domyślnemu zachowaniu scrollowania tylko jeśli jest co scrollować
+            // Zapobiegaj domyślnemu zachowaniu tylko jeśli lista jest scrollowalna
             const isScrollable = this.scrollHeight > this.clientHeight;
+            const isAtTop = this.scrollTop === 0;
+            const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
+            
+            // Logika scrollowania z lepszą obsługą krawędzi
             if (isScrollable) {
+                // Sprawdź kierunek i pozycję
+                const isScrollingDown = e.deltaY > 0;
+                const isScrollingUp = e.deltaY < 0;
+                
+                // Jeśli jesteśmy na górze i scrollujemy w górę, pozwól na domyślne zachowanie
+                if (isAtTop && isScrollingUp) {
+                    return;
+                }
+                // Jeśli jesteśmy na dole i scrollujemy w dół, pozwól na domyślne zachowanie
+                if (isAtBottom && isScrollingDown) {
+                    return;
+                }
+                
+                // W przeciwnym razie zapobiegaj domyślnemu i przewiń listę
                 e.preventDefault();
-                // Przewiń listę w pionie
-                this.scrollTop += e.deltaY;
+                
+                // Płynniejsze scrollowanie z requestAnimationFrame
+                if (!isScrolling) {
+                    isScrolling = true;
+                    
+                    requestAnimationFrame(() => {
+                        // Użyj mniejszego przyrostu dla płynniejszego scrollowania
+                        const scrollAmount = e.deltaY * 0.8; // Zmniejsz siłę scrollowania
+                        this.scrollTop += scrollAmount;
+                        
+                        // Zresetuj flagę po krótkim czasie
+                        setTimeout(() => {
+                            isScrolling = false;
+                        }, 16); // ~60 FPS
+                    });
+                }
             }
         }, { passive: false });
         
-        // Dodaj również obsługę dla całego kontenera zakładki
+        // Dodaj również obsługę dla całego kontenera zakładki - ULEPSZONĄ
         const tabContent = document.querySelector('#addons .sw-tab-content');
         if (tabContent) {
             tabContent.addEventListener('wheel', function(e) {
                 const addonList = document.getElementById('addon-list');
+                
+                // Jeśli myszka jest nad listą dodatków, pozwól jej na obsługę
                 if (addonList && addonList.contains(e.target)) {
-                    // Jeśli myszka jest nad listą, nie robimy nic - obsłuży to lista
                     return;
                 }
                 
-                // W przeciwnym razie scrolluj cały kontener
-                e.preventDefault();
-                this.scrollTop += e.deltaY;
-            }, { passive: false });
+                // Jeśli scrollujemy w dół i lista jest widoczna, przejdź do listy
+                if (e.deltaY > 0 && addonList && this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
+                    // Przekaż scroll do listy dodatków
+                    e.preventDefault();
+                    if (addonList.scrollTop === 0) {
+                        addonList.scrollTop += e.deltaY;
+                    }
+                    return;
+                }
+                
+                // W przeciwnym razie scrolluj normalnie kontener
+                // (nie zapobiegaj domyślnemu zachowaniu - pozwól przeglądarce obsłużyć)
+            }, { passive: true }); // Użyj passive: true dla lepszej wydajności
         }
         
-        console.log('✅ Mouse wheel scrolling enabled');
+        console.log('✅ Enhanced mouse wheel scrolling enabled');
     }
 
     // 🔹 Główne funkcje
