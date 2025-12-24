@@ -145,7 +145,7 @@
         favorites: true
     };
     let searchQuery = '';
-    let customShortcut = 'A';
+    let customShortcut = 'Ctrl+A';
 
     // 🔹 Funkcja zapobiegająca zmianom rozmiaru
     function preventPanelResize() {
@@ -189,19 +189,13 @@
         innerObserver.observe(panel, { childList: true, subtree: true });
     }
 
-    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
+    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu (z wyjątkiem nagłówka)
     function updatePanelFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        // Usuń wszystkie poprzednie style font-size
-        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
-        
-        // Ustaw nowy rozmiar czcionki z !important
-        panel.style.setProperty('font-size', size + 'px', 'important');
-        
-        // Również ustaw dla wszystkich elementów wewnątrz panelu
-        const allElements = panel.querySelectorAll('*');
+        // Usuń wszystkie poprzednie style font-size z elementów poza nagłówkiem
+        const allElements = panel.querySelectorAll('*:not(#swPanelHeader):not(#swPanelHeader strong)');
         allElements.forEach(element => {
             element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
             element.style.setProperty('font-size', size + 'px', 'important');
@@ -398,9 +392,10 @@
     animation: fireBorder 8s infinite ease-in-out;
 }
 
+/* 🔹 NAGŁÓWEK PANELU 🔹 */
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 12px 40px 12px 12px;
+    padding: 0;
     text-align: center;
     border-bottom: 1px solid #ff3300;
     cursor: grab;
@@ -409,12 +404,21 @@
     height: 46px !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #swPanelHeader strong {
-    font-size: 16px;
-    letter-spacing: 1px;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
     animation: fireText 8s infinite ease-in-out;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    display: block;
 }
 
 /* 🔹 PRZYCISK ZAMYKANIA 🔹 */
@@ -570,7 +574,7 @@
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     flex: 1;
     padding: 5px 8px;
     background: rgba(30, 30, 30, 0.6);
@@ -593,6 +597,8 @@
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
+    text-align: center;
+    justify-content: center;
 }
 
 /* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
@@ -666,6 +672,7 @@
     transition: all 0.3s ease;
     box-sizing: border-box !important;
     height: 50px;
+    text-align: center;
 }
 
 .search-input:focus {
@@ -678,6 +685,7 @@
 .search-input::placeholder {
     color: #666;
     font-size: 14px;
+    text-align: center;
 }
 
 /* 🔹 ADDONS LIST 🔹 */
@@ -737,6 +745,7 @@
     overflow: hidden !important;
     padding-right: 10px;
     max-width: 75%;
+    margin-left: 10px;
 }
 
 .addon-item-title {
@@ -769,6 +778,7 @@
     align-items: center !important;
     gap: 10px !important;
     flex-shrink: 0 !important;
+    margin-right: 5px;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -904,14 +914,17 @@ input:checked + .slider:before {
 .license-status-label {
     color: #ff9900;
     font-weight: 600;
+    text-align: left;
+    padding-left: 10px;
 }
 
 .license-status-value {
     font-weight: 600;
-    text-align: right;
+    text-align: left;
     max-width: 70%;
     word-break: break-all;
     font-size: 12px;
+    padding-right: 10px;
 }
 
 .license-status-valid {
@@ -1088,6 +1101,8 @@ input:checked + .slider:before {
     margin-bottom: 10px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
+    text-align: left;
+    padding-left: 5px;
 }
 
 .settings-description {
@@ -1110,6 +1125,8 @@ input:checked + .slider:before {
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
+    text-align: left;
+    width: 120px;
 }
 
 .shortcut-input {
@@ -1179,8 +1196,9 @@ input:checked + .slider:before {
     font-weight: bold;
     font-size: 13px;
     min-width: 40px;
-    text-align: center;
+    text-align: left;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
+    padding-left: 5px;
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
@@ -1196,6 +1214,8 @@ input:checked + .slider:before {
     font-size: 13px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
+    text-align: left;
+    padding-left: 5px;
 }
 
 .background-toggle {
@@ -1333,13 +1353,14 @@ input:checked + .slider:before {
 .info-patch-notes {
     list-style: none;
     padding: 0;
+    margin-left: 15px;
 }
 
 .info-patch-notes li {
     color: #aaa;
     font-size: 12px;
     margin-bottom: 8px;
-    padding-left: 15px;
+    padding-left: 10px;
     position: relative;
 }
 
@@ -1687,7 +1708,7 @@ input:checked + .slider:before {
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH PANEL v${VERSION_INFO.version}</strong>
+                <strong>SYNERGY WRAITH</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
@@ -1817,7 +1838,7 @@ input:checked + .slider:before {
                         </div>
                         <div class="shortcut-preview" id="shortcutPreview">Aktualny skrót: Ctrl+A</div>
                         <div class="settings-description">
-                            Wpisz dowolny skrót klawiszowy (np. Ctrl+Shift+A, Alt+X)
+                            Wpisz dowolny skrót klawiszowy (np. Ctrl+Shift+A, Alt+X, lub pojedynczy klawisz)
                         </div>
                     </div>
                     
@@ -2105,13 +2126,26 @@ input:checked + .slider:before {
         
         shortcutParts.forEach(part => {
             const trimmed = part.trim();
-            if (trimmed === 'ctrl') ctrlRequired = true;
+            if (trimmed === 'ctrl' || trimmed === 'control') ctrlRequired = true;
             else if (trimmed === 'shift') shiftRequired = true;
             else if (trimmed === 'alt') altRequired = true;
-            else keyRequired = trimmed;
+            else if (trimmed !== '') keyRequired = trimmed;
         });
         
-        // Sprawdź warunki
+        // Jeśli tylko klawisz (bez modyfikatorów)
+        if (!ctrlRequired && !shiftRequired && !altRequired && keyRequired) {
+            if (e.key.toLowerCase() === keyRequired.toLowerCase() && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                const toggleBtn = document.getElementById('swPanelToggle');
+                if (toggleBtn) {
+                    toggleBtn.click();
+                    toggleBtn.click(); // Podwójne kliknięcie dla toggle
+                }
+                return;
+            }
+        }
+        
+        // Sprawdź warunki dla skrótów z modyfikatorami
         const ctrlMatch = ctrlRequired ? e.ctrlKey : !e.ctrlKey;
         const shiftMatch = shiftRequired ? e.shiftKey : !e.shiftKey;
         const altMatch = altRequired ? e.altKey : !e.altKey;
