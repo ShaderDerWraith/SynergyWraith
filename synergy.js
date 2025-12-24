@@ -428,15 +428,15 @@
     }
 }
 
-/* 🔹 MAIN PANEL - SZERSZY I WYŻSZY ZE STAŁĄ WYSOKOŚCIĄ 🔹 */
+/* 🔹 MAIN PANEL - POPRAWIONA WYSOKOŚĆ I LAYOUT 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
-    width: 640px; /* Podwójna szerokość */
-    height: 700px !important; /* STAŁA WYSOKOŚĆ - ważne dla wszystkich zakładek */
-    min-height: 700px !important; /* Zapobiega zmniejszaniu */
-    max-height: 700px !important; /* Zapobiega zwiększaniu */
+    width: 640px;
+    height: 480px !important;
+    min-height: 480px !important;
+    max-height: 480px !important;
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -445,10 +445,10 @@
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden; /* Ukrywamy overflow całego panelu */
+    overflow: hidden;
     font-size: 12px;
-    animation: fireBorder 8s infinite ease-in-out; /* Powolna animacja ognia */
-    box-sizing: border-box !important; /* Ważne dla stałych wymiarów */
+    animation: fireBorder 8s infinite ease-in-out;
+    box-sizing: border-box !important;
 }
 
 /* Neonowy efekt na krawędziach */
@@ -480,9 +480,9 @@
     cursor: grab;
     position: relative;
     overflow: hidden;
-    height: 50px !important; /* Stała wysokość nagłówka */
+    height: 46px !important;
     box-sizing: border-box !important;
-    flex-shrink: 0 !important; /* Nie kurczy się */
+    flex-shrink: 0 !important;
 }
 
 #swPanelHeader::after {
@@ -493,13 +493,13 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 100, 0, 0.2), transparent);
-    animation: shine 6s infinite ease-in-out; /* Wolniejsza animacja */
+    animation: shine 6s infinite ease-in-out;
 }
 
 #swPanelHeader strong {
     font-size: 16px;
     letter-spacing: 1px;
-    animation: fireText 8s infinite ease-in-out; /* Animacja tekstu ogniem */
+    animation: fireText 8s infinite ease-in-out;
 }
 
 @keyframes shine {
@@ -507,14 +507,14 @@
     100% { left: 100%; }
 }
 
-/* 🔹 KONTENER ZAKŁADEK Z FIXED HEIGHT 🔹 */
+/* 🔹 KONTENER ZAKŁADEK 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
     border-bottom: 1px solid #ff3300;
     padding: 0 5px;
-    height: 40px !important; /* Stała wysokość zakładek */
-    flex-shrink: 0 !important; /* Nie kurczy się */
+    height: 40px !important;
+    flex-shrink: 0 !important;
     box-sizing: border-box !important;
     align-items: center;
 }
@@ -575,11 +575,11 @@
     text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
 }
 
-/* 🔹 CONTENT AREA - STAŁA WYSOKOŚĆ DLA WSZYSTKICH ZAKŁADEK 🔹 */
-#swAddonsPanel > .tabcontent {
+/* 🔹 ZAKŁADKI CONTENT - FIXED HEIGHT LAYOUT 🔹 */
+.tabcontent {
     display: none;
-    height: calc(100% - 90px) !important; /* 100% panelu minus nagłówek (50px) i zakładki (40px) */
-    overflow: hidden; /* Ukrywamy overflow, bo każda zakładka ma własny scroll */
+    height: calc(100% - 86px) !important;
+    overflow: hidden;
     position: relative;
     box-sizing: border-box !important;
 }
@@ -600,41 +600,41 @@
     }
 }
 
-/* 🔹 ZAKŁADKA DODATKÓW - SPECJALNY LAYOUT 🔹 */
+/* 🔹 ZAKŁADKA DODATKÓW 🔹 */
 #addons .sw-tab-content {
     padding: 15px;
     background: rgba(10, 10, 10, 0.9);
     height: 100% !important;
-    overflow: hidden; /* Ukrywamy overflow, bo list będzie miał własny scroll */
+    overflow: hidden;
     display: flex !important;
     flex-direction: column !important;
     box-sizing: border-box !important;
 }
 
-/* 🔹 CATEGORY FILTERS - POZIOMO Z BLIŻSZYMI PRZEŁĄCZNIKAMI 🔹 */
+/* 🔹 CATEGORY FILTERS 🔹 */
 .category-filters {
     display: flex;
     justify-content: space-between;
-    gap: 5px; /* Zmniejszony gap */
+    gap: 5px;
     margin-bottom: 15px;
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 10px 8px; /* Zmniejszony padding poziomy */
-    flex-shrink: 0 !important; /* Nie kurczy się */
+    padding: 10px 8px;
+    flex-shrink: 0 !important;
     box-sizing: border-box !important;
 }
 
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Zmienione z space-between */
+    justify-content: flex-start;
     flex: 1;
-    padding: 5px 8px; /* Zmniejszony padding */
+    padding: 5px 8px;
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
-    gap: 8px; /* Mniejszy odstęp między etykietą a przełącznikiem */
+    gap: 8px;
     box-sizing: border-box !important;
 }
 
@@ -647,20 +647,20 @@
     display: flex;
     align-items: center;
     color: #ff9900;
-    font-size: 11px; /* Nieco mniejsza czcionka */
+    font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-/* 🔹 PRZEŁĄCZNIKI FILTRÓW - MNIEJSZE I BLIŻEJ 🔹 */
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
 .category-switch {
     position: relative;
     display: inline-block;
-    width: 35px; /* Zmniejszona szerokość */
-    height: 18px; /* Zmniejszona wysokość */
+    width: 35px;
+    height: 18px;
     flex-shrink: 0;
-    margin-left: 0; /* Usunięty margines */
+    margin-left: 0;
 }
 
 .category-switch input {
@@ -701,22 +701,22 @@
 }
 
 .category-switch input:checked + .category-slider:before {
-    transform: translateX(17px); /* Dostosowane do mniejszej szerokości */
+    transform: translateX(17px);
     background-color: #ff9900;
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 ADDONS LIST - FLEX SCROLLING 🔹 */
+/* 🔹 ADDONS LIST 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 1 !important; /* Rozciąga się na całą dostępną przestrzeń */
-    overflow-y: auto !important; /* Własny scroll */
+    flex: 1 !important;
+    overflow-y: auto !important;
     overflow-x: hidden;
     padding-right: 5px;
-    margin-bottom: 0; /* Usunięty margines na dole */
-    min-height: 0 !important; /* Ważne dla flex item */
+    margin-bottom: 0;
+    min-height: 0 !important;
     box-sizing: border-box !important;
 }
 
@@ -746,7 +746,7 @@
     overflow: hidden !important;
     width: 100%;
     box-sizing: border-box !important;
-    flex-shrink: 0 !important; /* Nie kurczy się */
+    flex-shrink: 0 !important;
 }
 
 .addon-item:hover {
@@ -878,13 +878,13 @@ input:checked + .slider:before {
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8) !important;
 }
 
-/* 🔹 INNE ZAKŁADKI - STATUS I USTAWIENIA 🔹 */
+/* 🔹 INNE ZAKŁADKI 🔹 */
 #status .sw-tab-content,
 #settings .sw-tab-content {
     padding: 15px;
     background: rgba(10, 10, 10, 0.9);
     height: 100% !important;
-    overflow-y: auto !important; /* Scrollowanie dla zawartości */
+    overflow-y: auto !important;
     overflow-x: hidden;
     box-sizing: border-box !important;
     display: block !important;
@@ -1044,7 +1044,7 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
-/* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
+/* 🔹 ROZMIAR CZCIONKI 🔹 */
 .font-size-container {
     display: flex;
     align-items: center;
@@ -1087,7 +1087,7 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
-/* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
+/* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
 .background-toggle-container {
     display: flex;
     align-items: center;
@@ -1259,10 +1259,10 @@ input:checked + .slider:before {
     max-height: 40px !important;
 }
 
-/* 🔹 SCROLLBAR STYLES - GRUBSZY 🔹 */
+/* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
-    width: 12px !important; /* Grubszy scrollbar */
+    width: 12px !important;
 }
 
 .sw-tab-content::-webkit-scrollbar-track,
@@ -1283,26 +1283,26 @@ input:checked + .slider:before {
     background: linear-gradient(to bottom, #ffcc00, #cc6600) !important;
 }
 
-/* 🔹 OBSŁUGA KÓŁKA MYSZY DLA SCROLLOWANIA 🔹 */
+/* 🔹 OBSŁUGA KÓŁKA MYSZY 🔹 */
 .addon-list {
     scroll-behavior: smooth !important;
     will-change: scroll-position !important;
-    transform: translateZ(0) !important; /* Przyspieszenie sprzętowe */
+    transform: translateZ(0) !important;
     backface-visibility: hidden !important;
     -webkit-font-smoothing: antialiased !important;
 }
 
-/* 🔹 OPTYMALIZACJA WYDAJNOŚCI DLA WIELU ELEMENTÓW 🔹 */
+/* 🔹 OPTYMALIZACJA WYDAJNOŚCI 🔹 */
 .addon-item {
     transform: translateZ(0) !important;
     will-change: transform !important;
     contain: content !important;
 }
 
-/* 🔹 ZAPOBIEGANIE LAGOM PRZY SCROLLOWANIU 🔹 */
+/* 🔹 ZAPOBIEGANIE LAGOM 🔹 */
 .sw-tab-content {
     transform: translateZ(0) !important;
-    -webkit-overflow-scrolling: touch !important; /* Dla urządzeń z dotykiem */
+    -webkit-overflow-scrolling: touch !important;
 }
 
 /* 🔹 USUŃ NIE POTRZEBNĄ PUSTĄ PRZESTRZEŃ 🔹 */
@@ -1311,11 +1311,6 @@ input:checked + .slider:before {
     display: block !important;
     height: 0 !important;
     clear: both !important;
-}
-
-/* 🔹 FIX DLA KONTENERA DODATKÓW - USUŃ NIE POTRZEBNĄ BELKĘ 🔹 */
-.addon-list:after {
-    display: none !important; /* Ukryj ewentualne pseudo-elementy */
 }
 
 /* 🔹 STYL DLA KOMUNIKATU W DODATKACH 🔹 */
@@ -1331,9 +1326,9 @@ input:checked + .slider:before {
         min-width: 500px !important;
         max-width: 500px !important;
         left: 10px !important;
-        height: 600px !important;
-        min-height: 600px !important;
-        max-height: 600px !important;
+        height: 450px !important;
+        min-height: 450px !important;
+        max-height: 450px !important;
     }
     
     .category-filters {
@@ -1355,52 +1350,41 @@ input:checked + .slider:before {
         console.log('✅ CSS injected');
     }
 
-    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków - POPRAWIONA WERSJA
+    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
     function setupMouseWheelScrolling() {
         const addonList = document.getElementById('addon-list');
         if (!addonList) return;
         
-        // FLAGI DO ZAPOBIEGANIA ZAGŁUSZENIU
         let isScrolling = false;
-        let scrollTimer = null;
         
         addonList.addEventListener('wheel', function(e) {
-            // Zapobiegaj domyślnemu zachowaniu tylko jeśli lista jest scrollowalna
             const isScrollable = this.scrollHeight > this.clientHeight;
             const isAtTop = this.scrollTop === 0;
             const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
             
-            // Logika scrollowania z lepszą obsługą krawędzi
             if (isScrollable) {
-                // Sprawdź kierunek i pozycję
                 const isScrollingDown = e.deltaY > 0;
                 const isScrollingUp = e.deltaY < 0;
                 
-                // Jeśli jesteśmy na górze i scrollujemy w górę, pozwól na domyślne zachowanie
                 if (isAtTop && isScrollingUp) {
                     return;
                 }
-                // Jeśli jesteśmy na dole i scrollujemy w dół, pozwól na domyślne zachowanie
                 if (isAtBottom && isScrollingDown) {
                     return;
                 }
                 
-                // W przeciwnym razie zapobiegaj domyślnemu i przewiń listę
                 e.preventDefault();
                 
-                // Płynniejsze scrollowanie z requestAnimationFrame
                 if (!isScrolling) {
                     isScrolling = true;
                     
                     requestAnimationFrame(() => {
-                        // Użyj mniejszego przyrostu dla płynniejszego scrollowania
-                        const scrollAmount = e.deltaY * 0.8; // Zmniejsz siłę scrollowania
+                        const scrollAmount = e.deltaY * 0.8;
                         this.scrollTop += scrollAmount;
                         
-                        // Zresetuj flagę po krótkim czasie
                         setTimeout(() => {
                             isScrolling = false;
-                        }, 16); // ~60 FPS
+                        }, 16);
                     });
                 }
             }
