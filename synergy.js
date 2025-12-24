@@ -428,14 +428,15 @@
     }
 }
 
-/* 🔹 MAIN PANEL - SZERSZY I WYŻSZY 🔹 */
+/* 🔹 MAIN PANEL - SZERSZY I WYŻSZY ZE STAŁĄ WYSOKOŚCIĄ 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 640px; /* Podwójna szerokość */
-    min-height: 500px; /* Zwiększona wysokość */
-    max-height: 700px; /* Zwiększona maksymalna wysokość */
+    height: 700px !important; /* STAŁA WYSOKOŚĆ - ważne dla wszystkich zakładek */
+    min-height: 700px !important; /* Zapobiega zmniejszaniu */
+    max-height: 700px !important; /* Zapobiega zwiększaniu */
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -444,9 +445,10 @@
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
+    overflow: hidden; /* Ukrywamy overflow całego panelu */
     font-size: 12px;
     animation: fireBorder 8s infinite ease-in-out; /* Powolna animacja ognia */
+    box-sizing: border-box !important; /* Ważne dla stałych wymiarów */
 }
 
 /* Neonowy efekt na krawędziach */
@@ -478,6 +480,9 @@
     cursor: grab;
     position: relative;
     overflow: hidden;
+    height: 50px !important; /* Stała wysokość nagłówka */
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important; /* Nie kurczy się */
 }
 
 #swPanelHeader::after {
@@ -502,28 +507,16 @@
     100% { left: 100%; }
 }
 
-/* 🔹 ZAKŁADKA DODATKÓW - FLEXBOX LAYOUT 🔹 */
-#addons .sw-tab-content {
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important; /* Ukrywamy overflow, bo list będzie miał własny scroll */
-}
-
-.sw-tab-content {
-    padding: 15px;
-    background: rgba(10, 10, 10, 0.9);
-    height: 100%; /* Zmienione z calc(100% - 80px) */
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 15px !important;
-}
-
-/* 🔹 TABS STYLES 🔹 */
+/* 🔹 KONTENER ZAKŁADEK Z FIXED HEIGHT 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
     border-bottom: 1px solid #ff3300;
     padding: 0 5px;
+    height: 40px !important; /* Stała wysokość zakładek */
+    flex-shrink: 0 !important; /* Nie kurczy się */
+    box-sizing: border-box !important;
+    align-items: center;
 }
 
 .tablink {
@@ -543,6 +536,11 @@
     border-bottom: 2px solid transparent;
     position: relative;
     overflow: hidden;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tablink::before {
@@ -577,12 +575,13 @@
     text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
 }
 
-/* 🔹 TAB CONTENT 🔹 */
-.tabcontent {
+/* 🔹 CONTENT AREA - STAŁA WYSOKOŚĆ DLA WSZYSTKICH ZAKŁADEK 🔹 */
+#swAddonsPanel > .tabcontent {
     display: none;
-    padding: 15px;
-    height: calc(100% - 80px); /* Nowa linia */
-    overflow: hidden; /* Nowa linia */
+    height: calc(100% - 90px) !important; /* 100% panelu minus nagłówek (50px) i zakładki (40px) */
+    overflow: hidden; /* Ukrywamy overflow, bo każda zakładka ma własny scroll */
+    position: relative;
+    box-sizing: border-box !important;
 }
 
 .tabcontent.active {
@@ -601,6 +600,17 @@
     }
 }
 
+/* 🔹 ZAKŁADKA DODATKÓW - SPECJALNY LAYOUT 🔹 */
+#addons .sw-tab-content {
+    padding: 15px;
+    background: rgba(10, 10, 10, 0.9);
+    height: 100% !important;
+    overflow: hidden; /* Ukrywamy overflow, bo list będzie miał własny scroll */
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
 /* 🔹 CATEGORY FILTERS - POZIOMO Z BLIŻSZYMI PRZEŁĄCZNIKAMI 🔹 */
 .category-filters {
     display: flex;
@@ -611,7 +621,8 @@
     border: 1px solid #333;
     border-radius: 6px;
     padding: 10px 8px; /* Zmniejszony padding poziomy */
-    flex-shrink: 0 !important; /* Nowa linia */
+    flex-shrink: 0 !important; /* Nie kurczy się */
+    box-sizing: border-box !important;
 }
 
 .category-filter-item {
@@ -624,6 +635,7 @@
     border-radius: 4px;
     transition: all 0.3s ease;
     gap: 8px; /* Mniejszy odstęp między etykietą a przełącznikiem */
+    box-sizing: border-box !important;
 }
 
 .category-filter-item:hover {
@@ -694,18 +706,18 @@
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 ADDONS LIST - WIĘKSZA WYSOKOść I GRUBSZY SUWAK 🔹 */
+/* 🔹 ADDONS LIST - FLEX SCROLLING 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 1 !important; /* Rozciąga się na dostępne miejsce */
-    max-height: none !important; /* Usuwamy ograniczenie */
-    min-height: 0 !important; /* Ważne dla flex item */
-    overflow-y: auto !important;
+    flex: 1 !important; /* Rozciąga się na całą dostępną przestrzeń */
+    overflow-y: auto !important; /* Własny scroll */
     overflow-x: hidden;
     padding-right: 5px;
     margin-bottom: 0; /* Usunięty margines na dole */
+    min-height: 0 !important; /* Ważne dla flex item */
+    box-sizing: border-box !important;
 }
 
 .addon-list-empty {
@@ -717,6 +729,7 @@
     background: rgba(30, 30, 30, 0.5) !important;
     border-radius: 6px !important;
     margin: 5px 0 !important;
+    flex-shrink: 0 !important;
 }
 
 .addon-item {
@@ -733,6 +746,7 @@
     overflow: hidden !important;
     width: 100%;
     box-sizing: border-box !important;
+    flex-shrink: 0 !important; /* Nie kurczy się */
 }
 
 .addon-item:hover {
@@ -862,6 +876,18 @@ input:checked + .slider:before {
     transform: translateX(17px) !important;
     background-color: #ff9900 !important;
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8) !important;
+}
+
+/* 🔹 INNE ZAKŁADKI - STATUS I USTAWIENIA 🔹 */
+#status .sw-tab-content,
+#settings .sw-tab-content {
+    padding: 15px;
+    background: rgba(10, 10, 10, 0.9);
+    height: 100% !important;
+    overflow-y: auto !important; /* Scrollowanie dla zawartości */
+    overflow-x: hidden;
+    box-sizing: border-box !important;
+    display: block !important;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -1287,24 +1313,9 @@ input:checked + .slider:before {
     clear: both !important;
 }
 
-/* 🔹 POPRAWKA DLA WYSOKOŚCI KONTENERA 🔹 */
-#addons .sw-tab-content {
-    max-height: calc(100% - 60px) !important;
-    height: auto !important;
-}
-
 /* 🔹 FIX DLA KONTENERA DODATKÓW - USUŃ NIE POTRZEBNĄ BELKĘ 🔹 */
-#addons .sw-tab-content {
-    padding-bottom: 15px !important; /* Zmniejszony padding na dole */
-}
-
 .addon-list:after {
     display: none !important; /* Ukryj ewentualne pseudo-elementy */
-}
-
-/* 🔹 FIX DLA PUSTEJ PRZESTRZENI POD LISTĄ 🔹 */
-.addon-list:empty + * {
-    display: none !important;
 }
 
 /* 🔹 STYL DLA KOMUNIKATU W DODATKACH 🔹 */
@@ -1320,6 +1331,9 @@ input:checked + .slider:before {
         min-width: 500px !important;
         max-width: 500px !important;
         left: 10px !important;
+        height: 600px !important;
+        min-height: 600px !important;
+        max-height: 600px !important;
     }
     
     .category-filters {
@@ -1391,32 +1405,6 @@ input:checked + .slider:before {
                 }
             }
         }, { passive: false });
-        
-        // Dodaj również obsługę dla całego kontenera zakładki - ULEPSZONĄ
-        const tabContent = document.querySelector('#addons .sw-tab-content');
-        if (tabContent) {
-            tabContent.addEventListener('wheel', function(e) {
-                const addonList = document.getElementById('addon-list');
-                
-                // Jeśli myszka jest nad listą dodatków, pozwól jej na obsługę
-                if (addonList && addonList.contains(e.target)) {
-                    return;
-                }
-                
-                // Jeśli scrollujemy w dół i lista jest widoczna, przejdź do listy
-                if (e.deltaY > 0 && addonList && this.scrollTop + this.clientHeight >= this.scrollHeight - 50) {
-                    // Przekaż scroll do listy dodatków
-                    e.preventDefault();
-                    if (addonList.scrollTop === 0) {
-                        addonList.scrollTop += e.deltaY;
-                    }
-                    return;
-                }
-                
-                // W przeciwnym razie scrolluj normalnie kontener
-                // (nie zapobiegaj domyślnemu zachowaniu - pozwól przeglądarce obsłużyć)
-            }, { passive: true }); // Użyj passive: true dla lepszej wydajności
-        }
         
         console.log('✅ Enhanced mouse wheel scrolling enabled');
     }
