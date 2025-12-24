@@ -55,6 +55,48 @@
             favorite: false
         },
         {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
             id: 'combat-log',
             name: '6',
             description: '6',
