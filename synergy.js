@@ -21,43 +21,43 @@
     const ADDONS = [
         {
             id: 'kcs-icons',
-            name: 'KCS i Zwój Ikony',
-            description: 'Pokazuje ikony potworów na Kamieniach i Zwojach Czerwonego Smoka',
-            enabled: true,
+            name: '1',
+            description: '1',
+            enabled: false,
             favorite: false
         },
         {
             id: 'auto-looter',
-            name: 'Auto Looter',
-            description: 'Automatycznie zbiera przedmioty z potworów',
+            name: '2',
+            description: '2',
             enabled: false,
             favorite: false
         },
         {
             id: 'quest-helper',
-            name: 'Pomocnik Questów',
-            description: 'Wskazuje lokalizację zadań i wymagane przedmioty',
+            name: '3',
+            description: '3',
             enabled: false,
             favorite: false
         },
         {
             id: 'enhanced-stats',
-            name: 'Rozszerzone Statystyki',
-            description: 'Pokazuje szczegółowe statystyki postaci i przedmiotów',
+            name: '4',
+            description: '4',
             enabled: false,
             favorite: false
         },
         {
             id: 'trade-helper',
-            name: 'Asystent Handlu',
-            description: 'Pomaga w handlu, wyświetla ceny rynkowe',
+            name: '5',
+            description: '5',
             enabled: false,
             favorite: false
         },
         {
             id: 'combat-log',
-            name: 'Dziennik Walki',
-            description: 'Szczegółowy log obrażeń i efektów w walce',
+            name: '6',
+            description: '6',
             enabled: false,
             favorite: false
         }
