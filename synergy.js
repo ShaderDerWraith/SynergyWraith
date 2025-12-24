@@ -1345,12 +1345,13 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* 🔹 ZAKŁADKA INFORMACJI 🔹 */
+/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 25px 40px;
+    padding: 25px 30px;
+    margin: 0 10px;
 }
 
 .info-header {
@@ -1366,27 +1367,27 @@ input:checked + .slider:before {
 
 .info-patch-notes {
     list-style: none;
-    padding: 0 5px;
+    padding: 0;
+    margin: 0;
 }
 
 .info-patch-notes li {
-    color: #aaa;
+    color: #ccc;
     font-size: 12px;
-    margin-bottom: 10px;
-    padding-left: 30px;
+    margin-bottom: 8px;
+    padding-left: 15px;
     position: relative;
-    line-height: 1.5;
-    text-indent: -15px;
-    padding-right: 10px;
+    line-height: 1.4;
+    text-align: left;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 5px;
-    font-size: 16px;
-    text-indent: 0;
+    left: 0;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 .info-footer {
