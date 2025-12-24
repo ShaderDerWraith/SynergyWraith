@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v2.0 loaded');
+    console.log('🚀 SynergyWraith Panel loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -72,8 +72,8 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "     Dodano wyszukiwarkę dodatków",
-            "-----Dodano konfigurowalne skróty klawiszowe",
+            "Dodano wyszukiwarkę dodatków",
+            "Dodano konfigurowalne skróty klawiszowe",
             "Nowa zakładka 'Skróty'",
             "Nowa zakładka 'Informacje'",
             "Rozszerzona sekcja licencji",
@@ -402,28 +402,33 @@
 
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 12px 40px 12px 12px;
+    padding: 20px 40px 20px 12px;
     text-align: center;
     border-bottom: 1px solid #ff3300;
     cursor: grab;
     position: relative;
     overflow: hidden;
-    height: 46px !important;
+    height: 60px !important;
     box-sizing: border-box !important;
     flex-shrink: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #swPanelHeader strong {
-    font-size: 16px;
-    letter-spacing: 1px;
+    font-size: 20px;
+    letter-spacing: 2px;
     animation: fireText 8s infinite ease-in-out;
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 /* 🔹 PRZYCISK ZAMYKANIA 🔹 */
 #swPanelClose {
     position: absolute !important;
-    top: 8px !important;
-    right: 8px !important;
+    top: 15px !important;
+    right: 15px !important;
     width: 30px !important;
     height: 30px !important;
     background: rgba(255, 51, 0, 0.2) !important;
@@ -522,7 +527,7 @@
 /* 🔹 ZAKŁADKI CONTENT - FIXED HEIGHT LAYOUT 🔹 */
 .tabcontent {
     display: none;
-    height: calc(100% - 86px) !important;
+    height: calc(100% - 100px) !important;
     overflow: hidden;
     position: relative;
     box-sizing: border-box !important;
@@ -573,6 +578,7 @@
     transition: all 0.3s ease;
     box-sizing: border-box !important;
     height: 50px;
+    text-align: center;
 }
 
 .search-input:focus {
@@ -585,6 +591,7 @@
 .search-input::placeholder {
     color: #666;
     font-size: 14px;
+    text-align: center;
 }
 
 /* 🔹 CATEGORY FILTERS 🔹 */
@@ -596,7 +603,7 @@
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 10px 25px;
+    padding: 10px 30px;
     flex-shrink: 0 !important;
     box-sizing: border-box !important;
 }
@@ -690,8 +697,8 @@
     flex: 1 !important;
     overflow-y: auto !important;
     overflow-x: hidden;
-    padding: 0 5px;
-    margin-bottom: 0;
+    padding: 0 10px;
+    margin-bottom: 10px;
     min-height: 0 !important;
     box-sizing: border-box !important;
 }
@@ -712,7 +719,7 @@
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
     border-radius: 6px !important;
-    padding: 10px 20px !important;
+    padding: 10px 25px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
@@ -737,8 +744,8 @@
     flex: 1 !important;
     min-height: auto !important;
     overflow: hidden !important;
-    padding-right: 20px;
-    padding-left: 10px;
+    padding-right: 30px;
+    padding-left: 15px;
     max-width: 75%;
 }
 
@@ -765,15 +772,15 @@
     -webkit-line-clamp: 1 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
-    padding-left: 5px;
+    padding-left: 8px;
 }
 
 .addon-item-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 15px !important;
+    gap: 20px !important;
     flex-shrink: 0 !important;
-    margin-right: -5px;
+    margin-right: 5px;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -812,7 +819,7 @@
     width: 35px !important;
     height: 18px !important;
     flex-shrink: 0 !important;
-    margin-left: 5px;
+    margin-left: 10px;
 }
 
 .switch input {
@@ -858,6 +865,36 @@ input:checked + .slider:before {
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8) !important;
 }
 
+/* 🔹 PRZYCISK ODŚWIEŻ 🔹 */
+.refresh-button-container {
+    text-align: center;
+    margin-top: 10px;
+    padding: 10px;
+    border-top: 1px solid #333;
+}
+
+.refresh-button {
+    padding: 10px 30px;
+    background: linear-gradient(to right, #331100, #662200);
+    color: #ff9900;
+    border: 1px solid #ff9900;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 150px;
+}
+
+.refresh-button:hover {
+    background: linear-gradient(to right, #662200, #993300);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+}
+
 /* 🔹 INNE ZAKŁADKI 🔹 */
 #license .sw-tab-content,
 #settings .sw-tab-content,
@@ -877,7 +914,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 20px 30px;
+    padding: 25px 40px;
     margin-bottom: 20px;
 }
 
@@ -885,7 +922,7 @@ input:checked + .slider:before {
     color: #ff9900;
     font-size: 14px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border-bottom: 1px solid #333;
     padding-bottom: 10px;
     text-align: center;
@@ -896,9 +933,9 @@ input:checked + .slider:before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     font-size: 13px;
-    padding: 8px 0;
+    padding: 10px 0;
     border-bottom: 1px solid rgba(51, 51, 51, 0.5);
 }
 
@@ -910,16 +947,16 @@ input:checked + .slider:before {
 .license-status-label {
     color: #ff9900;
     font-weight: 600;
-    padding-left: 15px;
+    padding-left: 20px;
 }
 
 .license-status-value {
     font-weight: 600;
     text-align: right;
-    max-width: 65%;
+    max-width: 60%;
     word-break: break-all;
     font-size: 12px;
-    padding-right: 15px;
+    padding-right: 20px;
 }
 
 .license-status-valid {
@@ -946,11 +983,11 @@ input:checked + .slider:before {
 .license-activation-container {
     text-align: center;
     margin-top: 20px;
-    padding: 0 15px;
+    padding: 0 20px;
 }
 
 .license-activation-button {
-    padding: 12px 24px;
+    padding: 12px 30px;
     background: linear-gradient(to right, #331100, #662200);
     color: #ff9900;
     border: 1px solid #ff9900;
@@ -961,6 +998,7 @@ input:checked + .slider:before {
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    min-width: 200px;
 }
 
 .license-activation-button:hover {
@@ -989,7 +1027,7 @@ input:checked + .slider:before {
     width: 400px;
     border: 2px solid #ff3300;
     border-radius: 8px;
-    padding: 20px 30px;
+    padding: 25px 35px;
     position: relative;
     animation: fireBorder 8s infinite ease-in-out;
 }
@@ -998,7 +1036,7 @@ input:checked + .slider:before {
     color: #ff9900;
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
@@ -1027,7 +1065,7 @@ input:checked + .slider:before {
     display: flex;
     gap: 10px;
     margin-top: 20px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .license-modal-button {
@@ -1084,7 +1122,7 @@ input:checked + .slider:before {
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
-    padding: 15px 25px;
+    padding: 18px 30px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
@@ -1095,10 +1133,10 @@ input:checked + .slider:before {
     display: block;
     color: #ff9900;
     font-size: 13px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-left: 10px;
+    padding-left: 15px;
 }
 
 /* 🔹 SKRÓT KLAWISZOWY - INPUT 🔹 */
@@ -1107,7 +1145,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .shortcut-input-label {
@@ -1126,7 +1164,7 @@ input:checked + .slider:before {
     color: #ff9900;
     font-size: 13px;
     text-align: center;
-    width: 120px;
+    width: 130px;
     transition: all 0.3s ease;
     font-weight: bold;
     letter-spacing: 1px;
@@ -1145,7 +1183,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .font-size-slider {
@@ -1155,7 +1193,7 @@ input:checked + .slider:before {
     background: #333;
     border-radius: 4px;
     outline: none;
-    margin: 0 15px;
+    margin: 0 20px;
 }
 
 .font-size-slider::-webkit-slider-thumb {
@@ -1182,7 +1220,7 @@ input:checked + .slider:before {
     min-width: 40px;
     text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-right: 10px;
+    padding-right: 15px;
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
@@ -1191,7 +1229,7 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .background-toggle-label {
@@ -1206,7 +1244,7 @@ input:checked + .slider:before {
     display: inline-block;
     width: 50px;
     height: 24px;
-    margin-right: -5px;
+    margin-right: 0;
 }
 
 .background-toggle input {
@@ -1257,14 +1295,14 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .shortcut-item {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 12px 25px;
+    padding: 14px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1296,7 +1334,7 @@ input:checked + .slider:before {
 .shortcut-key {
     background: rgba(51, 17, 0, 0.8);
     color: #ff9900;
-    padding: 6px 20px;
+    padding: 6px 22px;
     border-radius: 4px;
     font-family: monospace;
     font-size: 12px;
@@ -1312,7 +1350,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 25px 35px;
+    padding: 25px 40px;
 }
 
 .info-header {
@@ -1328,23 +1366,27 @@ input:checked + .slider:before {
 
 .info-patch-notes {
     list-style: none;
-    padding: 0 15px;
+    padding: 0 5px;
 }
 
 .info-patch-notes li {
     color: #aaa;
     font-size: 12px;
-    margin-bottom: 8px;
-    padding-left: 25px;
+    margin-bottom: 10px;
+    padding-left: 30px;
     position: relative;
-    line-height: 1.4;
+    line-height: 1.5;
+    text-indent: -15px;
+    padding-right: 10px;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 10px;
+    left: 5px;
+    font-size: 16px;
+    text-indent: 0;
 }
 
 .info-footer {
@@ -1362,7 +1404,7 @@ input:checked + .slider:before {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #333;
-    padding: 15px 10px 0;
+    padding: 15px 15px 0;
 }
 
 .reset-settings-button {
@@ -1525,7 +1567,7 @@ input:checked + .slider:before {
 #swAddonsMessage {
     flex-shrink: 0 !important;
     margin-top: 10px !important;
-    padding: 0 10px !important;
+    padding: 0 15px !important;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1686,7 +1728,7 @@ input:checked + .slider:before {
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH PANEL v${VERSION_INFO.version}</strong>
+                <strong>SYNERGY WRAITH</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
@@ -1737,6 +1779,13 @@ input:checked + .slider:before {
                     <div class="addon-list" id="addon-list">
                         <!-- Lista dodatków zostanie dodana dynamicznie -->
                     </div>
+                    
+                    <div class="refresh-button-container">
+                        <button class="refresh-button" id="swRefreshButton">
+                            Odśwież
+                        </button>
+                    </div>
+                    
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
                 </div>
             </div>
@@ -2274,6 +2323,16 @@ input:checked + .slider:before {
 
         // Skrót klawiszowy
         setupShortcutInput();
+
+        // Przycisk odśwież
+        const refreshBtn = document.getElementById('swRefreshButton');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                if (confirm('Czy na pewno chcesz odświeżyć stronę? Wszystkie niezapisane zmiany zostaną utracone.')) {
+                    location.reload();
+                }
+            });
+        }
 
         // Resetowanie ustawień
         const resetBtn = document.getElementById('swResetButton');
