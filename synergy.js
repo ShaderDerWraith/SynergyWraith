@@ -1385,7 +1385,8 @@ input:checked + .slider:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 5px;
+    left: 0;
+    top: 0;
     font-size: 16px;
     font-weight: bold;
 }
