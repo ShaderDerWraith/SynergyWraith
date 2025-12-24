@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.8 loaded');
+    console.log('🚀 SynergyWraith Panel v1.9 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -158,6 +158,27 @@
         innerObserver.observe(panel, { childList: true, subtree: true });
     }
 
+    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
+    function updatePanelFontSize(size) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        // Usuń wszystkie poprzednie style font-size
+        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
+        
+        // Ustaw nowy rozmiar czcionki z !important
+        panel.style.setProperty('font-size', size + 'px', 'important');
+        
+        // Również ustaw dla wszystkich elementów wewnątrz panelu
+        const allElements = panel.querySelectorAll('*');
+        allElements.forEach(element => {
+            element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
+            element.style.setProperty('font-size', size + 'px', 'important');
+        });
+        
+        console.log('📏 Font size updated to:', size + 'px');
+    }
+
     // 🔹 Wstrzyknij CSS
     function injectCSS() {
         const style = document.createElement('style');
@@ -308,8 +329,8 @@
     top: 140px;
     left: 70px;
     width: 640px; /* Podwójna szerokość */
-    min-height: 450px; /* Większa wysokość */
-    max-height: 550px; /* Maksymalna wysokość */
+    min-height: 500px; /* Zwiększona wysokość */
+    max-height: 600px; /* Zwiększona maksymalna wysokość */
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -382,6 +403,7 @@
     height: calc(100% - 80px);
     overflow-y: auto;
     overflow-x: hidden; /* Zapobiega poziomemu scrollowaniu */
+    padding-bottom: 20px; /* Dodajemy padding na dole aby dodatki nie były zasłaniane */
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -467,28 +489,28 @@
     }
 }
 
-/* 🔹 CATEGORY FILTERS - POZIOMO 🔹 */
+/* 🔹 CATEGORY FILTERS - POZIOMO Z BLIŻSZYMI PRZEŁĄCZNIKAMI 🔹 */
 .category-filters {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 5px; /* Zmniejszony gap */
     margin-bottom: 15px;
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 10px;
+    padding: 10px 8px; /* Zmniejszony padding poziomy */
 }
 
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Zmienione z space-between na flex-start */
+    justify-content: flex-start; /* Zmienione z space-between */
     flex: 1;
-    padding: 5px 10px;
+    padding: 5px 8px; /* Zmniejszony padding */
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
-    gap: 10px; /* Odstęp między etykietą a przełącznikiem */
+    gap: 8px; /* Mniejszy odstęp między etykietą a przełącznikiem */
 }
 
 .category-filter-item:hover {
@@ -499,22 +521,21 @@
 .category-filter-label {
     display: flex;
     align-items: center;
-    gap: 8px;
     color: #ff9900;
-    font-size: 12px;
+    font-size: 11px; /* Nieco mniejsza czcionka */
     font-weight: 600;
     white-space: nowrap;
-    flex-grow: 1;
+    flex-shrink: 0;
 }
 
-/* 🔹 PRZEŁĄCZNIKI FILTRÓW - BLIŻEJ ETYKIETY 🔹 */
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW - MNIEJSZE I BLIŻEJ 🔹 */
 .category-switch {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 35px; /* Zmniejszona szerokość */
+    height: 18px; /* Zmniejszona wysokość */
     flex-shrink: 0;
-    margin-left: auto; /* Wypycha przełącznik na prawą stronę */
+    margin-left: 0; /* Usunięty margines */
 }
 
 .category-switch input {
@@ -532,21 +553,21 @@
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 20px;
+    border-radius: 18px;
     border: 1px solid #555;
 }
 
 .category-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     left: 2px;
     bottom: 2px;
     background-color: #ff9900;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
+    box-shadow: 0 0 4px rgba(255, 153, 0, 0.5);
 }
 
 .category-switch input:checked + .category-slider {
@@ -555,20 +576,21 @@
 }
 
 .category-switch input:checked + .category-slider:before {
-    transform: translateX(20px);
+    transform: translateX(17px); /* Dostosowane do mniejszej szerokości */
     background-color: #ff9900;
-    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
+    box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 ADDONS LIST - BEZ POZIOMEGO SCROLLOWANIA 🔹 */
+/* 🔹 ADDONS LIST - WIĘKSZA WYSOKOść I GRUBSZY SUWAK 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 280px; /* Zwiększona wysokość aby zmieścić więcej dodatków */
+    max-height: 350px; /* Zwiększona wysokość */
     overflow-y: auto;
-    overflow-x: hidden; /* Ukrywa poziomy scrollbar */
+    overflow-x: hidden;
     padding-right: 5px;
+    margin-bottom: 0; /* Usunięty margines na dole */
 }
 
 .addon-list-empty {
@@ -579,22 +601,22 @@
     font-style: italic !important;
     background: rgba(30, 30, 30, 0.5) !important;
     border-radius: 6px !important;
-    margin: 10px 0 !important;
+    margin: 5px 0 !important;
 }
 
 .addon-item {
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
     border-radius: 6px !important;
-    padding: 10px 15px !important;
+    padding: 10px 12px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    min-height: 50px !important;
-    max-height: 50px !important;
+    min-height: 45px !important;
+    max-height: 45px !important;
     overflow: hidden !important;
-    width: 100%; /* Zapewnia pełną szerokość */
+    width: 100%;
     box-sizing: border-box !important;
 }
 
@@ -611,7 +633,7 @@
     min-height: auto !important;
     overflow: hidden !important;
     padding-right: 10px;
-    max-width: 75%; /* Ogranicza szerokość aby zmieścić przyciski */
+    max-width: 75%;
 }
 
 .addon-item-title {
@@ -623,7 +645,7 @@
     align-items: center !important;
     gap: 8px !important;
     line-height: 1.3 !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 2px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -631,10 +653,10 @@
 
 .addon-item-description {
     color: #888 !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     line-height: 1.2 !important;
     display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
+    -webkit-line-clamp: 1 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
 }
@@ -642,7 +664,7 @@
 .addon-item-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 10px !important;
     flex-shrink: 0 !important;
 }
 
@@ -652,17 +674,17 @@
     border: none !important;
     color: #888 !important;
     cursor: pointer !important;
-    padding: 4px !important;
-    font-size: 16px !important;
+    padding: 3px !important;
+    font-size: 14px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 4px !important;
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    min-height: 24px !important;
+    border-radius: 3px !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
 }
 
 .favorite-btn:hover {
@@ -679,8 +701,8 @@
 .switch {
     position: relative !important;
     display: inline-block !important;
-    width: 40px !important;
-    height: 20px !important;
+    width: 35px !important;
+    height: 18px !important;
     flex-shrink: 0 !important;
 }
 
@@ -699,21 +721,21 @@
     bottom: 0 !important;
     background-color: #333 !important;
     transition: .3s !important;
-    border-radius: 20px !important;
+    border-radius: 18px !important;
     border: 1px solid #555 !important;
 }
 
 .slider:before {
     position: absolute !important;
     content: "" !important;
-    height: 16px !important;
-    width: 16px !important;
+    height: 14px !important;
+    width: 14px !important;
     left: 2px !important;
     bottom: 2px !important;
     background-color: #ff9900 !important;
     transition: .3s !important;
     border-radius: 50% !important;
-    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5) !important;
+    box-shadow: 0 0 4px rgba(255, 153, 0, 0.5) !important;
 }
 
 input:checked + .slider {
@@ -722,9 +744,9 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(20px) !important;
+    transform: translateX(17px) !important;
     background-color: #ff9900 !important;
-    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8) !important;
+    box-shadow: 0 0 6px rgba(255, 153, 0, 0.8) !important;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -1096,27 +1118,33 @@ input:checked + .slider:before {
     max-height: 40px !important;
 }
 
-/* 🔹 SCROLLBAR STYLES 🔹 */
+/* 🔹 SCROLLBAR STYLES - GRUBSZY 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
-    width: 8px;
+    width: 12px !important; /* Grubszy scrollbar */
 }
 
 .sw-tab-content::-webkit-scrollbar-track,
 .addon-list::-webkit-scrollbar-track {
-    background: rgba(20, 20, 20, 0.8);
-    border-radius: 4px;
+    background: rgba(20, 20, 20, 0.8) !important;
+    border-radius: 6px !important;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb,
 .addon-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff9900, #993300);
-    border-radius: 4px;
+    background: linear-gradient(to bottom, #ff9900, #993300) !important;
+    border-radius: 6px !important;
+    border: 2px solid rgba(20, 20, 20, 0.8) !important;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb:hover,
 .addon-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #ffcc00, #cc6600);
+    background: linear-gradient(to bottom, #ffcc00, #cc6600) !important;
+}
+
+/* 🔹 OBSŁUGA KÓŁKA MYSZY DLA SCROLLOWANIA 🔹 */
+.addon-list {
+    scroll-behavior: smooth;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1153,18 +1181,30 @@ input:checked + .slider:before {
         if (!addonList) return;
         
         addonList.addEventListener('wheel', function(e) {
-            // Zapobiegaj domyślnemu zachowaniu scrollowania
-            e.preventDefault();
-            
-            // Przewiń listę w pionie
-            this.scrollTop += e.deltaY;
-            
-            // Opcjonalnie: możesz dodać płynniejsze scrollowanie
-            // this.scrollTo({
-            //     top: this.scrollTop + e.deltaY,
-            //     behavior: 'smooth'
-            // });
+            // Zapobiegaj domyślnemu zachowaniu scrollowania tylko jeśli jest co scrollować
+            const isScrollable = this.scrollHeight > this.clientHeight;
+            if (isScrollable) {
+                e.preventDefault();
+                // Przewiń listę w pionie
+                this.scrollTop += e.deltaY;
+            }
         }, { passive: false });
+        
+        // Dodaj również obsługę dla całego kontenera zakładki
+        const tabContent = document.querySelector('#addons .sw-tab-content');
+        if (tabContent) {
+            tabContent.addEventListener('wheel', function(e) {
+                const addonList = document.getElementById('addon-list');
+                if (addonList && addonList.contains(e.target)) {
+                    // Jeśli myszka jest nad listą, nie robimy nic - obsłuży to lista
+                    return;
+                }
+                
+                // W przeciwnym razie scrolluj cały kontener
+                e.preventDefault();
+                this.scrollTop += e.deltaY;
+            }, { passive: false });
+        }
         
         console.log('✅ Mouse wheel scrolling enabled');
     }
@@ -1188,7 +1228,9 @@ input:checked + .slider:before {
         preventPanelResize();
         
         // 🔹 Dodaj obsługę scrollowania myszką
-        setTimeout(setupMouseWheelScrolling, 100);
+        setTimeout(() => {
+            setupMouseWheelScrolling();
+        }, 500);
         
         // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
@@ -1668,15 +1710,12 @@ input:checked + .slider:before {
             const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
             fontSizeSlider.value = savedSize;
             fontSizeValue.textContent = savedSize + 'px';
+            updatePanelFontSize(savedSize);
             
             fontSizeSlider.addEventListener('input', function() {
                 const size = this.value;
                 fontSizeValue.textContent = size + 'px';
-                const panel = document.getElementById('swAddonsPanel');
-                if (panel) {
-                    // Ustaw rozmiar czcionki dla panelu
-                    panel.style.fontSize = size + 'px';
-                }
+                updatePanelFontSize(size);
                 SW.GM_setValue(CONFIG.FONT_SIZE, size);
             });
         }
@@ -1856,15 +1895,16 @@ input:checked + .slider:before {
         updateFilterSwitches();
         renderAddons();
         
-        // Zresetuj rozmiar czcionki i tło
+        // Zresetuj rozmiar czcionki
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeSlider && fontSizeValue) {
             fontSizeSlider.value = '12';
             fontSizeValue.textContent = '12px';
-            document.getElementById('swAddonsPanel').style.fontSize = '12px';
+            updatePanelFontSize('12');
         }
         
+        // Zresetuj widoczność tła
         const backgroundToggle = document.getElementById('backgroundToggle');
         if (backgroundToggle) {
             backgroundToggle.checked = true;
@@ -1914,6 +1954,10 @@ input:checked + .slider:before {
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
+        
+        // Załaduj rozmiar czcionki
+        const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+        updatePanelFontSize(savedSize);
         
         console.log('✅ Saved state loaded');
     }
