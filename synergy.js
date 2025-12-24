@@ -34,6 +34,69 @@
             favorite: false
         },
         {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
+            id: 'trade-helper',
+            name: '5',
+            description: '5',
+            enabled: false,
+            favorite: false
+        },
+        {
             id: 'quest-helper',
             name: '3',
             description: '3',
