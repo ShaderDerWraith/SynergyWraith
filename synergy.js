@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v1.5 loaded');
+    console.log('🚀 SynergyWraith Panel v1.6 loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -13,6 +13,7 @@
         FAVORITE_ADDONS: "sw_favorite_addons",
         FONT_SIZE: "sw_panel_font_size",
         BACKGROUND_VISIBLE: "sw_panel_background",
+        ACTIVE_CATEGORIES: "sw_active_categories",
         LICENSE_LIST_URL: "https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/LICENSE"
     };
 
@@ -109,6 +110,11 @@
     let isLicenseVerified = false;
     let userAccountId = null;
     let currentAddons = [...ADDONS];
+    let activeCategories = {
+        enabled: true,
+        disabled: true,
+        favorites: true
+    };
 
     // 🔹 Funkcja zapobiegająca zmianom rozmiaru
     function preventPanelResize() {
@@ -116,9 +122,9 @@
         if (!panel) return;
         
         // Ustaw stałe wymiary
-        panel.style.minWidth = '400px'; // Zwiększono szerokość
-        panel.style.maxWidth = '400px';
-        panel.style.width = '400px';
+        panel.style.minWidth = '320px';
+        panel.style.maxWidth = '320px';
+        panel.style.width = '320px';
         panel.style.resize = 'none';
         
         // Obserwuj zmiany w DOM
@@ -126,9 +132,9 @@
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
                     // Przywróć oryginalne style jeśli zostały zmienione
-                    panel.style.minWidth = '400px';
-                    panel.style.maxWidth = '400px';
-                    panel.style.width = '400px';
+                    panel.style.minWidth = '320px';
+                    panel.style.maxWidth = '320px';
+                    panel.style.width = '320px';
                     panel.style.resize = 'none';
                 }
             });
@@ -233,24 +239,25 @@
     background: transparent;
 }
 
-/* 🔹 MAIN PANEL - WIĘKSZY 🔹 */
+/* 🔹 MAIN PANEL - MNIEJSZY 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
-    width: 400px; /* Zwiększono szerokość */
-    min-height: 500px; /* Minimalna wysokość */
+    width: 320px; /* Zmniejszona szerokość */
+    min-height: 250px; /* Znacznie mniejsza wysokość */
+    max-height: 400px; /* Maksymalna wysokość */
     background: linear-gradient(135deg, #0a0a0a, #121212);
-    border: 3px solid #00ff00;
-    border-radius: 10px;
+    border: 2px solid #00ff00;
+    border-radius: 8px;
     color: #ffffff;
     z-index: 999999;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.1);
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
-    font-size: 12px; /* Bazowy rozmiar czcionki */
+    font-size: 11px; /* Mniejsza czcionka bazowa */
 }
 
 /* Neonowy efekt na krawędziach */
@@ -261,8 +268,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 8px;
-    padding: 2px;
+    border-radius: 6px;
+    padding: 1px;
     background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
     -webkit-mask: 
         linear-gradient(#fff 0 0) content-box, 
@@ -275,12 +282,13 @@
 
 #swPanelHeader {
     background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 12px;
+    padding: 8px 12px;
     text-align: center;
     border-bottom: 1px solid #00ff00;
     cursor: grab;
     position: relative;
     overflow: hidden;
+    font-size: 12px;
 }
 
 #swPanelHeader::after {
@@ -300,10 +308,10 @@
 }
 
 .sw-tab-content {
-    padding: 15px;
+    padding: 10px;
     background: rgba(10, 10, 10, 0.9);
-    height: calc(100% - 90px); /* Wysokość dostosowana do zawartości */
-    overflow-y: auto; /* Scrollowanie wewnątrz zakładki */
+    height: calc(100% - 80px); /* Dostosowana wysokość */
+    overflow-y: auto;
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -311,7 +319,7 @@
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
     border-bottom: 1px solid #00ff00;
-    padding: 0 5px;
+    padding: 0 3px;
 }
 
 .tablink {
@@ -320,14 +328,14 @@
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 12px 5px;
-    margin: 0 5px;
+    padding: 8px 3px;
+    margin: 0 2px;
     transition: all 0.2s ease;
     color: #aaaaaa;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     border-bottom: 2px solid transparent;
     position: relative;
     overflow: hidden;
@@ -351,24 +359,24 @@
 
 .tablink.active {
     color: #00ff00;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
 }
 
 .tablink.active::before {
     width: 100%;
     background: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
 }
 
 .tablink:hover:not(.active) {
     color: #00ff00;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 TAB CONTENT 🔹 */
 .tabcontent {
     display: none;
-    padding: 15px;
+    padding: 10px;
     height: 100%;
     overflow: hidden;
 }
@@ -390,15 +398,15 @@
 }
 
 .tabcontent h3 {
-    margin: 0 0 15px 0;
+    margin: 0 0 10px 0;
     color: #00ff00;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
     border-bottom: 1px solid #333;
-    padding-bottom: 8px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    padding-bottom: 6px;
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
     position: relative;
 }
 
@@ -407,102 +415,135 @@
     position: absolute;
     bottom: -1px;
     left: 0;
-    width: 50px;
+    width: 40px;
     height: 1px;
     background: #ff0000;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
 }
 
-/* 🔹 SEKCJE DODATKÓW Z PRZEŁĄCZNIKAMI 🔹 */
-.addons-section {
-    margin-bottom: 20px;
-    border: 1px solid #333;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.section-header {
+/* 🔹 CATEGORY FILTERS - NOWY STYL 🔹 */
+.category-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
     background: rgba(20, 20, 20, 0.8);
-    padding: 10px 15px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.category-filter-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    cursor: pointer;
-    border-bottom: 1px solid transparent;
+    padding: 5px 0;
 }
 
-.section-header:hover {
-    background: rgba(30, 30, 30, 0.9);
-}
-
-.section-title {
-    color: #00ff00;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.category-filter-label {
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.section-count {
-    background: rgba(0, 255, 0, 0.2);
+    gap: 6px;
     color: #00ff00;
-    padding: 2px 8px;
-    border-radius: 10px;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.section-toggle {
-    background: none;
-    border: none;
+.category-filter-count {
+    background: rgba(0, 255, 0, 0.15);
     color: #00ff00;
-    cursor: pointer;
-    font-size: 18px;
-    transition: transform 0.3s ease;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
 }
 
-.section-content {
-    background: rgba(10, 10, 10, 0.9);
-    padding: 15px;
-    max-height: 300px; /* Maksymalna wysokość przed scrollowaniem */
-    overflow-y: auto;
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW - TAKIE SAME JAK DODATKI 🔹 */
+.category-switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.category-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.category-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 18px;
+    border: 1px solid #555;
+}
+
+.category-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(0, 255, 0, 0.5);
+}
+
+.category-switch input:checked + .category-slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+.category-switch input:checked + .category-slider:before {
+    transform: translateX(16px);
+    background-color: #00ff00;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
 }
 
 /* 🔹 ADDONS LIST - KOMPAKTOWY 🔹 */
 .addon-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    max-height: 180px; /* Zmniejszona maksymalna wysokość */
+    overflow-y: auto;
+    padding-right: 3px;
 }
 
 .addon-list-empty {
     text-align: center !important;
     color: #666 !important;
-    font-size: 12px !important;
-    padding: 20px !important;
+    font-size: 10px !important;
+    padding: 15px 10px !important;
     font-style: italic !important;
+    background: rgba(30, 30, 30, 0.5) !important;
+    border-radius: 4px !important;
+    margin: 5px 0 !important;
 }
 
 .addon-item {
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
-    border-radius: 5px !important;
-    padding: 10px 12px !important;
+    border-radius: 4px !important;
+    padding: 6px 8px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    min-height: 50px !important;
-    max-height: none !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
     overflow: hidden !important;
 }
 
@@ -516,26 +557,30 @@
     flex-direction: column !important;
     flex: 1 !important;
     min-height: auto !important;
+    overflow: hidden !important;
 }
 
 .addon-item-title {
     font-weight: 600 !important;
     color: #00ff00 !important;
-    font-size: 13px !important;
-    text-shadow: 0 0 3px rgba(0, 255, 0, 0.3) !important;
+    font-size: 11px !important;
+    text-shadow: 0 0 2px rgba(0, 255, 0, 0.3) !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    line-height: 1.3 !important;
-    margin-bottom: 4px !important;
+    gap: 4px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 .addon-item-description {
     color: #888 !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
     display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
+    -webkit-line-clamp: 1 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
 }
@@ -543,27 +588,27 @@
 .addon-item-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 6px !important;
     flex-shrink: 0 !important;
 }
 
-/* 🔹 FAVORITE STAR 🔹 */
+/* 🔹 FAVORITE STAR - MNIEJSZY 🔹 */
 .favorite-btn {
     background: none !important;
     border: none !important;
     color: #888 !important;
     cursor: pointer !important;
-    padding: 4px !important;
-    font-size: 16px !important;
+    padding: 2px !important;
+    font-size: 12px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 4px !important;
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    min-height: 24px !important;
+    border-radius: 2px !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
 }
 
 .favorite-btn:hover {
@@ -573,15 +618,15 @@
 
 .favorite-btn.favorite {
     color: #ffaa00 !important;
-    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5) !important;
+    text-shadow: 0 0 4px rgba(255, 170, 0, 0.5) !important;
 }
 
-/* 🔹 SWITCH STYLE 🔹 */
+/* 🔹 SWITCH STYLE - TAKI SAM JAK DLA FILTRÓW 🔹 */
 .switch {
     position: relative !important;
     display: inline-block !important;
-    width: 40px !important;
-    height: 20px !important;
+    width: 34px !important;
+    height: 18px !important;
     flex-shrink: 0 !important;
 }
 
@@ -600,21 +645,21 @@
     bottom: 0 !important;
     background-color: #333 !important;
     transition: .3s !important;
-    border-radius: 20px !important;
+    border-radius: 18px !important;
     border: 1px solid #555 !important;
 }
 
 .slider:before {
     position: absolute !important;
     content: "" !important;
-    height: 16px !important;
-    width: 16px !important;
+    height: 14px !important;
+    width: 14px !important;
     left: 2px !important;
     bottom: 2px !important;
     background-color: #00ff00 !important;
     transition: .3s !important;
     border-radius: 50% !important;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5) !important;
+    box-shadow: 0 0 3px rgba(0, 255, 0, 0.5) !important;
 }
 
 input:checked + .slider {
@@ -623,63 +668,63 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(20px) !important;
+    transform: translateX(16px) !important;
     background-color: #00ff00 !important;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8) !important;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8) !important;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
 .license-container {
     text-align: center;
-    padding: 20px 0;
+    padding: 15px 0;
 }
 
 .license-input {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
+    padding: 8px;
+    margin: 8px 0;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 5px;
+    border-radius: 4px;
     color: #00ff00;
-    font-size: 12px;
+    font-size: 11px;
     transition: all 0.3s ease;
 }
 
 .license-input:focus {
     outline: none;
     border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
     background: rgba(40, 40, 40, 0.9);
 }
 
 .license-button {
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     background: linear-gradient(to right, #003300, #006600);
     color: #00ff00;
     border: 1px solid #00ff00;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 11px;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
 }
 
 .license-button:hover {
     background: linear-gradient(to right, #006600, #009900);
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
 }
 
 .license-message {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 12px;
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 11px;
     text-align: center;
     border: 1px solid;
 }
@@ -688,50 +733,50 @@ input:checked + .slider:before {
     background: rgba(0, 100, 0, 0.2);
     color: #00ff00;
     border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
 }
 
 .license-error {
     background: rgba(100, 0, 0, 0.2);
     color: #ff0000;
     border-color: #ff0000;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
 }
 
 .license-info {
     background: rgba(0, 50, 100, 0.2);
     color: #00aaff;
     border-color: #00aaff;
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 170, 255, 0.3);
 }
 
 /* 🔹 LICENSE STATUS IN TAB 🔹 */
 .license-status-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
-    padding: 15px;
-    margin-top: 20px;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 15px;
 }
 
 .license-status-header {
     color: #00ff00;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-bottom: 1px solid #333;
-    padding-bottom: 8px;
+    padding-bottom: 6px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
 }
 
 .license-status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 12px;
-    padding: 5px 0;
+    margin-bottom: 8px;
+    font-size: 11px;
+    padding: 4px 0;
     border-bottom: 1px solid rgba(51, 51, 51, 0.5);
 }
 
@@ -750,78 +795,79 @@ input:checked + .slider:before {
     text-align: right;
     max-width: 60%;
     word-break: break-all;
+    font-size: 10px;
 }
 
 .license-status-valid {
     color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
 }
 
 .license-status-invalid {
     color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    text-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
 }
 
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 12px;
+    padding: 10px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
+    border-radius: 5px;
     transition: all 0.3s ease;
 }
 
 .settings-label {
     display: block;
     color: #00ff00;
-    font-size: 13px;
-    margin-bottom: 10px;
+    font-size: 11px;
+    margin-bottom: 8px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
 .font-size-container {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .font-size-slider {
     flex: 1;
     -webkit-appearance: none;
-    height: 8px;
+    height: 5px;
     background: #333;
-    border-radius: 4px;
+    border-radius: 3px;
     outline: none;
 }
 
 .font-size-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     background: #00ff00;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
     transition: all 0.3s ease;
 }
 
 .font-size-slider::-webkit-slider-thumb:hover {
     background: #00cc00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
-    transform: scale(1.1);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+    transform: scale(1.05);
 }
 
 .font-size-value {
     color: #00ff00;
     font-weight: bold;
-    font-size: 13px;
-    min-width: 40px;
+    font-size: 11px;
+    min-width: 25px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
@@ -829,21 +875,21 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .background-toggle-label {
     color: #00ff00;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 4px rgba(0, 255, 0, 0.3);
 }
 
 .background-toggle {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 24px;
+    width: 40px;
+    height: 20px;
 }
 
 .background-toggle input {
@@ -861,21 +907,21 @@ input:checked + .slider:before {
     bottom: 0;
     background-color: #333;
     transition: .3s;
-    border-radius: 24px;
+    border-radius: 20px;
     border: 1px solid #555;
 }
 
 .background-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
     background-color: #00ff00;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
 }
 
 .background-toggle input:checked + .background-toggle-slider {
@@ -884,15 +930,15 @@ input:checked + .slider:before {
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(26px);
+    transform: translateX(20px);
     background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
 }
 
 /* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
 .reset-settings-container {
-    margin-top: 20px;
-    padding-top: 15px;
+    margin-top: 15px;
+    padding-top: 12px;
     border-top: 1px solid #333;
 }
 
@@ -900,18 +946,18 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
-    padding: 12px;
+    padding: 8px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
-    border-radius: 6px;
+    border-radius: 5px;
     color: #ff0000;
     cursor: pointer;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     transition: all 0.3s ease;
 }
 
@@ -919,8 +965,8 @@ input:checked + .slider:before {
     background: rgba(50, 30, 30, 0.9);
     border-color: #ff0000;
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
 }
 
 .reset-settings-button:active {
@@ -929,7 +975,7 @@ input:checked + .slider:before {
 
 .reset-settings-icon {
     color: #ff0000;
-    font-size: 16px;
+    font-size: 12px;
     transition: all 0.3s ease;
 }
 
@@ -942,8 +988,8 @@ input:checked + .slider:before {
 #swAddonsPanel.transparent-background {
     background: transparent !important;
     backdrop-filter: none !important;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6) !important;
-    border: 3px solid #00ff00 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6) !important;
+    border: 2px solid #00ff00 !important;
 }
 
 #swAddonsPanel.transparent-background::before {
@@ -956,9 +1002,7 @@ input:checked + .slider:before {
 #swAddonsPanel.transparent-background .addon-item,
 #swAddonsPanel.transparent-background .settings-item,
 #swAddonsPanel.transparent-background .license-status-container,
-#swAddonsPanel.transparent-background .addons-section,
-#swAddonsPanel.transparent-background .section-header,
-#swAddonsPanel.transparent-background .section-content {
+#swAddonsPanel.transparent-background .category-filters {
     background: transparent !important;
     backdrop-filter: blur(5px) !important;
 }
@@ -973,72 +1017,72 @@ input:checked + .slider:before {
     margin: 0 !important;
     padding: 0 !important;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    line-height: 1.3 !important;
+    line-height: 1.2 !important;
 }
 
 /* 🔹 ZAPOBIEGANIE ROZCIĄGANIU 🔹 */
 #swAddonsPanel {
-    min-width: 400px !important;
-    max-width: 400px !important;
-    width: 400px !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    width: 320px !important;
     resize: none !important;
 }
 
 /* 🔹 FIX DLA INPUTÓW 🔹 */
 #swAddonsPanel input[type="checkbox"] {
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
-    min-height: 16px !important;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
 }
 
 /* 🔹 FIX DLA PRZYCISKÓW 🔹 */
 #swAddonsPanel button {
-    min-height: 30px !important;
-    max-height: 40px !important;
+    min-height: 24px !important;
+    max-height: 30px !important;
 }
 
 /* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
-.section-content::-webkit-scrollbar {
-    width: 8px;
+.addon-list::-webkit-scrollbar {
+    width: 6px;
 }
 
 .sw-tab-content::-webkit-scrollbar-track,
-.section-content::-webkit-scrollbar-track {
+.addon-list::-webkit-scrollbar-track {
     background: rgba(20, 20, 20, 0.8);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb,
-.section-content::-webkit-scrollbar-thumb {
+.addon-list::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb:hover,
-.section-content::-webkit-scrollbar-thumb:hover {
+.addon-list::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #00ff00, #009900);
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
-@media (max-width: 450px) {
+@media (max-width: 350px) {
     #swAddonsPanel {
-        width: 350px !important;
-        min-width: 350px !important;
-        max-width: 350px !important;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
         left: 10px !important;
     }
     
     .tablink {
-        padding: 10px 5px;
-        font-size: 11px;
+        padding: 6px 2px;
+        font-size: 9px;
     }
     
     .license-status-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 3px;
+        gap: 2px;
     }
     
     .license-status-value {
@@ -1058,7 +1102,7 @@ input:checked + .slider:before {
     .background-toggle-container {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
     }
 }
         `;
@@ -1073,8 +1117,9 @@ input:checked + .slider:before {
         // Wstrzyknij CSS
         injectCSS();
         
-        // Ładujemy zapisane dodatki
+        // Ładujemy zapisane dodatki i kategorie
         loadAddonsState();
+        loadCategoriesState();
         
         // Tworzymy elementy
         createToggleButton();
@@ -1295,43 +1340,41 @@ input:checked + .slider:before {
             <div id="addons" class="tabcontent active">
                 <h3>Dodatki</h3>
                 <div class="sw-tab-content">
-                    <div class="addons-section" id="enabled-section">
-                        <div class="section-header" data-section="enabled">
-                            <div class="section-title">
+                    <div class="category-filters">
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
                                 <span>Włączone</span>
-                                <span class="section-count" id="enabled-count">0</span>
+                                <span class="category-filter-count" id="enabled-count">0</span>
                             </div>
-                            <button class="section-toggle">▼</button>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-enabled" checked>
+                                <span class="category-slider"></span>
+                            </label>
                         </div>
-                        <div class="section-content" id="addon-enabled">
-                            <!-- Włączone dodatki zostaną dodane dynamicznie -->
-                        </div>
-                    </div>
-                    
-                    <div class="addons-section" id="disabled-section">
-                        <div class="section-header" data-section="disabled">
-                            <div class="section-title">
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
                                 <span>Wyłączone</span>
-                                <span class="section-count" id="disabled-count">0</span>
+                                <span class="category-filter-count" id="disabled-count">0</span>
                             </div>
-                            <button class="section-toggle">▼</button>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-disabled" checked>
+                                <span class="category-slider"></span>
+                            </label>
                         </div>
-                        <div class="section-content" id="addon-disabled">
-                            <!-- Wyłączone dodatki zostaną dodane dynamicznie -->
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
+                                <span>Ulubione</span>
+                                <span class="category-filter-count" id="favorites-count">0</span>
+                            </div>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-favorites" checked>
+                                <span class="category-slider"></span>
+                            </label>
                         </div>
                     </div>
                     
-                    <div class="addons-section" id="favorites-section">
-                        <div class="section-header" data-section="favorites">
-                            <div class="section-title">
-                                <span>Ulubione</span>
-                                <span class="section-count" id="favorites-count">0</span>
-                            </div>
-                            <button class="section-toggle">▼</button>
-                        </div>
-                        <div class="section-content" id="addon-favorites">
-                            <!-- Ulubione dodatki zostaną dodane dynamicznie -->
-                        </div>
+                    <div class="addon-list" id="addon-list">
+                        <!-- Lista dodatków zostanie dodana dynamicznie -->
                     </div>
                 </div>
                 <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
@@ -1361,7 +1404,7 @@ input:checked + .slider:before {
                     <div class="settings-item">
                         <div class="font-size-container">
                             <label class="settings-label">Rozmiar czcionki:</label>
-                            <input type="range" min="10" max="20" value="12" class="font-size-slider" id="fontSizeSlider">
+                            <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider">
                             <span class="font-size-value" id="fontSizeValue">12px</span>
                         </div>
                     </div>
@@ -1383,118 +1426,98 @@ input:checked + .slider:before {
                         </button>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top: 10px; padding: 10px; border-radius: 5px; display: none;"></div>
+                    <div id="swResetMessage" style="margin-top: 10px; padding: 8px; border-radius: 4px; display: none;"></div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(panel);
         renderAddons();
-        setupSectionToggles();
+        updateFilterSwitches();
         console.log('✅ Panel created');
     }
 
-    function setupSectionToggles() {
-        // Przełączanie sekcji (rozwijanie/zwijanie)
-        document.querySelectorAll('.section-header').forEach(header => {
-            header.addEventListener('click', function(e) {
-                if (e.target.classList.contains('section-toggle')) return;
-                
-                const section = this.parentElement;
-                const content = section.querySelector('.section-content');
-                const toggle = section.querySelector('.section-toggle');
-                
-                if (content.style.display === 'none') {
-                    content.style.display = 'block';
-                    toggle.textContent = '▼';
-                } else {
-                    content.style.display = 'none';
-                    toggle.textContent = '▶';
-                }
-            });
+    function loadCategoriesState() {
+        // Załaduj zapisane kategorie
+        const savedCategories = SW.GM_getValue(CONFIG.ACTIVE_CATEGORIES, {
+            enabled: true,
+            disabled: true,
+            favorites: true
         });
+        
+        activeCategories = { ...savedCategories };
+        console.log('✅ Categories state loaded:', activeCategories);
+    }
 
-        // Przyciski przełączania
-        document.querySelectorAll('.section-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const section = this.closest('.addons-section');
-                const content = section.querySelector('.section-content');
-                
-                if (content.style.display === 'none') {
-                    content.style.display = 'block';
-                    this.textContent = '▼';
-                } else {
-                    content.style.display = 'none';
-                    this.textContent = '▶';
-                }
-            });
-        });
+    function saveCategoriesState() {
+        SW.GM_setValue(CONFIG.ACTIVE_CATEGORIES, activeCategories);
+        console.log('💾 Categories saved:', activeCategories);
+    }
+
+    function updateFilterSwitches() {
+        const enabledFilter = document.getElementById('filter-enabled');
+        const disabledFilter = document.getElementById('filter-disabled');
+        const favoritesFilter = document.getElementById('filter-favorites');
+        
+        if (enabledFilter) enabledFilter.checked = activeCategories.enabled;
+        if (disabledFilter) disabledFilter.checked = activeCategories.disabled;
+        if (favoritesFilter) favoritesFilter.checked = activeCategories.favorites;
     }
 
     function renderAddons() {
-        const enabledContainer = document.getElementById('addon-enabled');
-        const disabledContainer = document.getElementById('addon-disabled');
-        const favoritesContainer = document.getElementById('addon-favorites');
+        const listContainer = document.getElementById('addon-list');
         
-        // Wyczyść kontenery
-        enabledContainer.innerHTML = '';
-        disabledContainer.innerHTML = '';
-        favoritesContainer.innerHTML = '';
+        // Wyczyść kontener
+        listContainer.innerHTML = '';
         
         // Liczniki
         let enabledCount = 0;
         let disabledCount = 0;
         let favoritesCount = 0;
         
-        // Sortuj dodatki alfabetycznie
-        const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
+        // Oblicz liczniki
+        currentAddons.forEach(addon => {
+            if (addon.enabled) enabledCount++;
+            if (!addon.enabled) disabledCount++;
+            if (addon.favorite) favoritesCount++;
+        });
         
-        // Podziel dodatki na kategorie
-        const enabledAddons = sortedAddons.filter(addon => addon.enabled);
-        const disabledAddons = sortedAddons.filter(addon => !addon.enabled);
-        const favoriteAddons = sortedAddons.filter(addon => addon.favorite);
-        
-        // Renderuj włączone dodatki
-        if (enabledAddons.length > 0) {
-            enabledAddons.forEach(addon => {
-                enabledContainer.appendChild(createAddonElement(addon));
-                enabledCount++;
-            });
-        } else {
-            enabledContainer.innerHTML = '<div class="addon-list-empty">Brak włączonych dodatków</div>';
-        }
-        
-        // Renderuj wyłączone dodatki
-        if (disabledAddons.length > 0) {
-            disabledAddons.forEach(addon => {
-                disabledContainer.appendChild(createAddonElement(addon));
-                disabledCount++;
-            });
-        } else {
-            disabledContainer.innerHTML = '<div class="addon-list-empty">Brak wyłączonych dodatków</div>';
-        }
-        
-        // Renderuj ulubione dodatki
-        if (favoriteAddons.length > 0) {
-            favoriteAddons.forEach(addon => {
-                favoritesContainer.appendChild(createAddonElement(addon));
-                favoritesCount++;
-            });
-        } else {
-            favoritesContainer.innerHTML = '<div class="addon-list-empty">Brak ulubionych dodatków</div>';
-        }
-        
-        // Aktualizuj liczniki
+        // Aktualizuj liczniki w filtrach
         document.getElementById('enabled-count').textContent = enabledCount;
         document.getElementById('disabled-count').textContent = disabledCount;
         document.getElementById('favorites-count').textContent = favoritesCount;
+        
+        // Sortuj dodatki alfabetycznie
+        const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Filtruj dodatki według aktywnych kategorii
+        const filteredAddons = sortedAddons.filter(addon => {
+            const showEnabled = activeCategories.enabled && addon.enabled;
+            const showDisabled = activeCategories.disabled && !addon.enabled;
+            const showFavorites = activeCategories.favorites && addon.favorite;
+            
+            // Pokazuj dodatki które spełniają PRZYNAJMNIEJ JEDEN z aktywnych filtrów
+            return showEnabled || showDisabled || showFavorites;
+        });
+        
+        // Renderuj przefiltrowane dodatki
+        if (filteredAddons.length > 0) {
+            filteredAddons.forEach(addon => {
+                listContainer.appendChild(createAddonElement(addon));
+            });
+        } else {
+            listContainer.innerHTML = '<div class="addon-list-empty">Brak dodatków spełniających wybrane filtry</div>';
+        }
     }
 
     function createAddonElement(addon) {
         const div = document.createElement('div');
         div.className = 'addon-item';
         div.dataset.id = addon.id;
+        
+        // Dodaj klasy w zależności od stanu
+        if (addon.enabled) div.classList.add('enabled');
+        if (addon.favorite) div.classList.add('favorite');
         
         div.innerHTML = `
             <div class="addon-item-header">
@@ -1644,6 +1667,35 @@ input:checked + .slider:before {
             });
         }
 
+        // Filtry kategorii
+        const filterEnabled = document.getElementById('filter-enabled');
+        const filterDisabled = document.getElementById('filter-disabled');
+        const filterFavorites = document.getElementById('filter-favorites');
+        
+        if (filterEnabled) {
+            filterEnabled.addEventListener('change', function() {
+                activeCategories.enabled = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+        
+        if (filterDisabled) {
+            filterDisabled.addEventListener('change', function() {
+                activeCategories.disabled = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+        
+        if (filterFavorites) {
+            filterFavorites.addEventListener('change', function() {
+                activeCategories.favorites = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+
         // Delegowane nasłuchiwanie dla dodatków
         document.addEventListener('click', function(e) {
             // Obsługa ulubionych
@@ -1730,6 +1782,7 @@ input:checked + .slider:before {
         SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
         SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
         SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
+        SW.GM_deleteValue(CONFIG.ACTIVE_CATEGORIES);
         
         // Przywróć domyślne ustawienia dodatków
         currentAddons = ADDONS.map(addon => ({
@@ -1737,6 +1790,13 @@ input:checked + .slider:before {
             enabled: addon.id === 'kcs-icons' ? true : false,
             favorite: false
         }));
+        
+        // Przywróć domyślne kategorie
+        activeCategories = {
+            enabled: true,
+            disabled: true,
+            favorites: true
+        };
         
         // Pokaż komunikat w panelu
         const resetMessage = document.getElementById('swResetMessage');
@@ -1754,6 +1814,7 @@ input:checked + .slider:before {
         
         // Odśwież ustawienia
         loadSavedState();
+        updateFilterSwitches();
         renderAddons();
         
         // Zresetuj rozmiar czcionki i tło
@@ -1814,9 +1875,6 @@ input:checked + .slider:before {
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
-        
-        // Załaduj rozmiar czcionki (już ustawione w setupEventListeners)
-        // Załaduj widoczność tła (już ustawione w setupEventListeners)
         
         console.log('✅ Saved state loaded');
     }
