@@ -435,7 +435,7 @@
     left: 70px;
     width: 640px; /* Podwójna szerokość */
     min-height: 500px; /* Zwiększona wysokość */
-    max-height: 600px; /* Zwiększona maksymalna wysokość */
+    max-height: 700px; /* Zwiększona maksymalna wysokość */
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -502,13 +502,20 @@
     100% { left: 100%; }
 }
 
+/* 🔹 ZAKŁADKA DODATKÓW - FLEXBOX LAYOUT 🔹 */
+#addons .sw-tab-content {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important; /* Ukrywamy overflow, bo list będzie miał własny scroll */
+}
+
 .sw-tab-content {
     padding: 15px;
     background: rgba(10, 10, 10, 0.9);
-    height: calc(100% - 80px);
+    height: 100%; /* Zmienione z calc(100% - 80px) */
     overflow-y: auto;
-    overflow-x: hidden; /* Zapobiega poziomemu scrollowaniu */
-    padding-bottom: 15px !important; /* Zmniejszony padding na dole - USUNIĘCIE BELKI */
+    overflow-x: hidden;
+    padding-bottom: 15px !important;
 }
 
 /* 🔹 TABS STYLES 🔹 */
@@ -574,8 +581,8 @@
 .tabcontent {
     display: none;
     padding: 15px;
-    height: 100%;
-    overflow: hidden;
+    height: calc(100% - 80px); /* Nowa linia */
+    overflow: hidden; /* Nowa linia */
 }
 
 .tabcontent.active {
@@ -604,6 +611,7 @@
     border: 1px solid #333;
     border-radius: 6px;
     padding: 10px 8px; /* Zmniejszony padding poziomy */
+    flex-shrink: 0 !important; /* Nowa linia */
 }
 
 .category-filter-item {
@@ -691,8 +699,10 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 350px; /* Zwiększona wysokość */
-    overflow-y: auto;
+    flex: 1 !important; /* Rozciąga się na dostępne miejsce */
+    max-height: none !important; /* Usuwamy ograniczenie */
+    min-height: 0 !important; /* Ważne dla flex item */
+    overflow-y: auto !important;
     overflow-x: hidden;
     padding-right: 5px;
     margin-bottom: 0; /* Usunięty margines na dole */
@@ -1297,6 +1307,12 @@ input:checked + .slider:before {
     display: none !important;
 }
 
+/* 🔹 STYL DLA KOMUNIKATU W DODATKACH 🔹 */
+#swAddonsMessage {
+    flex-shrink: 0 !important;
+    margin-top: 10px !important;
+}
+
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 700px) {
     #swAddonsPanel {
@@ -1672,8 +1688,8 @@ input:checked + .slider:before {
                     <div class="addon-list" id="addon-list">
                         <!-- Lista dodatków zostanie dodana dynamicznie -->
                     </div>
+                    <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
                 </div>
-                <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
             </div>
 
             <div id="status" class="tabcontent">
