@@ -1345,7 +1345,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA 🔹 */
+/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (NAPRAWIONE KROPKI) 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -1375,7 +1375,7 @@ input:checked + .slider:before {
     color: #ccc;
     font-size: 12px;
     margin-bottom: 8px;
-    padding-left: 45px;
+    padding-left: 25px;
     position: relative;
     line-height: 1.4;
     text-align: left;
@@ -1385,7 +1385,7 @@ input:checked + .slider:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 0;
+    left: 10px;
     top: 0;
     font-size: 16px;
     font-weight: bold;
@@ -2193,7 +2193,7 @@ input:checked + .slider:before {
                 // Ignoruj powtarzające się zdarzenia
                 if (e.repeat) return;
                 
-                // Zbierz wciśnięte klawisze
+                // Zbieraj wciśnięte klawisze
                 const key = e.key.toUpperCase();
                 
                 // Dodaj klawisze modyfikujące
