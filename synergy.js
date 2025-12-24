@@ -147,6 +147,7 @@
     let searchQuery = '';
     let customShortcut = 'A';
     let isShortcutInputFocused = false;
+    let shortcutKeys = [];
 
     // 🔹 Funkcja zapobiegająca zmianom rozmiaru
     function preventPanelResize() {
@@ -554,6 +555,38 @@
     box-sizing: border-box !important;
 }
 
+/* 🔹 WYSZUKIWARKA DODATKÓW 🔹 */
+.search-container {
+    margin-bottom: 15px;
+    position: relative;
+    flex-shrink: 0 !important;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ff9900;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box !important;
+    height: 50px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ff9900;
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.search-input::placeholder {
+    color: #666;
+    font-size: 14px;
+}
+
 /* 🔹 CATEGORY FILTERS 🔹 */
 .category-filters {
     display: flex;
@@ -563,7 +596,7 @@
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 10px 15px;
+    padding: 10px 25px;
     flex-shrink: 0 !important;
     box-sizing: border-box !important;
 }
@@ -571,9 +604,9 @@
 .category-filter-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     flex: 1;
-    padding: 5px 8px;
+    padding: 5px 10px;
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
@@ -649,38 +682,6 @@
     box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
 }
 
-/* 🔹 WYSZUKIWARKA DODATKÓW 🔹 */
-.search-container {
-    margin-bottom: 15px;
-    position: relative;
-    flex-shrink: 0 !important;
-}
-
-.search-input {
-    width: 100%;
-    padding: 14px 20px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff9900;
-    font-size: 15px;
-    transition: all 0.3s ease;
-    box-sizing: border-box !important;
-    height: 50px;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #ff9900;
-    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-.search-input::placeholder {
-    color: #666;
-    font-size: 14px;
-}
-
 /* 🔹 ADDONS LIST 🔹 */
 .addon-list {
     display: flex;
@@ -711,7 +712,7 @@
     background: rgba(30, 30, 30, 0.8) !important;
     border: 1px solid #333 !important;
     border-radius: 6px !important;
-    padding: 10px 15px !important;
+    padding: 10px 20px !important;
     transition: all 0.3s ease !important;
     display: flex !important;
     align-items: center !important;
@@ -736,7 +737,8 @@
     flex: 1 !important;
     min-height: auto !important;
     overflow: hidden !important;
-    padding-right: 15px;
+    padding-right: 20px;
+    padding-left: 10px;
     max-width: 75%;
 }
 
@@ -763,6 +765,7 @@
     -webkit-line-clamp: 1 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
+    padding-left: 5px;
 }
 
 .addon-item-actions {
@@ -770,6 +773,7 @@
     align-items: center !important;
     gap: 15px !important;
     flex-shrink: 0 !important;
+    margin-right: -5px;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -808,6 +812,7 @@
     width: 35px !important;
     height: 18px !important;
     flex-shrink: 0 !important;
+    margin-left: 5px;
 }
 
 .switch input {
@@ -872,7 +877,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 20px 25px;
+    padding: 20px 30px;
     margin-bottom: 20px;
 }
 
@@ -905,7 +910,7 @@ input:checked + .slider:before {
 .license-status-label {
     color: #ff9900;
     font-weight: 600;
-    padding-left: 5px;
+    padding-left: 15px;
 }
 
 .license-status-value {
@@ -914,7 +919,7 @@ input:checked + .slider:before {
     max-width: 65%;
     word-break: break-all;
     font-size: 12px;
-    padding-right: 5px;
+    padding-right: 15px;
 }
 
 .license-status-valid {
@@ -941,7 +946,7 @@ input:checked + .slider:before {
 .license-activation-container {
     text-align: center;
     margin-top: 20px;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .license-activation-button {
@@ -984,7 +989,7 @@ input:checked + .slider:before {
     width: 400px;
     border: 2px solid #ff3300;
     border-radius: 8px;
-    padding: 20px 25px;
+    padding: 20px 30px;
     position: relative;
     animation: fireBorder 8s infinite ease-in-out;
 }
@@ -1022,7 +1027,7 @@ input:checked + .slider:before {
     display: flex;
     gap: 10px;
     margin-top: 20px;
-    padding: 0 5px;
+    padding: 0 10px;
 }
 
 .license-modal-button {
@@ -1079,7 +1084,7 @@ input:checked + .slider:before {
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
-    padding: 15px 20px;
+    padding: 15px 25px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
@@ -1093,15 +1098,7 @@ input:checked + .slider:before {
     margin-bottom: 10px;
     font-weight: 600;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-left: 5px;
-}
-
-.settings-description {
-    color: #888;
-    font-size: 11px;
-    margin-top: 5px;
-    font-style: italic;
-    padding-left: 5px;
+    padding-left: 10px;
 }
 
 /* 🔹 SKRÓT KLAWISZOWY - INPUT 🔹 */
@@ -1110,7 +1107,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
-    padding: 0 5px;
+    padding: 0 10px;
 }
 
 .shortcut-input-label {
@@ -1142,21 +1139,13 @@ input:checked + .slider:before {
     background: rgba(40, 40, 40, 0.9);
 }
 
-.shortcut-preview {
-    color: #888;
-    font-size: 12px;
-    text-align: left;
-    margin-top: 5px;
-    padding-left: 10px;
-}
-
 /* 🔹 ROZMIAR CZCIONKI 🔹 */
 .font-size-container {
     display: flex;
     align-items: center;
     gap: 15px;
     margin-bottom: 15px;
-    padding: 0 5px;
+    padding: 0 10px;
 }
 
 .font-size-slider {
@@ -1166,7 +1155,7 @@ input:checked + .slider:before {
     background: #333;
     border-radius: 4px;
     outline: none;
-    margin: 0 10px;
+    margin: 0 15px;
 }
 
 .font-size-slider::-webkit-slider-thumb {
@@ -1193,7 +1182,7 @@ input:checked + .slider:before {
     min-width: 40px;
     text-align: center;
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-right: 5px;
+    padding-right: 10px;
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
@@ -1202,7 +1191,7 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 15px;
-    padding: 0 5px;
+    padding: 0 10px;
 }
 
 .background-toggle-label {
@@ -1217,6 +1206,7 @@ input:checked + .slider:before {
     display: inline-block;
     width: 50px;
     height: 24px;
+    margin-right: -5px;
 }
 
 .background-toggle input {
@@ -1267,14 +1257,14 @@ input:checked + .slider:before {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 0 5px;
+    padding: 0 10px;
 }
 
 .shortcut-item {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 12px 20px;
+    padding: 12px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1306,7 +1296,7 @@ input:checked + .slider:before {
 .shortcut-key {
     background: rgba(51, 17, 0, 0.8);
     color: #ff9900;
-    padding: 6px 15px;
+    padding: 6px 20px;
     border-radius: 4px;
     font-family: monospace;
     font-size: 12px;
@@ -1322,7 +1312,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 25px 30px;
+    padding: 25px 35px;
 }
 
 .info-header {
@@ -1336,29 +1326,16 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
 }
 
-.info-section {
-    margin-bottom: 20px;
-}
-
-.info-section-title {
-    color: #ff9900;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #333;
-}
-
 .info-patch-notes {
     list-style: none;
-    padding: 0;
+    padding: 0 15px;
 }
 
 .info-patch-notes li {
     color: #aaa;
     font-size: 12px;
     margin-bottom: 8px;
-    padding-left: 20px;
+    padding-left: 25px;
     position: relative;
     line-height: 1.4;
 }
@@ -1367,7 +1344,7 @@ input:checked + .slider:before {
     content: "•";
     color: #ff9900;
     position: absolute;
-    left: 8px;
+    left: 10px;
 }
 
 .info-footer {
@@ -1385,7 +1362,7 @@ input:checked + .slider:before {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #333;
-    padding: 15px 5px 0;
+    padding: 15px 10px 0;
 }
 
 .reset-settings-button {
@@ -1548,7 +1525,7 @@ input:checked + .slider:before {
 #swAddonsMessage {
     flex-shrink: 0 !important;
     margin-top: 10px !important;
-    padding: 0 5px !important;
+    padding: 0 10px !important;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1723,6 +1700,10 @@ input:checked + .slider:before {
 
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="searchAddons" placeholder="Szukaj dodatków...">
+                    </div>
+                    
                     <div class="category-filters">
                         <div class="category-filter-item">
                             <div class="category-filter-label">
@@ -1751,10 +1732,6 @@ input:checked + .slider:before {
                                 <span class="category-slider"></span>
                             </label>
                         </div>
-                    </div>
-                    
-                    <div class="search-container">
-                        <input type="text" class="search-input" id="searchAddons" placeholder="Szukaj dodatków...">
                     </div>
                     
                     <div class="addon-list" id="addon-list">
@@ -1838,10 +1815,6 @@ input:checked + .slider:before {
                             <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" readonly>
                             <button class="shortcut-set-btn" id="shortcutSetBtn" style="padding: 8px 15px; background: rgba(51, 17, 0, 0.8); border: 1px solid #ff9900; color: #ff9900; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Ustaw skrót</button>
                         </div>
-                        <div class="shortcut-preview" id="shortcutPreview">Aktualny skrót: Ctrl+A</div>
-                        <div class="settings-description">
-                            Kliknij "Ustaw skrót", a następnie wciśnij dowolną literę (A-Z) lub cyfrę (0-9)
-                        </div>
                     </div>
                     
                     <div class="reset-settings-container">
@@ -1860,10 +1833,8 @@ input:checked + .slider:before {
                     <div class="info-container">
                         <div class="info-header">Historia zmian</div>
                         
-                        <div class="info-section">
-                            <ul class="info-patch-notes">
-                                ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
-                            </ul>
+                        <div class="info-patch-notes">
+                            ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                         </div>
                         
                         <div class="info-footer">
@@ -1878,7 +1849,6 @@ input:checked + .slider:before {
         renderAddons();
         updateFilterSwitches();
         renderShortcuts();
-        updateShortcutPreview();
         console.log('✅ Panel created');
     }
 
@@ -2110,39 +2080,44 @@ input:checked + .slider:before {
         // Dodaj nowe nasłuchiwanie
         document.addEventListener('keydown', handleKeyboardShortcut);
         
-        console.log(`✅ Keyboard shortcut setup: Ctrl+${customShortcut}`);
+        console.log(`✅ Keyboard shortcut setup: ${customShortcut || 'brak'}`);
     }
 
-    // 🔹 Obsługa skrótu klawiszowego
+    // 🔹 Obsługa skrótu klawiszowego z zapobieganiem domyślnym akcjom przeglądarki
     function handleKeyboardShortcut(e) {
         // Ignoruj jeśli użytkownik wpisuje skrót
         if (isShortcutInputFocused) return;
         
-        // Sprawdź czy naciśnięto Ctrl + nasz klawisz
-        if (e.ctrlKey && !e.altKey && !e.shiftKey) {
-            const key = e.key.toUpperCase();
-            
-            // Sprawdź czy to litera A-Z lub cyfra 0-9
-            if ((key.length === 1 && /[A-Z0-9]/.test(key)) && key === customShortcut) {
+        // Rozdzielamy zapisany skrót
+        const shortcutParts = customShortcut.split('+');
+        
+        // Sprawdzamy czy skrót zawiera Ctrl
+        const hasCtrl = shortcutParts.includes('Ctrl');
+        const hasShift = shortcutParts.includes('Shift');
+        const key = shortcutParts[shortcutParts.length - 1].toUpperCase();
+        
+        // Sprawdzamy warunki
+        const ctrlMatch = hasCtrl ? e.ctrlKey : true;
+        const shiftMatch = hasShift ? e.shiftKey : true;
+        const keyMatch = e.key.toUpperCase() === key;
+        
+        if (ctrlMatch && shiftMatch && keyMatch) {
+            // Blokuj domyślne akcje przeglądarki dla popularnych skrótów
+            const blockedShortcuts = ['P', 'S', 'O', 'N', 'W', 'T', 'U', 'I'];
+            if (hasCtrl && blockedShortcuts.includes(key)) {
                 e.preventDefault();
-                const toggleBtn = document.getElementById('swPanelToggle');
-                if (toggleBtn) {
-                    toggleBtn.click();
-                    toggleBtn.click(); // Podwójne kliknięcie dla toggle
-                }
+                e.stopPropagation();
+            }
+            
+            const toggleBtn = document.getElementById('swPanelToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+                toggleBtn.click(); // Podwójne kliknięcie dla toggle
             }
         }
     }
 
-    // 🔹 Update podglądu skrótu
-    function updateShortcutPreview() {
-        const preview = document.getElementById('shortcutPreview');
-        if (preview) {
-            preview.textContent = customShortcut ? `Aktualny skrót: Ctrl+${customShortcut}` : 'Skrót nieustawiony';
-        }
-    }
-
-    // 🔹 Ustawianie nowego skrótu klawiszowego
+    // 🔹 Ustawianie nowego skrótu klawiszowego z obsługą Ctrl i Shift
     function setupShortcutInput() {
         const shortcutInput = document.getElementById('shortcutInput');
         const shortcutSetBtn = document.getElementById('shortcutSetBtn');
@@ -2150,60 +2125,96 @@ input:checked + .slider:before {
         if (!shortcutInput || !shortcutSetBtn) return;
         
         // Załaduj zapisany skrót
-        const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'A');
+        const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         customShortcut = savedShortcut;
-        shortcutInput.value = `Ctrl+${customShortcut}`;
+        shortcutInput.value = customShortcut;
         
         // Nasłuchuj kliknięcie przycisku "Ustaw skrót"
         shortcutSetBtn.addEventListener('click', function() {
             isShortcutInputFocused = true;
             shortcutInput.style.borderColor = '#ff9900';
             shortcutInput.style.boxShadow = '0 0 10px rgba(255, 153, 0, 0.5)';
-            shortcutInput.value = 'Wciśnij klawisz...';
+            shortcutInput.value = 'Wciśnij kombinację klawiszy...';
+            shortcutKeys = [];
             
             // Tymczasowy nasłuchiwacz klawiatury
-            const keyHandler = function(e) {
-                // Ignoruj klawisze modyfikujące
-                if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) {
-                    return;
-                }
+            const keyDownHandler = function(e) {
+                // Ignoruj powtarzające się zdarzenia
+                if (e.repeat) return;
                 
+                // Zbierz wciśnięte klawisze
                 const key = e.key.toUpperCase();
                 
-                // Sprawdź czy to litera A-Z lub cyfra 0-9
+                // Dodaj klawisze modyfikujące
+                if (e.ctrlKey && !shortcutKeys.includes('Ctrl')) {
+                    shortcutKeys.push('Ctrl');
+                }
+                if (e.shiftKey && !shortcutKeys.includes('Shift')) {
+                    shortcutKeys.push('Shift');
+                }
+                
+                // Dodaj klawisz główny (A-Z, 0-9)
+                if (key.length === 1 && /[A-Z0-9]/.test(key) && !shortcutKeys.includes(key)) {
+                    shortcutKeys.push(key);
+                }
+                
+                // Aktualizuj wyświetlany skrót
+                if (shortcutKeys.length > 0) {
+                    shortcutInput.value = shortcutKeys.join('+');
+                }
+            };
+            
+            const keyUpHandler = function(e) {
+                const key = e.key.toUpperCase();
+                
+                // Jeśli puszczono klawisz główny, zakończ ustawianie
                 if (key.length === 1 && /[A-Z0-9]/.test(key)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    customShortcut = key;
-                    shortcutInput.value = `Ctrl+${customShortcut}`;
-                    SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
-                    updateShortcutPreview();
-                    setupKeyboardShortcut();
-                    
-                    // Usuń nasłuchiwanie
-                    document.removeEventListener('keydown', keyHandler);
-                    isShortcutInputFocused = false;
-                    shortcutInput.style.borderColor = '#333';
-                    shortcutInput.style.boxShadow = 'none';
-                    
-                    // Pokaż komunikat
-                    const messageEl = document.getElementById('swResetMessage');
-                    if (messageEl) {
-                        messageEl.textContent = `Skrót ustawiony na: Ctrl+${customShortcut}`;
-                        messageEl.style.background = 'rgba(0, 255, 0, 0.1)';
-                        messageEl.style.color = '#00ff00';
-                        messageEl.style.border = '1px solid #00ff00';
-                        messageEl.style.display = 'block';
+                    // Sprawdź czy mamy przynajmniej Ctrl i klawisz główny
+                    if (shortcutKeys.includes('Ctrl') && shortcutKeys.length >= 2) {
+                        customShortcut = shortcutKeys.join('+');
+                        shortcutInput.value = customShortcut;
+                        SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
+                        setupKeyboardShortcut();
                         
+                        // Usuń nasłuchiwanie
+                        document.removeEventListener('keydown', keyDownHandler);
+                        document.removeEventListener('keyup', keyUpHandler);
+                        isShortcutInputFocused = false;
+                        shortcutInput.style.borderColor = '#333';
+                        shortcutInput.style.boxShadow = 'none';
+                        
+                        // Pokaż komunikat
+                        const messageEl = document.getElementById('swResetMessage');
+                        if (messageEl) {
+                            messageEl.textContent = `Skrót ustawiony na: ${customShortcut}`;
+                            messageEl.style.background = 'rgba(0, 255, 0, 0.1)';
+                            messageEl.style.color = '#00ff00';
+                            messageEl.style.border = '1px solid #00ff00';
+                            messageEl.style.display = 'block';
+                            
+                            setTimeout(() => {
+                                messageEl.style.display = 'none';
+                            }, 3000);
+                        }
+                    } else {
+                        // Jeśli brak Ctrl, zresetuj i pokaż błąd
+                        shortcutInput.value = 'Musi zawierać Ctrl + klawisz';
                         setTimeout(() => {
-                            messageEl.style.display = 'none';
-                        }, 3000);
+                            shortcutInput.value = customShortcut;
+                            document.removeEventListener('keydown', keyDownHandler);
+                            document.removeEventListener('keyup', keyUpHandler);
+                            isShortcutInputFocused = false;
+                            shortcutInput.style.borderColor = '#333';
+                            shortcutInput.style.boxShadow = 'none';
+                        }, 1500);
                     }
-                } else if (e.key === 'Escape') {
-                    // Anuluj ustawianie skrótu
-                    shortcutInput.value = `Ctrl+${customShortcut}`;
-                    document.removeEventListener('keydown', keyHandler);
+                }
+                
+                // Jeśli puszczono Escape, anuluj
+                if (e.key === 'Escape') {
+                    shortcutInput.value = customShortcut;
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
                     isShortcutInputFocused = false;
                     shortcutInput.style.borderColor = '#333';
                     shortcutInput.style.boxShadow = 'none';
@@ -2211,14 +2222,16 @@ input:checked + .slider:before {
             };
             
             // Dodaj nasłuchiwanie klawiatury
-            document.addEventListener('keydown', keyHandler);
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
             
             // Usuń nasłuchiwanie po 10 sekundach
             setTimeout(() => {
                 if (isShortcutInputFocused) {
-                    document.removeEventListener('keydown', keyHandler);
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
                     isShortcutInputFocused = false;
-                    shortcutInput.value = `Ctrl+${customShortcut}`;
+                    shortcutInput.value = customShortcut;
                     shortcutInput.style.borderColor = '#333';
                     shortcutInput.style.boxShadow = 'none';
                 }
@@ -2579,7 +2592,7 @@ input:checked + .slider:before {
             favorites: true
         };
         
-        customShortcut = 'A';
+        customShortcut = 'Ctrl+A';
         searchQuery = '';
         
         const resetMessage = document.getElementById('swResetMessage');
@@ -2599,7 +2612,6 @@ input:checked + .slider:before {
         updateFilterSwitches();
         renderAddons();
         renderShortcuts();
-        updateShortcutPreview();
         
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
@@ -2722,7 +2734,7 @@ input:checked + .slider:before {
 
     // 🔹 Ładowanie ustawień
     function loadSettings() {
-        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'A');
+        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         console.log('✅ Settings loaded, shortcut:', customShortcut);
     }
 
