@@ -364,30 +364,56 @@
     animation: fireBorder 8s infinite ease-in-out;
 }
 
-/* 🔹 RESIZE HANDLE - PRAWY DOLNY RÓG 🔹 */
+/* 🔹 RESIZE HANDLE - ULEPSZONY TRÓJKĄT 🔹 */
 #swResizeHandle {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 20px;
-    height: 20px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 18px 18px;
+    border-color: transparent transparent #ff3300 transparent;
     cursor: nwse-resize;
     z-index: 1000003;
-    background: linear-gradient(135deg, #ff3300, #ff9900);
-    border-radius: 4px 0 0 0;
-    opacity: 0.7;
+    opacity: 0.6;
     transition: all 0.3s ease;
+    pointer-events: all !important;
+}
+
+#swResizeHandle::after {
+    content: '';
+    position: absolute;
+    bottom: -17px;
+    right: -17px;
+    width: 30px;
+    height: 30px;
+    cursor: nwse-resize;
+    background: transparent;
 }
 
 #swResizeHandle:hover {
     opacity: 1;
-    transform: scale(1.1);
+    border-color: transparent transparent #ff9900 transparent;
 }
 
 #swResizeHandle.resizing {
-    background: linear-gradient(135deg, #ffff00, #ff9900);
     opacity: 1;
-    transform: scale(1.2);
+    border-color: transparent transparent #ffff00 transparent;
+}
+
+/* 🔹 ANIMACJA TRÓJKĄTA 🔹 */
+@keyframes trianglePulse {
+    0%, 100% {
+        border-color: transparent transparent #ff3300 transparent;
+    }
+    50% {
+        border-color: transparent transparent #ff9900 transparent;
+    }
+}
+
+#swResizeHandle:hover:not(.resizing) {
+    animation: trianglePulse 1.5s infinite ease-in-out;
 }
 
 /* Resize indicator */
@@ -2004,7 +2030,7 @@ input:checked + .slider:before {
                 </div>
             </div>
             
-            <!-- Dodano uchwyt do zmiany rozmiaru -->
+            <!-- Dodano uchwyt do zmiany rozmiaru w kształcie trójkąta -->
             <div id="swResizeHandle" title="Zmień rozmiar panelu"></div>
             <div id="swResizeIndicator"></div>
         `;
