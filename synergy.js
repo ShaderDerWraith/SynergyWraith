@@ -1345,7 +1345,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (Z BULLET POMPARAŃCZOWYM) 🔹 */
+/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONE WYRÓWNANIE BULLETA 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -1380,19 +1380,23 @@ input:checked + .slider:before {
     line-height: 1.4;
     text-align: left;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    min-height: 20px;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
-    margin-right: 8px;
+    margin-right: 10px;
     flex-shrink: 0;
-    margin-top: 0;
-    display: inline-block;
-    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    line-height: 1;
+    transform: translateY(-1px);
 }
 
 .info-footer {
