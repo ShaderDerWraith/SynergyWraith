@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synergy Wraith - Test Panelu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a, #121212);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            text-align: center;
+            background: rgba(30, 30, 30, 0.8);
+            border: 2px solid #ff3300;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(255, 51, 0, 0.3);
+            animation: fireBorder 8s infinite ease-in-out;
+        }
+        
+        @keyframes fireBorder {
+            0%, 100% { border-color: #ff3300; }
+            25% { border-color: #ff6600; }
+            50% { border-color: #ff9900; }
+            75% { border-color: #ffcc00; }
+        }
+        
+        h1 {
+            color: #ff9900;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+            font-size: 2.5em;
+        }
+        
+        .logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #ff3300;
+            margin: 20px auto;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 51, 0, 0.5);
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .instructions {
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .instructions h2 {
+            color: #ff9900;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .instructions code {
+            background: rgba(255, 153, 0, 0.1);
+            color: #ff9900;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+        
+        .warning {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #ff6666;
+        }
+        
+        .test-keys {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #66ff66;
+        }
+        
+        .github-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 25px;
+            background: linear-gradient(to right, #331100, #662200);
+            color: #ff9900;
+            border: 1px solid #ff9900;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .github-link:hover {
+            background: linear-gradient(to right, #662200, #993300);
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+        }
+        
+        footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        
+        .status.loading {
+            background: rgba(255, 153, 0, 0.1);
+            color: #ff9900;
+            border: 1px solid #ff9900;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="icon.jpg" alt="Synergy Wraith Logo">
+        </div>
+        
+        <h1>SYNERGY WRAITH</h1>
+        <p>Panel z systemem licencji terminowej</p>
+        
+        <div id="status" class="status loading">
+            🔄 Ładowanie systemu...
+        </div>
+        
+        <div class="instructions">
+            <h2>📋 Jak używać panelu:</h2>
+            <ol>
+                <li>Po załadowaniu strony, w <strong>prawym górnym rogu ekranu</strong> pojawi się czerwony przycisk</li>
+                <li><strong>Kliknij dwukrotnie</strong> na przycisk, aby otworzyć/ukryć panel</li>
+                <li><strong>Przeciągnij</strong> przycisk, aby zmienić jego pozycję</li>
+                <li>W panelu przejdź do zakładki <strong>"Licencja"</strong></li>
+                <li>Kliknij <strong>"Aktywuj Licencję"</strong> i wpisz klucz testowy</li>
+            </ol>
+            
+            <div class="test-keys">
+                <h3>🔑 Klucze testowe:</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li><code>TEST-7DAYS</code> - ważny 7 dni od teraz</li>
+                    <li><code>TEST-30DAYS</code> - ważny 30 dni</li>
+                    <li><code>SYNERGY-2026-TEST-001</code> - ważny do 31.01.2026</li>
+                </ul>
+            </div>
+            
+            <div class="warning">
+                ⚠️ <strong>Uwaga:</strong> Panel jest w fazie testów. Niektóre dodatki mogą nie działać.
+            </div>
+        </div>
+        
+        <a href="https://github.com/ShaderDerWraith/SynergyWraith" class="github-link" target="_blank">
+            🔗 Zobacz kod na GitHub
+        </a>
+        
+        <footer>
+            <p>© 2024 Synergy Wraith • Wersja 2.2 • System licencji terminowej</p>
+            <p style="font-size: 0.8em; margin-top: 5px;">
+                Po aktywacji licencji, włącz dodatki w zakładce "Dodatki" aby je przetestować
+            </p>
+        </footer>
+    </div>
+    
+    <!-- 🔹 Ładowanie skryptów w odpowiedniej kolejności -->
+    <script src="license-keys.js"></script>
+    <script src="synergy.js"></script>
+    
+    <script>
+        // Monitorowanie stanu ładowania
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusEl = document.getElementById('status');
+            
+            // Sprawdź czy pliki się załadowały
+            setTimeout(() => {
+                if (window.SynergyWraithAPI) {
+                    statusEl.innerHTML = '✅ System załadowany! Szukaj czerwonego przycisku na ekranie.';
+                    statusEl.className = 'status success';
+                    
+                    // Dodaj dodatkową informację po 3 sekundach
+                    setTimeout(() => {
+                        const info = document.createElement('div');
+                        info.innerHTML = '💡 <strong>Porada:</strong> Naciśnij Ctrl+A aby szybko otworzyć/ukryć panel';
+                        info.style.marginTop = '10px';
+                        info.style.fontSize = '0.9em';
+                        info.style.color = '#ff9900';
+                        statusEl.appendChild(info);
+                    }, 3000);
+                } else {
+                    statusEl.innerHTML = '❌ Błąd ładowania systemu. Odśwież stronę.';
+                    statusEl.className = 'status error';
+                }
+            }, 2000);
+            
+            // Debug - pokaż w konsoli co się ładuje
+            console.log('=== SYNERGY WRAITH DEBUG ===');
+            console.log('1. Ładowanie license-keys.js...');
+            console.log('2. Ładowanie synergy.js...');
+            console.log('3. Sprawdzanie API...');
+            
+            // Sprawdź co 500ms czy API jest dostępne
+            const checkAPI = setInterval(() => {
+                if (window.SynergyWraithAPI) {
+                    console.log('✅ SynergyWraithAPI jest dostępne!');
+                    clearInterval(checkAPI);
+                }
+            }, 500);
+        });
+        
+        // Obsługa błędów ładowania skryptów
+        window.addEventListener('error', function(e) {
+            console.error('❌ Błąd ładowania skryptu:', e.filename);
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = `❌ Błąd ładowania: ${e.filename}`;
+            statusEl.className = 'status error';
+        });
+    </script>
+</body>
+</html>
