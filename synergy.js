@@ -8,6 +8,7 @@
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
+        PANEL_SIZE: "sw_panel_size", // Dodano zapis rozmiaru panelu
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
         FAVORITE_ADDONS: "sw_favorite_addons",
@@ -78,7 +79,8 @@
             "Nowa zakładka 'Informacje'",
             "Rozszerzona sekcja licencji",
             "Przycisk zamykania panelu",
-            "Ulepszenia interfejsu"
+            "Ulepszenia interfejsu",
+            "Możliwość zmiany rozmiaru panelu"
         ]
     };
 
@@ -148,48 +150,6 @@
     let customShortcut = 'A';
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
-
-    // 🔹 Funkcja zapobiegająca zmianom rozmiaru
-    function preventPanelResize() {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        // Ustaw stałe wymiary
-        panel.style.minWidth = '640px';
-        panel.style.maxWidth = '640px';
-        panel.style.width = '640px';
-        panel.style.resize = 'none';
-        
-        // Obserwuj zmiany w DOM
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    // Przywróć oryginalne style jeśli zostały zmienione
-                    panel.style.minWidth = '640px';
-                    panel.style.maxWidth = '640px';
-                    panel.style.width = '640px';
-                    panel.style.resize = 'none';
-                }
-            });
-        });
-        
-        observer.observe(panel, { attributes: true, attributeFilter: ['style'] });
-        
-        // Również obserwuj zmiany w elementach wewnątrz
-        const innerObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList') {
-                    // Resetuj style po dodaniu nowych elementów
-                    document.querySelectorAll('.addon-item').forEach(item => {
-                        item.style.minHeight = 'auto';
-                        item.style.maxHeight = '50px';
-                    });
-                }
-            });
-        });
-        
-        innerObserver.observe(panel, { childList: true, subtree: true });
-    }
 
     // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
     function updatePanelFontSize(size) {
@@ -356,15 +316,17 @@
     }
 }
 
-/* 🔹 MAIN PANEL - POPRAWIONA WYSOKOŚĆ I LAYOUT 🔹 */
+/* 🔹 MAIN PANEL - ZMIENNY ROZMIAR 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 700px;
-    height: 580px !important;
-    min-height: 580px !important;
-    max-height: 580px !important;
+    height: 580px;
+    min-width: 400px !important;
+    min-height: 300px !important;
+    max-width: 1200px !important;
+    max-height: 800px !important;
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -377,6 +339,8 @@
     font-size: 12px;
     animation: fireBorder 8s infinite ease-in-out;
     box-sizing: border-box !important;
+    resize: none !important;
+    user-select: none;
 }
 
 /* Neonowy efekt na krawędziach */
@@ -398,6 +362,49 @@
     pointer-events: none;
     z-index: -1;
     animation: fireBorder 8s infinite ease-in-out;
+}
+
+/* 🔹 RESIZE HANDLE - PRAWY DOLNY RÓG 🔹 */
+#swResizeHandle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    z-index: 1000003;
+    background: linear-gradient(135deg, #ff3300, #ff9900);
+    border-radius: 4px 0 0 0;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+#swResizeHandle:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+#swResizeHandle.resizing {
+    background: linear-gradient(135deg, #ffff00, #ff9900);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* Resize indicator */
+#swResizeIndicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #ff9900;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 1000004;
+    display: none;
+    border: 1px solid #ff9900;
 }
 
 #swPanelHeader {
@@ -524,7 +531,7 @@
     text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
 }
 
-/* 🔹 ZAKŁADKI CONTENT - FIXED HEIGHT LAYOUT 🔹 */
+/* 🔹 ZAKŁADKI CONTENT - RESIZABLE LAYOUT 🔹 */
 .tabcontent {
     display: none;
     height: calc(100% - 100px) !important;
@@ -1497,11 +1504,8 @@ input:checked + .slider:before {
     line-height: 1.3 !important;
 }
 
-/* 🔹 ZAPOBIEGANIE ROZCIĄGANIU 🔹 */
+/* 🔹 ZAPOBIEGANIE ROZCIĄGANIU - LIGHT 🔹 */
 #swAddonsPanel {
-    min-width: 700px !important;
-    max-width: 700px !important;
-    width: 700px !important;
     resize: none !important;
 }
 
@@ -1584,11 +1588,11 @@ input:checked + .slider:before {
 @media (max-width: 750px) {
     #swAddonsPanel {
         width: 550px !important;
-        min-width: 550px !important;
+        min-width: 400px !important;
         max-width: 550px !important;
         left: 10px !important;
         height: 500px !important;
-        min-height: 500px !important;
+        min-height: 300px !important;
         max-height: 500px !important;
     }
     
@@ -1659,6 +1663,105 @@ input:checked + .slider:before {
         console.log('✅ Enhanced mouse wheel scrolling enabled');
     }
 
+    // 🔹 Setup zmiany rozmiaru panelu
+    function setupResize() {
+        const panel = document.getElementById('swAddonsPanel');
+        const resizeHandle = document.getElementById('swResizeHandle');
+        const resizeIndicator = document.getElementById('swResizeIndicator');
+        
+        if (!panel || !resizeHandle) return;
+        
+        let isResizing = false;
+        let startX, startY;
+        let startWidth, startHeight;
+        
+        resizeHandle.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = parseInt(getComputedStyle(panel).width, 10);
+            startHeight = parseInt(getComputedStyle(panel).height, 10);
+            
+            resizeHandle.classList.add('resizing');
+            
+            if (resizeIndicator) {
+                resizeIndicator.style.display = 'block';
+                updateResizeIndicator();
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mouseleave', onMouseUp);
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        function onMouseMove(e) {
+            if (!isResizing) return;
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newWidth = startWidth + deltaX;
+            let newHeight = startHeight + deltaY;
+            
+            // Ograniczenia rozmiaru
+            const minWidth = 400;
+            const minHeight = 300;
+            const maxWidth = 1200;
+            const maxHeight = 800;
+            
+            newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+            newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+            
+            panel.style.width = newWidth + 'px';
+            panel.style.height = newHeight + 'px';
+            
+            if (resizeIndicator) {
+                updateResizeIndicator();
+            }
+            
+            // Zapobiegaj zaznaczaniu tekstu podczas przeciągania
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function onMouseUp(e) {
+            if (!isResizing) return;
+            
+            isResizing = false;
+            resizeHandle.classList.remove('resizing');
+            
+            if (resizeIndicator) {
+                resizeIndicator.style.display = 'none';
+            }
+            
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('mouseleave', onMouseUp);
+            
+            // Zapisz rozmiar panelu
+            SW.GM_setValue(CONFIG.PANEL_SIZE, {
+                width: panel.style.width,
+                height: panel.style.height
+            });
+            
+            console.log('💾 Saved panel size');
+        }
+        
+        function updateResizeIndicator() {
+            if (!resizeIndicator) return;
+            const width = parseInt(getComputedStyle(panel).width, 10);
+            const height = parseInt(getComputedStyle(panel).height, 10);
+            resizeIndicator.textContent = `${width}x${height}`;
+        }
+        
+        console.log('✅ Resize functionality added');
+    }
+
     // 🔹 Główne funkcje
     async function initPanel() {
         console.log('✅ Initializing panel...');
@@ -1675,9 +1778,6 @@ input:checked + .slider:before {
         createToggleButton();
         createMainPanel();
         createLicenseModal();
-        
-        // 🔹 Zapobiegaj zmianom rozmiaru
-        preventPanelResize();
         
         // 🔹 Dodaj obsługę scrollowania myszką
         setTimeout(() => {
@@ -1696,6 +1796,7 @@ input:checked + .slider:before {
         setupEventListeners();
         setupTabs();
         setupDrag();
+        setupResize(); // Dodano setup resize
         setupKeyboardShortcut();
         
         // Sprawdzamy licencję
@@ -1902,6 +2003,10 @@ input:checked + .slider:before {
                     </div>
                 </div>
             </div>
+            
+            <!-- Dodano uchwyt do zmiany rozmiaru -->
+            <div id="swResizeHandle" title="Zmień rozmiar panelu"></div>
+            <div id="swResizeIndicator"></div>
         `;
         
         document.body.appendChild(panel);
@@ -2098,7 +2203,7 @@ input:checked + .slider:before {
         let offsetX, offsetY;
 
         header.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.tablink') || e.target.id === 'swPanelClose') return;
+            if (e.target.closest('.tablink') || e.target.id === 'swPanelClose' || e.target.id === 'swResizeHandle') return;
             
             isDragging = true;
             const rect = panel.getBoundingClientRect();
@@ -2641,6 +2746,7 @@ input:checked + .slider:before {
     function resetAllSettings() {
         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
+        SW.GM_deleteValue(CONFIG.PANEL_SIZE); // Dodano usuwanie rozmiaru
         SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
         SW.GM_deleteValue(CONFIG.FONT_SIZE);
         SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
@@ -2747,13 +2853,20 @@ input:checked + .slider:before {
             panel.style.top = '140px';
         }
         
+        // Ładowanie zapisanego rozmiaru
+        const savedSize = SW.GM_getValue(CONFIG.PANEL_SIZE);
+        if (panel && savedSize) {
+            panel.style.width = savedSize.width;
+            panel.style.height = savedSize.height;
+        }
+        
         const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
-        updatePanelFontSize(savedSize);
+        const savedFontSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+        updatePanelFontSize(savedFontSize);
         
         console.log('✅ Saved state loaded');
     }
