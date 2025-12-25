@@ -21,7 +21,7 @@ window.LICENSE_KEYS = {
     "SYNERGY-YEARLY-2025": "2025-12-31",
     "SYNERGY-YEARLY-2026": "2026-12-31",
     
-    // 🔹 Klucze developerskie (długie ważność)
+    // 🔹 Klucze developerskie
     "SYNERGY-DEV-ALPHA": "2027-12-31",
     "SYNERGY-DEV-BETA": "2027-12-31",
     "SYNERGY-DEV-GAMMA": "2027-12-31",
@@ -40,27 +40,22 @@ window.LICENSE_KEYS = {
     "SYNERGY-EXPIRED-002": "2023-12-31",
     
     // 🔹 Klucze testowe do szybkiego sprawdzenia
-    "TEST-7DAYS": getDateString(7),     // 7 dni od dziś
-    "TEST-30DAYS": getDateString(30),   // 30 dni od dziś
-    "TEST-90DAYS": getDateString(90),   // 90 dni od dziś
-    "TEST-365DAYS": getDateString(365)  // rok od dziś
+    "TEST-7DAYS": getDateString(7),
+    "TEST-30DAYS": getDateString(30),
+    "TEST-90DAYS": getDateString(90),
+    "TEST-365DAYS": getDateString(365)
 };
 
 // Funkcja pomocnicza do generowania dat względnych
 function getDateString(daysToAdd) {
     const date = new Date();
     date.setDate(date.getDate() + daysToAdd);
-    return date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    return date.toISOString().split('T')[0];
 }
 
-// Informacja o załadowaniu kluczy
 console.log(`✅ License keys loaded: ${Object.keys(window.LICENSE_KEYS).length} keys available`);
-console.log('📅 Sample keys:');
+console.log('📅 Sample test keys:');
 console.log('- TEST-7DAYS (7 dni od dziś)');
+console.log('- TEST-30DAYS (30 dni od dziś)');
 console.log('- SYNERGY-2026-TEST-001 (ważny do 2026-01-31)');
 console.log('- SYNERGY-EXPIRED-001 (wygasły)');
-
-// Eksport dla modułów (jeśli potrzebne)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { LICENSE_KEYS };
-}
