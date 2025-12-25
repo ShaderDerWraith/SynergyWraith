@@ -1,14 +1,13 @@
-// synergy.js - Główny kod panelu z systemem licencji terminowej i API dla dodatków
+// synergy.js - Główny kod panelu z nowymi ustawieniami
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel v2.2 loaded');
+    console.log('🚀 SynergyWraith Panel loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
-        PANEL_SIZE: "sw_panel_size",
         TOGGLE_BTN_POSITION: "sw_toggle_button_position",
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
         FAVORITE_ADDONS: "sw_favorite_addons",
@@ -19,8 +18,7 @@
         LICENSE_EXPIRY: "sw_license_expiry",
         LICENSE_ACTIVE: "sw_license_active",
         SHORTCUT_KEY: "sw_shortcut_key",
-        CUSTOM_SHORTCUT: "sw_custom_shortcut",
-        LICENSE_DAYS_LEFT: "sw_license_days_left"
+        CUSTOM_SHORTCUT: "sw_custom_shortcut"
     };
 
     // 🔹 Lista dostępnych dodatków
@@ -30,69 +28,57 @@
             name: 'KCS Icons',
             description: 'Dodaje ikony do interfejsu gry',
             enabled: false,
-            favorite: false,
-            requiresLicense: true,
-            addonFile: 'kcs-icons.js'
+            favorite: false
         },
         {
             id: 'auto-looter',
             name: 'Auto Looter',
             description: 'Automatycznie zbiera loot',
             enabled: false,
-            favorite: false,
-            requiresLicense: true,
-            addonFile: 'auto-looter.js'
+            favorite: false
         },
         {
             id: 'quest-helper',
             name: 'Quest Helper',
             description: 'Pomocnik zadań',
             enabled: false,
-            favorite: false,
-            requiresLicense: false,
-            addonFile: 'quest-helper.js'
+            favorite: false
         },
         {
             id: 'enhanced-stats',
             name: 'Enhanced Stats',
             description: 'Rozszerzone statystyki',
             enabled: false,
-            favorite: false,
-            requiresLicense: true,
-            addonFile: 'enhanced-stats.js'
+            favorite: false
         },
         {
             id: 'trade-helper',
             name: 'Trade Helper',
             description: 'Pomocnik handlu',
             enabled: false,
-            favorite: false,
-            requiresLicense: true,
-            addonFile: 'trade-helper.js'
+            favorite: false
         },
         {
             id: 'combat-log',
             name: 'Combat Log',
             description: 'Rozszerzony log walki',
             enabled: false,
-            favorite: false,
-            requiresLicense: true,
-            addonFile: 'combat-log.js'
+            favorite: false
         }
     ];
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "2.2",
-        releaseDate: "2024-01-25",
+        version: "2.0",
+        releaseDate: "2024-01-15",
         patchNotes: [
-            "Dodano system weryfikacji licencji dla dodatków",
-            "API do sprawdzania licencji z poziomu dodatków",
-            "Nowy szablon dla dodatków wymagających licencji",
-            "Automatyczne blokowanie dodatków bez licencji",
-            "Logowanie aktywności dodatków",
-            "Możliwość tworzenia darmowych dodatków",
-            "Zabezpieczenie przed reverse engineering"
+            "Dodano wyszukiwarkę dodatków",
+            "Dodano konfigurowalne skróty klawiszowe",
+            "Nowa zakładka 'Skróty'",
+            "Nowa zakładka 'Informacje'",
+            "Rozszerzona sekcja licencji",
+            "Przycisk zamykania panelu",
+            "Ulepszenia interfejsu"
         ]
     };
 
@@ -104,7 +90,7 @@
         { addonId: 'trade-helper', shortcut: 'Ctrl+T', description: 'Otwórz handel' }
     ];
 
-    // 🔹 Safe fallback
+    // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
         console.warn('⚠️ synergyWraith not found, creating fallback');
         window.synergyWraith = {
@@ -138,6 +124,11 @@
                 } catch (e) {
                     return [];
                 }
+            },
+            GM_xmlhttpRequest: ({ method, url, onload, onerror }) => {
+                fetch(url, { method })
+                    .then(response => response.text().then(text => onload({ status: response.status, responseText: text })))
+                    .catch(onerror);
             }
         };
     }
@@ -146,7 +137,6 @@
     let isLicenseVerified = false;
     let userAccountId = null;
     let licenseExpiry = null;
-    let licenseDaysLeft = 0;
     let serverConnected = true;
     let currentAddons = [...ADDONS];
     let activeCategories = {
@@ -158,167 +148,61 @@
     let customShortcut = 'A';
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
-    
-    // 🔹 SYSTEM API DLA DODATKÓW
-    window.SynergyWraithAPI = {
-        checkLicense: function(addonId) {
-            console.log(`🔐 [${addonId}] Checking license...`);
-            
-            if (!isLicenseVerified) {
-                return {
-                    valid: false,
-                    message: "Brak aktywnej licencji",
-                    daysLeft: 0,
-                    accountId: null
-                };
-            }
-            
-            const addon = currentAddons.find(a => a.id === addonId);
-            if (!addon) {
-                return {
-                    valid: false,
-                    message: "Dodatek nie znaleziony",
-                    daysLeft: 0,
-                    accountId: null
-                };
-            }
-            
-            if (!addon.requiresLicense) {
-                return {
-                    valid: true,
-                    message: "Darmowy dodatek",
-                    daysLeft: 999,
-                    accountId: "FREE_USER"
-                };
-            }
-            
-            const now = new Date();
-            if (licenseExpiry && licenseExpiry < now) {
-                return {
-                    valid: false,
-                    message: "Licencja wygasła",
-                    daysLeft: 0,
-                    accountId: userAccountId
-                };
-            }
-            
-            return {
-                valid: true,
-                message: "Licencja aktywna",
-                daysLeft: licenseDaysLeft,
-                accountId: userAccountId,
-                expiryDate: licenseExpiry
-            };
-        },
-        
-        logActivity: function(addonId, action, details = {}) {
-            const timestamp = new Date().toISOString();
-            const logEntry = {
-                timestamp,
-                addonId,
-                action,
-                details,
-                licenseValid: isLicenseVerified,
-                daysLeft: licenseDaysLeft
-            };
-            
-            console.log(`📝 [${addonId}] ${action}:`, details);
-            
-            try {
-                const logs = SW.GM_getValue('sw_addon_logs', []);
-                logs.push(logEntry);
-                if (logs.length > 100) logs.shift();
-                SW.GM_setValue('sw_addon_logs', logs);
-            } catch (e) {
-                console.warn('Could not save log entry');
-            }
-            
-            return true;
-        },
-        
-        getAddonInfo: function(addonId) {
-            const addon = currentAddons.find(a => a.id === addonId);
-            if (!addon) return null;
-            
-            return {
-                id: addon.id,
-                name: addon.name,
-                requiresLicense: addon.requiresLicense,
-                enabled: addon.enabled,
-                file: addon.addonFile
-            };
-        },
-        
-        isAddonEnabled: function(addonId) {
-            const addon = currentAddons.find(a => a.id === addonId);
-            return addon ? addon.enabled : false;
-        },
-        
-        requireLicense: function(addonId, callback) {
-            const licenseCheck = this.checkLicense(addonId);
-            
-            if (!licenseCheck.valid) {
-                console.error(`❌ [${addonId}] Cannot execute: ${licenseCheck.message}`);
-                this.showLicenseMessage(addonId, licenseCheck.message);
-                return false;
-            }
-            
-            this.logActivity(addonId, 'licensed_function_executed', {
-                function: callback.name || 'anonymous',
-                licenseInfo: licenseCheck
-            });
-            
-            return callback();
-        },
-        
-        showLicenseMessage: function(addonId, message) {
-            console.warn(`⚠️ [${addonId}] License message: ${message}`);
-            this.showToast(`${addonId}: ${message}`, 'warning');
-        },
-        
-        showToast: function(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `sw-addon-toast sw-toast-${type}`;
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                background: ${type === 'error' ? 'rgba(255, 0, 0, 0.9)' : 
-                             type === 'warning' ? 'rgba(255, 153, 0, 0.9)' : 
-                             'rgba(30, 30, 30, 0.9)'};
-                color: ${type === 'error' ? '#fff' : 
-                        type === 'warning' ? '#fff' : '#ff9900'};
-                border: 1px solid ${type === 'error' ? '#ff0000' : 
-                            type === 'warning' ? '#ff9900' : '#333'};
-                border-radius: 6px;
-                z-index: 1000007;
-                font-size: 12px;
-                font-weight: 600;
-                animation: fadeIn 0.3s ease;
-                max-width: 300px;
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
-        }
-    };
 
-    // 🔹 Aktualizacja rozmiaru czcionki
+    // 🔹 Funkcja zapobiegająca zmianom rozmiaru
+    function preventPanelResize() {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        // Ustaw stałe wymiary
+        panel.style.minWidth = '640px';
+        panel.style.maxWidth = '640px';
+        panel.style.width = '640px';
+        panel.style.resize = 'none';
+        
+        // Obserwuj zmiany w DOM
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    // Przywróć oryginalne style jeśli zostały zmienione
+                    panel.style.minWidth = '640px';
+                    panel.style.maxWidth = '640px';
+                    panel.style.width = '640px';
+                    panel.style.resize = 'none';
+                }
+            });
+        });
+        
+        observer.observe(panel, { attributes: true, attributeFilter: ['style'] });
+        
+        // Również obserwuj zmiany w elementach wewnątrz
+        const innerObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    // Resetuj style po dodaniu nowych elementów
+                    document.querySelectorAll('.addon-item').forEach(item => {
+                        item.style.minHeight = 'auto';
+                        item.style.maxHeight = '50px';
+                    });
+                }
+            });
+        });
+        
+        innerObserver.observe(panel, { childList: true, subtree: true });
+    }
+
+    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
     function updatePanelFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
+        // Usuń wszystkie poprzednie style font-size
         panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
+        
+        // Ustaw nowy rozmiar czcionki z !important
         panel.style.setProperty('font-size', size + 'px', 'important');
         
+        // Również ustaw dla wszystkich elementów wewnątrz panelu
         const allElements = panel.querySelectorAll('*');
         allElements.forEach(element => {
             element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
@@ -354,6 +238,9 @@
     text-shadow: 0 0 5px black;
     transition: all 0.2s ease;
     user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     overflow: hidden;
 }
 
@@ -371,6 +258,12 @@
     cursor: grab;
 }
 
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+}
+
+/* Save indication animation */
 @keyframes savePulse {
     0% { 
         box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
@@ -389,6 +282,15 @@
 
 #swPanelToggle.saved {
     animation: savePulse 1.5s ease-in-out;
+}
+
+/* Prevent text selection during drag */
+#swPanelToggle.dragging::selection {
+    background: transparent;
+}
+
+#swPanelToggle.dragging::-moz-selection {
+    background: transparent;
 }
 
 /* 🔹 FIRE ANIMATION 🔹 */
@@ -454,126 +356,15 @@
     }
 }
 
-/* 🔹 LICENSE EXPIRED WARNING 🔹 */
-@keyframes licenseWarning {
-    0%, 100% {
-        border-color: #ff0000;
-        box-shadow: 
-            0 0 20px rgba(255, 0, 0, 0.8),
-            0 0 40px rgba(255, 0, 0, 0.6),
-            inset 0 0 15px rgba(255, 0, 0, 0.3);
-    }
-    50% {
-        border-color: #ff5555;
-        box-shadow: 
-            0 0 25px rgba(255, 85, 85, 0.9),
-            0 0 45px rgba(255, 85, 85, 0.7),
-            inset 0 0 20px rgba(255, 85, 85, 0.4);
-    }
-}
-
-/* 🔹 LICENSE EXPIRING SOON WARNING 🔹 */
-@keyframes licenseExpiring {
-    0%, 100% {
-        border-color: #ff9900;
-        box-shadow: 
-            0 0 15px rgba(255, 153, 0, 0.8),
-            0 0 30px rgba(255, 153, 0, 0.6),
-            inset 0 0 10px rgba(255, 153, 0, 0.3);
-    }
-    50% {
-        border-color: #ffcc00;
-        box-shadow: 
-            0 0 20px rgba(255, 204, 0, 0.9),
-            0 0 35px rgba(255, 204, 0, 0.7),
-            inset 0 0 15px rgba(255, 204, 0, 0.4);
-    }
-}
-
-#swAddonsPanel.license-expired {
-    animation: licenseWarning 2s infinite ease-in-out !important;
-    border-color: #ff0000 !important;
-}
-
-#swAddonsPanel.license-expiring {
-    animation: licenseExpiring 3s infinite ease-in-out !important;
-    border-color: #ff9900 !important;
-}
-
-/* 🔹 LICENSE EXPIRED OVERLAY 🔹 */
-.license-expired-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(20, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 1000005;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    padding: 40px;
-    text-align: center;
-}
-
-.license-expired-title {
-    color: #ff0000;
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
-}
-
-.license-expired-message {
-    color: #ff6666;
-    font-size: 16px;
-    margin-bottom: 30px;
-    max-width: 80%;
-    line-height: 1.5;
-}
-
-.license-expired-button {
-    padding: 15px 40px;
-    background: linear-gradient(to right, #660000, #990000);
-    color: #ff6666;
-    border: 2px solid #ff0000;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-}
-
-.license-expired-button:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(255, 0, 0, 0.3);
-}
-
-/* 🔹 MAIN PANEL - ZMIENNY ROZMIAR 🔹 */
+/* 🔹 MAIN PANEL - POPRAWIONA WYSOKOŚĆ I LAYOUT 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 700px;
-    height: 580px;
-    min-width: 400px !important;
-    min-height: 300px !important;
-    max-width: 1200px !important;
-    max-height: 800px !important;
+    height: 580px !important;
+    min-height: 580px !important;
+    max-height: 580px !important;
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 2px solid #ff3300;
     border-radius: 8px;
@@ -586,9 +377,6 @@
     font-size: 12px;
     animation: fireBorder 8s infinite ease-in-out;
     box-sizing: border-box !important;
-    resize: none !important;
-    user-select: none;
-    position: relative;
 }
 
 /* Neonowy efekt na krawędziach */
@@ -610,102 +398,6 @@
     pointer-events: none;
     z-index: -1;
     animation: fireBorder 8s infinite ease-in-out;
-}
-
-/* 🔹 LICENSE STATUS BAR 🔹 */
-.license-status-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: transparent;
-    z-index: 1000006;
-    overflow: hidden;
-}
-
-.license-status-progress {
-    height: 100%;
-    background: linear-gradient(to right, #00ff00, #00cc00);
-    width: 100%;
-    transition: width 0.3s ease;
-}
-
-.license-status-progress.expiring {
-    background: linear-gradient(to right, #ff9900, #ff6600);
-}
-
-.license-status-progress.expired {
-    background: linear-gradient(to right, #ff0000, #cc0000);
-}
-
-/* 🔹 RESIZE HANDLE 🔹 */
-#swResizeHandle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 0 18px 18px;
-    border-color: transparent transparent #ff3300 transparent;
-    cursor: nwse-resize;
-    z-index: 1000003;
-    opacity: 0.6;
-    transition: all 0.3s ease;
-    pointer-events: all !important;
-}
-
-#swResizeHandle::after {
-    content: '';
-    position: absolute;
-    bottom: -17px;
-    right: -17px;
-    width: 30px;
-    height: 30px;
-    cursor: nwse-resize;
-    background: transparent;
-}
-
-#swResizeHandle:hover {
-    opacity: 1;
-    border-color: transparent transparent #ff9900 transparent;
-}
-
-#swResizeHandle.resizing {
-    opacity: 1;
-    border-color: transparent transparent #ffff00 transparent;
-}
-
-/* 🔹 ANIMACJA TRÓJKĄTA 🔹 */
-@keyframes trianglePulse {
-    0%, 100% {
-        border-color: transparent transparent #ff3300 transparent;
-    }
-    50% {
-        border-color: transparent transparent #ff9900 transparent;
-    }
-}
-
-#swResizeHandle:hover:not(.resizing) {
-    animation: trianglePulse 1.5s infinite ease-in-out;
-}
-
-/* Resize indicator */
-#swResizeIndicator {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #ff9900;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    pointer-events: none;
-    z-index: 1000004;
-    display: none;
-    border: 1px solid #ff9900;
 }
 
 #swPanelHeader {
@@ -832,7 +524,7 @@
     text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
 }
 
-/* 🔹 ZAKŁADKI CONTENT 🔹 */
+/* 🔹 ZAKŁADKI CONTENT - FIXED HEIGHT LAYOUT 🔹 */
 .tabcontent {
     display: none;
     height: calc(100% - 100px) !important;
@@ -1277,12 +969,6 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
-.license-status-warning {
-    color: #ff9900 !important;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
-    animation: pulse 1.5s infinite;
-}
-
 .license-status-connected {
     color: #00ff00 !important;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
@@ -1291,36 +977,6 @@ input:checked + .slider:before {
 .license-status-disconnected {
     color: #ff0000 !important;
     text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
-}
-
-/* 🔹 DNI DO WYGASNIECIA 🔹 */
-.license-days-left {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    margin-left: 10px;
-    font-size: 11px;
-}
-
-.license-days-left.normal {
-    background: rgba(0, 255, 0, 0.1);
-    color: #00ff00;
-    border: 1px solid #00ff00;
-}
-
-.license-days-left.warning {
-    background: rgba(255, 153, 0, 0.1);
-    color: #ff9900;
-    border: 1px solid #ff9900;
-    animation: pulse 1.5s infinite;
-}
-
-.license-days-left.critical {
-    background: rgba(255, 0, 0, 0.1);
-    color: #ff0000;
-    border: 1px solid #ff0000;
-    animation: pulse 1s infinite;
 }
 
 /* 🔹 PRZYCISK AKTYWACJI LICENCJI 🔹 */
@@ -1689,7 +1345,7 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* 🔹 ZAKŁADKA INFORMACJI 🔹 */
+/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (Z BULLET POMPARAŃCZOWYM) 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -1724,23 +1380,19 @@ input:checked + .slider:before {
     line-height: 1.4;
     text-align: left;
     display: flex;
-    align-items: center;
-    min-height: 20px;
+    align-items: flex-start;
 }
 
 .info-patch-notes li:before {
     content: "•";
     color: #ff9900;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
-    margin-right: 10px;
+    margin-right: 8px;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 20px;
-    line-height: 1;
-    transform: translateY(-1px);
+    margin-top: 0;
+    display: inline-block;
+    line-height: 1.4;
 }
 
 .info-footer {
@@ -1803,6 +1455,66 @@ input:checked + .slider:before {
     color: #ffffff;
 }
 
+/* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
+#swAddonsPanel.transparent-background {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: 2px solid #ff3300 !important;
+    animation: fireBorder 8s infinite ease-in-out !important;
+}
+
+#swAddonsPanel.transparent-background::before {
+    display: none !important;
+}
+
+#swAddonsPanel.transparent-background #swPanelHeader,
+#swAddonsPanel.transparent-background .tab-container,
+#swAddonsPanel.transparent-background .sw-tab-content,
+#swAddonsPanel.transparent-background .addon-item,
+#swAddonsPanel.transparent-background .settings-item,
+#swAddonsPanel.transparent-background .license-container,
+#swAddonsPanel.transparent-background .category-filters,
+#swAddonsPanel.transparent-background .info-container,
+#swAddonsPanel.transparent-background .shortcut-item {
+    background: transparent !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+#swAddonsPanel.transparent-background .tab-container {
+    background: rgba(20, 20, 20, 0.9) !important;
+}
+
+/* 🔹 RESET STYLI GRY 🔹 */
+#swAddonsPanel * {
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    line-height: 1.3 !important;
+}
+
+/* 🔹 ZAPOBIEGANIE ROZCIĄGANIU 🔹 */
+#swAddonsPanel {
+    min-width: 700px !important;
+    max-width: 700px !important;
+    width: 700px !important;
+    resize: none !important;
+}
+
+/* 🔹 FIX DLA INPUTÓW 🔹 */
+#swAddonsPanel input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+}
+
+/* 🔹 FIX DLA PRZYCISKÓW 🔹 */
+#swAddonsPanel button {
+    min-height: 30px !important;
+    max-height: 40px !important;
+}
+
 /* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
@@ -1827,22 +1539,80 @@ input:checked + .slider:before {
     background: linear-gradient(to bottom, #ffcc00, #cc6600) !important;
 }
 
-/* 🔹 ANIMACJE TOAST 🔹 */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* 🔹 OBSŁUGA KÓŁKA MYSZY 🔹 */
+.addon-list {
+    scroll-behavior: smooth !important;
+    will-change: scroll-position !important;
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    -webkit-font-smoothing: antialiased !important;
 }
 
-@keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-10px); }
+/* 🔹 OPTYMALIZACJA WYDAJNOŚCI 🔹 */
+.addon-item {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    contain: content !important;
+}
+
+/* 🔹 ZAPOBIEGANIE LAGOM 🔹 */
+.sw-tab-content {
+    transform: translateZ(0) !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* 🔹 USUŃ NIE POTRZEBNĄ PUSTĄ PRZESTRZEŃ 🔹 */
+.sw-tab-content:after {
+    content: '' !important;
+    display: block !important;
+    height: 0 !important;
+    clear: both !important;
+}
+
+/* 🔹 STYL DLA KOMUNIKATU W DODATKACH 🔹 */
+#swAddonsMessage {
+    flex-shrink: 0 !important;
+    margin-top: 10px !important;
+    padding: 0 15px !important;
+}
+
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
+@media (max-width: 750px) {
+    #swAddonsPanel {
+        width: 550px !important;
+        min-width: 550px !important;
+        max-width: 550px !important;
+        left: 10px !important;
+        height: 500px !important;
+        min-height: 500px !important;
+        max-height: 500px !important;
+    }
+    
+    .category-filters {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .category-filter-item {
+        width: 100%;
+    }
+    
+    .tablink {
+        padding: 8px 3px;
+        font-size: 10px;
+    }
+    
+    .license-modal-content {
+        width: 90%;
+        max-width: 350px;
+    }
 }
         `;
         document.head.appendChild(style);
         console.log('✅ CSS injected');
     }
 
-    // 🔹 Setup scrollowania
+    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
     function setupMouseWheelScrolling() {
         const addonList = document.getElementById('addon-list');
         if (!addonList) return;
@@ -1858,8 +1628,12 @@ input:checked + .slider:before {
                 const isScrollingDown = e.deltaY > 0;
                 const isScrollingUp = e.deltaY < 0;
                 
-                if (isAtTop && isScrollingUp) return;
-                if (isAtBottom && isScrollingDown) return;
+                if (isAtTop && isScrollingUp) {
+                    return;
+                }
+                if (isAtBottom && isScrollingDown) {
+                    return;
+                }
                 
                 e.preventDefault();
                 
@@ -1881,125 +1655,35 @@ input:checked + .slider:before {
         console.log('✅ Enhanced mouse wheel scrolling enabled');
     }
 
-    // 🔹 Setup zmiany rozmiaru
-    function setupResize() {
-        const panel = document.getElementById('swAddonsPanel');
-        const resizeHandle = document.getElementById('swResizeHandle');
-        const resizeIndicator = document.getElementById('swResizeIndicator');
-        
-        if (!panel || !resizeHandle) return;
-        
-        let isResizing = false;
-        let startX, startY;
-        let startWidth, startHeight;
-        
-        resizeHandle.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return;
-            
-            isResizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = parseInt(getComputedStyle(panel).width, 10);
-            startHeight = parseInt(getComputedStyle(panel).height, 10);
-            
-            resizeHandle.classList.add('resizing');
-            
-            if (resizeIndicator) {
-                resizeIndicator.style.display = 'block';
-                updateResizeIndicator();
-            }
-            
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            document.addEventListener('mouseleave', onMouseUp);
-            
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
-        function onMouseMove(e) {
-            if (!isResizing) return;
-            
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            
-            let newWidth = startWidth + deltaX;
-            let newHeight = startHeight + deltaY;
-            
-            const minWidth = 400;
-            const minHeight = 300;
-            const maxWidth = 1200;
-            const maxHeight = 800;
-            
-            newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-            newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
-            
-            panel.style.width = newWidth + 'px';
-            panel.style.height = newHeight + 'px';
-            
-            if (resizeIndicator) updateResizeIndicator();
-            
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        function onMouseUp(e) {
-            if (!isResizing) return;
-            
-            isResizing = false;
-            resizeHandle.classList.remove('resizing');
-            
-            if (resizeIndicator) {
-                resizeIndicator.style.display = 'none';
-            }
-            
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-            document.removeEventListener('mouseleave', onMouseUp);
-            
-            SW.GM_setValue(CONFIG.PANEL_SIZE, {
-                width: panel.style.width,
-                height: panel.style.height
-            });
-            
-            console.log('💾 Saved panel size');
-        }
-        
-        function updateResizeIndicator() {
-            if (!resizeIndicator) return;
-            const width = parseInt(getComputedStyle(panel).width, 10);
-            const height = parseInt(getComputedStyle(panel).height, 10);
-            resizeIndicator.textContent = `${width}x${height}`;
-        }
-        
-        console.log('✅ Resize functionality added');
-    }
-
     // 🔹 Główne funkcje
     async function initPanel() {
-        console.log('✅ Initializing panel with license system...');
+        console.log('✅ Initializing panel...');
         
-        if (!window.LICENSE_KEYS) {
-            console.error('❌ LICENSE_KEYS not found! Make sure license-keys.js is loaded before synergy.js');
-        } else {
-            console.log('✅ License keys loaded:', Object.keys(window.LICENSE_KEYS).length, 'keys available');
-        }
-        
+        // Wstrzyknij CSS
         injectCSS();
+        
+        // Ładujemy zapisane ustawienia
         loadAddonsState();
         loadCategoriesState();
         loadSettings();
         
+        // Tworzymy elementy
         createToggleButton();
         createMainPanel();
         createLicenseModal();
         
+        // 🔹 Zapobiegaj zmianom rozmiaru
+        preventPanelResize();
+        
+        // 🔹 Dodaj obsługę scrollowania myszką
         setTimeout(() => {
             setupMouseWheelScrolling();
         }, 500);
         
+        // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
         
+        // Inicjujemy przeciąganie
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn) {
             setupToggleDrag(toggleBtn);
@@ -2008,18 +1692,18 @@ input:checked + .slider:before {
         setupEventListeners();
         setupTabs();
         setupDrag();
-        setupResize();
         setupKeyboardShortcut();
         
+        // Sprawdzamy licencję
         await checkLicenseOnStart();
-        checkLicenseValidity();
         
+        // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
         if (isLicenseVerified) {
             loadEnabledAddons();
         }
     }
 
-    // 🔹 Tworzenie przycisku
+    // 🔹 Tworzenie przycisku przełączania
     function createToggleButton() {
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
@@ -2049,12 +1733,8 @@ input:checked + .slider:before {
         panel.id = "swAddonsPanel";
         
         panel.innerHTML = `
-            <div class="license-status-bar" id="licenseStatusBar">
-                <div class="license-status-progress" id="licenseStatusProgress"></div>
-            </div>
-            
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH v${VERSION_INFO.version}</strong>
+                <strong>SYNERGY WRAITH</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
@@ -2123,7 +1803,6 @@ input:checked + .slider:before {
                         <div class="license-status-item">
                             <span class="license-status-label">Status:</span>
                             <span id="swLicenseStatus" class="license-status-invalid">Nieaktywna</span>
-                            <span id="swLicenseDays" class="license-days-left" style="display: none;"></span>
                         </div>
                         <div class="license-status-item">
                             <span class="license-status-label">ID Konta:</span>
@@ -2136,10 +1815,6 @@ input:checked + .slider:before {
                         <div class="license-status-item">
                             <span class="license-status-label">Połączenie:</span>
                             <span id="swServerStatus" class="license-status-connected">Aktywne</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Wersja:</span>
-                            <span class="license-status-value">${VERSION_INFO.version}</span>
                         </div>
                     </div>
                     
@@ -2211,21 +1886,18 @@ input:checked + .slider:before {
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
-                        <div class="info-header">Historia zmian - v${VERSION_INFO.version}</div>
+                        <div class="info-header">Historia zmian</div>
                         
                         <div class="info-patch-notes">
                             ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                         </div>
                         
                         <div class="info-footer">
-                            © 2024 Synergy Wraith Panel • System licencji terminowej
+                            © 2024 Synergy Wraith Panel • Wszelkie prawa zastrzeżone
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div id="swResizeHandle" title="Zmień rozmiar panelu"></div>
-            <div id="swResizeIndicator"></div>
         `;
         
         document.body.appendChild(panel);
@@ -2243,7 +1915,7 @@ input:checked + .slider:before {
         modal.innerHTML = `
             <div class="license-modal-content">
                 <button class="license-modal-close" id="swLicenseModalClose">×</button>
-                <div class="license-modal-header">Aktywacja Licencji Terminowej</div>
+                <div class="license-modal-header">Aktywacja Licencji</div>
                 <input type="text" class="license-modal-input" id="swLicenseKeyInput" placeholder="Wpisz kod licencji...">
                 <div class="license-modal-buttons">
                     <button class="license-modal-button cancel" id="swLicenseModalCancel">Anuluj</button>
@@ -2378,6 +2050,7 @@ input:checked + .slider:before {
             }
         }
 
+        // Dodaj nasłuchiwanie kliknięcia
         toggleBtn.addEventListener('click', handleClick);
 
         console.log('✅ Advanced toggle drag functionality added');
@@ -2421,7 +2094,7 @@ input:checked + .slider:before {
         let offsetX, offsetY;
 
         header.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.tablink') || e.target.id === 'swPanelClose' || e.target.id === 'swResizeHandle') return;
+            if (e.target.closest('.tablink') || e.target.id === 'swPanelClose') return;
             
             isDragging = true;
             const rect = panel.getBoundingClientRect();
@@ -2456,25 +2129,35 @@ input:checked + .slider:before {
 
     // 🔹 Setup skrótu klawiszowego
     function setupKeyboardShortcut() {
+        // Usuń poprzednie nasłuchiwania
         document.removeEventListener('keydown', handleKeyboardShortcut);
+        
+        // Dodaj nowe nasłuchiwanie
         document.addEventListener('keydown', handleKeyboardShortcut);
+        
         console.log(`✅ Keyboard shortcut setup: ${customShortcut || 'brak'}`);
     }
 
-    // 🔹 Obsługa skrótu klawiszowego
+    // 🔹 Obsługa skrótu klawiszowego z zapobieganiem domyślnym akcjom przeglądarki
     function handleKeyboardShortcut(e) {
+        // Ignoruj jeśli użytkownik wpisuje skrót
         if (isShortcutInputFocused) return;
         
+        // Rozdzielamy zapisany skrót
         const shortcutParts = customShortcut.split('+');
+        
+        // Sprawdzamy czy skrót zawiera Ctrl
         const hasCtrl = shortcutParts.includes('Ctrl');
         const hasShift = shortcutParts.includes('Shift');
         const key = shortcutParts[shortcutParts.length - 1].toUpperCase();
         
+        // Sprawdzamy warunki
         const ctrlMatch = hasCtrl ? e.ctrlKey : true;
         const shiftMatch = hasShift ? e.shiftKey : true;
         const keyMatch = e.key.toUpperCase() === key;
         
         if (ctrlMatch && shiftMatch && keyMatch) {
+            // Blokuj domyślne akcje przeglądarki dla popularnych skrótów
             const blockedShortcuts = ['P', 'S', 'O', 'N', 'W', 'T', 'U', 'I'];
             if (hasCtrl && blockedShortcuts.includes(key)) {
                 e.preventDefault();
@@ -2484,22 +2167,24 @@ input:checked + .slider:before {
             const toggleBtn = document.getElementById('swPanelToggle');
             if (toggleBtn) {
                 toggleBtn.click();
-                toggleBtn.click();
+                toggleBtn.click(); // Podwójne kliknięcie dla toggle
             }
         }
     }
 
-    // 🔹 Ustawianie nowego skrótu klawiszowego
+    // 🔹 Ustawianie nowego skrótu klawiszowego z obsługą Ctrl i Shift
     function setupShortcutInput() {
         const shortcutInput = document.getElementById('shortcutInput');
         const shortcutSetBtn = document.getElementById('shortcutSetBtn');
         
         if (!shortcutInput || !shortcutSetBtn) return;
         
+        // Załaduj zapisany skrót
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         customShortcut = savedShortcut;
         shortcutInput.value = customShortcut;
         
+        // Nasłuchuj kliknięcie przycisku "Ustaw skrót"
         shortcutSetBtn.addEventListener('click', function() {
             isShortcutInputFocused = true;
             shortcutInput.style.borderColor = '#ff9900';
@@ -2507,11 +2192,15 @@ input:checked + .slider:before {
             shortcutInput.value = 'Wciśnij kombinację klawiszy...';
             shortcutKeys = [];
             
+            // Tymczasowy nasłuchiwacz klawiatury
             const keyDownHandler = function(e) {
+                // Ignoruj powtarzające się zdarzenia
                 if (e.repeat) return;
                 
+                // Zbieraj wciśnięte klawisze
                 const key = e.key.toUpperCase();
                 
+                // Dodaj klawisze modyfikujące
                 if (e.ctrlKey && !shortcutKeys.includes('Ctrl')) {
                     shortcutKeys.push('Ctrl');
                 }
@@ -2519,10 +2208,12 @@ input:checked + .slider:before {
                     shortcutKeys.push('Shift');
                 }
                 
+                // Dodaj klawisz główny (A-Z, 0-9)
                 if (key.length === 1 && /[A-Z0-9]/.test(key) && !shortcutKeys.includes(key)) {
                     shortcutKeys.push(key);
                 }
                 
+                // Aktualizuj wyświetlany skrót
                 if (shortcutKeys.length > 0) {
                     shortcutInput.value = shortcutKeys.join('+');
                 }
@@ -2531,19 +2222,23 @@ input:checked + .slider:before {
             const keyUpHandler = function(e) {
                 const key = e.key.toUpperCase();
                 
+                // Jeśli puszczono klawisz główny, zakończ ustawianie
                 if (key.length === 1 && /[A-Z0-9]/.test(key)) {
+                    // Sprawdź czy mamy przynajmniej Ctrl i klawisz główny
                     if (shortcutKeys.includes('Ctrl') && shortcutKeys.length >= 2) {
                         customShortcut = shortcutKeys.join('+');
                         shortcutInput.value = customShortcut;
                         SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
                         setupKeyboardShortcut();
                         
+                        // Usuń nasłuchiwanie
                         document.removeEventListener('keydown', keyDownHandler);
                         document.removeEventListener('keyup', keyUpHandler);
                         isShortcutInputFocused = false;
                         shortcutInput.style.borderColor = '#333';
                         shortcutInput.style.boxShadow = 'none';
                         
+                        // Pokaż komunikat
                         const messageEl = document.getElementById('swResetMessage');
                         if (messageEl) {
                             messageEl.textContent = `Skrót ustawiony na: ${customShortcut}`;
@@ -2557,6 +2252,7 @@ input:checked + .slider:before {
                             }, 3000);
                         }
                     } else {
+                        // Jeśli brak Ctrl, zresetuj i pokaż błąd
                         shortcutInput.value = 'Musi zawierać Ctrl + klawisz';
                         setTimeout(() => {
                             shortcutInput.value = customShortcut;
@@ -2569,6 +2265,7 @@ input:checked + .slider:before {
                     }
                 }
                 
+                // Jeśli puszczono Escape, anuluj
                 if (e.key === 'Escape') {
                     shortcutInput.value = customShortcut;
                     document.removeEventListener('keydown', keyDownHandler);
@@ -2579,9 +2276,11 @@ input:checked + .slider:before {
                 }
             };
             
+            // Dodaj nasłuchiwanie klawiatury
             document.addEventListener('keydown', keyDownHandler);
             document.addEventListener('keyup', keyUpHandler);
             
+            // Usuń nasłuchiwanie po 10 sekundach
             setTimeout(() => {
                 if (isShortcutInputFocused) {
                     document.removeEventListener('keydown', keyDownHandler);
@@ -2736,6 +2435,7 @@ input:checked + .slider:before {
             });
         }
 
+        // Zamknięcie modala po kliknięciu poza nim
         if (modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
@@ -2744,6 +2444,7 @@ input:checked + .slider:before {
             });
         }
 
+        // Enter w inpucie modala
         const licenseKeyInput = document.getElementById('swLicenseKeyInput');
         if (licenseKeyInput) {
             licenseKeyInput.addEventListener('keypress', function(e) {
@@ -2782,7 +2483,7 @@ input:checked + .slider:before {
         }
     }
 
-    // 🔹 Renderowanie dodatków
+    // 🔹 Renderowanie dodatków z wyszukiwaniem
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2791,6 +2492,7 @@ input:checked + .slider:before {
         
         const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
         
+        // Filtruj dodatki według kategorii i wyszukiwania
         const filteredAddons = sortedAddons.filter(addon => {
             const showEnabled = activeCategories.enabled && addon.enabled;
             const showDisabled = activeCategories.disabled && !addon.enabled;
@@ -2798,6 +2500,7 @@ input:checked + .slider:before {
             
             const categoryMatch = showEnabled || showDisabled || showFavorites;
             
+            // Wyszukiwanie - priorytet na nazwę, potem opis
             const searchMatch = searchQuery === '' || 
                 addon.name.toLowerCase().includes(searchQuery) || 
                 addon.description.toLowerCase().includes(searchQuery);
@@ -2827,7 +2530,6 @@ input:checked + .slider:before {
             <div class="addon-item-header">
                 <div class="addon-item-title">
                     ${addon.name}
-                    ${addon.requiresLicense ? '<span style="color:#ff9900; font-size:10px; margin-left:5px;">[PREMIUM]</span>' : '<span style="color:#00ff00; font-size:10px; margin-left:5px;">[FREE]</span>'}
                 </div>
                 <div class="addon-item-description">
                     ${addon.description}
@@ -2872,6 +2574,7 @@ input:checked + .slider:before {
             }
         });
         
+        // Jeśli brak skrótów
         if (shortcutsList.children.length === 0) {
             shortcutsList.innerHTML = '<div class="addon-list-empty">Brak aktywnych skrótów. Włącz dodatki aby zobaczyć ich skróty.</div>';
         }
@@ -2898,37 +2601,6 @@ input:checked + .slider:before {
         const addonIndex = currentAddons.findIndex(a => a.id === addonId);
         if (addonIndex === -1) return;
         
-        const addon = currentAddons[addonIndex];
-        
-        if (isEnabled && addon.requiresLicense && !isLicenseVerified) {
-            console.warn(`❌ Cannot enable ${addonId}: License required`);
-            
-            const checkbox = document.querySelector(`input[data-id="${addonId}"]`);
-            if (checkbox) {
-                checkbox.checked = false;
-            }
-            
-            const messageEl = document.getElementById('swAddonsMessage');
-            if (messageEl) {
-                messageEl.textContent = `Dodatek "${addon.name}" wymaga aktywnej licencji!`;
-                messageEl.style.background = 'rgba(255, 0, 0, 0.1)';
-                messageEl.style.color = '#ff0000';
-                messageEl.style.border = '1px solid #ff0000';
-                messageEl.style.display = 'block';
-                
-                setTimeout(() => {
-                    messageEl.style.display = 'none';
-                }, 5000);
-            }
-            
-            const modal = document.getElementById('swLicenseModal');
-            if (modal) {
-                modal.style.display = 'flex';
-            }
-            
-            return;
-        }
-        
         currentAddons[addonIndex].enabled = isEnabled;
         
         if (addonId === 'kcs-icons') {
@@ -2952,63 +2624,19 @@ input:checked + .slider:before {
             console.log('💾 KCS Icons ' + (isEnabled ? 'włączony' : 'wyłączony'));
             
             if (isLicenseVerified && isEnabled) {
-                setTimeout(loadAddonScript, 100, addonId);
+                setTimeout(initKCSIcons, 100);
             }
-        } else if (isEnabled) {
-            setTimeout(loadAddonScript, 100, addonId);
         }
         
         renderAddons();
-        renderShortcuts();
+        renderShortcuts(); // Odśwież skróty jeśli dodatek został włączony/wyłączony
         console.log(`🔧 Toggle ${addonId}: ${isEnabled ? 'enabled' : 'disabled'}`);
-    }
-
-    // 🔹 Ładuj skrypt dodatku
-    function loadAddonScript(addonId) {
-        const addon = currentAddons.find(a => a.id === addonId);
-        if (!addon) return;
-        
-        if (document.querySelector(`script[data-addon="${addonId}"]`)) {
-            console.log(`✅ Addon ${addonId} already loaded`);
-            return;
-        }
-        
-        const script = document.createElement('script');
-        script.src = `addons/${addon.addonFile}`;
-        script.setAttribute('data-addon', addonId);
-        script.onload = function() {
-            console.log(`✅ Addon ${addonId} loaded successfully`);
-            window.SynergyWraithAPI.logActivity(addonId, 'addon_loaded', {
-                requiresLicense: addon.requiresLicense,
-                file: addon.addonFile
-            });
-        };
-        script.onerror = function() {
-            console.error(`❌ Failed to load addon: ${addonId}`);
-            
-            const messageEl = document.getElementById('swAddonsMessage');
-            if (messageEl) {
-                messageEl.textContent = `Nie udało się załadować dodatku "${addon.name}"`;
-                messageEl.style.background = 'rgba(255, 0, 0, 0.1)';
-                messageEl.style.color = '#ff0000';
-                messageEl.style.border = '1px solid #ff0000';
-                messageEl.style.display = 'block';
-                
-                setTimeout(() => {
-                    messageEl.style.display = 'none';
-                }, 5000);
-            }
-        };
-        
-        document.head.appendChild(script);
-        console.log(`📁 Loading addon: ${addon.addonFile}`);
     }
 
     // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
-        SW.GM_deleteValue(CONFIG.PANEL_SIZE);
         SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
         SW.GM_deleteValue(CONFIG.FONT_SIZE);
         SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
@@ -3034,7 +2662,7 @@ input:checked + .slider:before {
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
-            resetMessage.textContent = 'Ustawienia zresetowane! (Licencja zachowana)';
+            resetMessage.textContent = 'Ustawienia zresetowane!';
             resetMessage.style.background = 'rgba(255, 102, 0, 0.1)';
             resetMessage.style.color = '#ff6600';
             resetMessage.style.border = '1px solid #ff6600';
@@ -3074,6 +2702,7 @@ input:checked + .slider:before {
             searchInput.value = '';
         }
         
+        // Zresetuj skrót klawiszowy
         setupKeyboardShortcut();
         setupShortcutInput();
     }
@@ -3114,19 +2743,13 @@ input:checked + .slider:before {
             panel.style.top = '140px';
         }
         
-        const savedSize = SW.GM_getValue(CONFIG.PANEL_SIZE);
-        if (panel && savedSize) {
-            panel.style.width = savedSize.width;
-            panel.style.height = savedSize.height;
-        }
-        
         const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        const savedFontSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
-        updatePanelFontSize(savedFontSize);
+        const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+        updatePanelFontSize(savedSize);
         
         console.log('✅ Saved state loaded');
     }
@@ -3180,110 +2803,33 @@ input:checked + .slider:before {
         console.log('✅ Settings loaded, shortcut:', customShortcut);
     }
 
-    // ============================================
-    // 🔹 SYSTEM LICENCJI TERMINOWEJ
-    // ============================================
-
-    // 🔹 Sprawdź ważność licencji
-    function checkLicenseValidity() {
-        const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
-        const savedExpiry = SW.GM_getValue(CONFIG.LICENSE_EXPIRY);
-        
-        if (!savedKey || !savedExpiry) {
-            console.log('❌ No license found');
-            showLicenseExpiredOverlay('Brak licencji. Aktywuj licencję aby używać panelu.');
-            return false;
-        }
-        
-        const now = new Date();
-        const expiryDate = new Date(savedExpiry);
-        
-        const lastCheck = SW.GM_getValue('sw_last_license_check');
-        if (lastCheck) {
-            const lastCheckDate = new Date(lastCheck);
-            if (now < lastCheckDate) {
-                console.warn('⚠️ System date changed backward! License check failed.');
-                showLicenseExpiredOverlay('Wykryto zmianę daty systemowej. Licencja została unieważniona.');
-                isLicenseVerified = false;
-                updateLicenseDisplay();
-                return false;
-            }
-        }
-        
-        SW.GM_setValue('sw_last_license_check', now.toISOString());
-        
-        const diffTime = expiryDate - now;
-        licenseDaysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        SW.GM_setValue(CONFIG.LICENSE_DAYS_LEFT, licenseDaysLeft);
-        
-        if (licenseDaysLeft <= 0) {
-            console.log('❌ License expired');
-            isLicenseVerified = false;
-            showLicenseExpiredOverlay('Licencja wygasła. Odnów licencję aby kontynuować.');
-        } else if (licenseDaysLeft <= 7) {
-            console.log(`⚠️ License expiring soon: ${licenseDaysLeft} days left`);
-            isLicenseVerified = true;
-            showLicenseWarning(`Licencja wygaśnie za ${licenseDaysLeft} dni`);
-        } else {
-            console.log(`✅ License valid: ${licenseDaysLeft} days left`);
-            isLicenseVerified = true;
-        }
-        
-        updateLicenseDisplay();
-        updateLicenseStatusBar();
-        return isLicenseVerified;
-    }
-
     // 🔹 Aktywacja licencji
     function activateLicense(licenseKey) {
         console.log('🔐 Activating license:', licenseKey);
         
-        if (!window.LICENSE_KEYS) {
-            console.error('❌ LICENSE_KEYS not available');
-            showLicenseMessage('Błąd: Brak pliku z kluczami licencyjnych', 'error');
-            return;
-        }
-        
-        if (!window.LICENSE_KEYS[licenseKey]) {
-            console.log('❌ Invalid license key');
-            showLicenseMessage('Nieprawidłowy kod licencji', 'error');
-            return;
-        }
-        
-        const expiryDateStr = window.LICENSE_KEYS[licenseKey];
-        const expiryDate = new Date(expiryDateStr);
-        const now = new Date();
-        
-        if (expiryDate <= now) {
-            console.log('❌ License already expired');
-            showLicenseMessage('Klucz licencji już wygasł', 'error');
-            return;
-        }
-        
-        const diffTime = expiryDate - now;
-        licenseDaysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+        // Symulacja aktywacji licencji
         isLicenseVerified = true;
-        userAccountId = 'USER_' + licenseKey.substr(-8).toUpperCase();
-        licenseExpiry = expiryDate;
+        userAccountId = 'USER_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        licenseExpiry = new Date();
+        licenseExpiry.setFullYear(licenseExpiry.getFullYear() + 1);
         
         SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
         SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
-        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, expiryDate.toISOString());
-        SW.GM_setValue(CONFIG.LICENSE_DAYS_LEFT, licenseDaysLeft);
-        SW.GM_setValue('sw_last_license_check', now.toISOString());
-        
-        console.log(`✅ License activated! Expires: ${expiryDate.toLocaleDateString()} (${licenseDaysLeft} days)`);
+        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
         
         updateLicenseDisplay();
-        updateLicenseStatusBar();
-        checkLicenseValidity();
         loadEnabledAddons();
         
-        hideLicenseExpiredOverlay();
-        
-        showLicenseMessage(`Licencja aktywowana pomyślnie! Ważna do: ${expiryDate.toLocaleDateString()} (${licenseDaysLeft} dni)`, 'success');
+        const messageEl = document.getElementById('swLicenseMessage');
+        if (messageEl) {
+            messageEl.textContent = 'Licencja aktywowana pomyślnie!';
+            messageEl.className = 'license-message license-success';
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
     }
 
     // 🔹 Update wyświetlania licencji
@@ -3292,38 +2838,10 @@ input:checked + .slider:before {
         const accountEl = document.getElementById('swAccountId');
         const expiryEl = document.getElementById('swLicenseExpiry');
         const serverEl = document.getElementById('swServerStatus');
-        const daysEl = document.getElementById('swLicenseDays');
         
         if (statusEl) {
-            if (isLicenseVerified) {
-                if (licenseDaysLeft <= 7) {
-                    statusEl.textContent = 'Aktywna (wkrótce wygaśnie)';
-                    statusEl.className = 'license-status-warning';
-                } else {
-                    statusEl.textContent = 'Aktywna';
-                    statusEl.className = 'license-status-valid';
-                }
-            } else {
-                statusEl.textContent = 'Nieaktywna';
-                statusEl.className = 'license-status-invalid';
-            }
-        }
-        
-        if (daysEl) {
-            if (isLicenseVerified && licenseDaysLeft > 0) {
-                daysEl.textContent = `${licenseDaysLeft} dni`;
-                daysEl.style.display = 'inline-block';
-                
-                if (licenseDaysLeft <= 3) {
-                    daysEl.className = 'license-days-left critical';
-                } else if (licenseDaysLeft <= 7) {
-                    daysEl.className = 'license-days-left warning';
-                } else {
-                    daysEl.className = 'license-days-left normal';
-                }
-            } else {
-                daysEl.style.display = 'none';
-            }
+            statusEl.textContent = isLicenseVerified ? 'Aktywna' : 'Nieaktywna';
+            statusEl.className = isLicenseVerified ? 'license-status-valid' : 'license-status-invalid';
         }
         
         if (accountEl) {
@@ -3332,7 +2850,10 @@ input:checked + .slider:before {
         
         if (expiryEl) {
             if (licenseExpiry) {
-                expiryEl.textContent = licenseExpiry.toLocaleDateString();
+                const now = new Date();
+                const diffTime = licenseExpiry - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                expiryEl.textContent = `${diffDays} dni`;
             } else {
                 expiryEl.textContent = '-';
             }
@@ -3344,35 +2865,6 @@ input:checked + .slider:before {
         }
     }
 
-    // 🔹 Update paska statusu licencji
-    function updateLicenseStatusBar() {
-        const progressBar = document.getElementById('licenseStatusProgress');
-        const panel = document.getElementById('swAddonsPanel');
-        
-        if (!progressBar || !panel) return;
-        
-        if (!isLicenseVerified) {
-            progressBar.className = 'license-status-progress expired';
-            progressBar.style.width = '100%';
-            panel.classList.add('license-expired');
-            panel.classList.remove('license-expiring');
-            return;
-        }
-        
-        if (licenseDaysLeft <= 7) {
-            progressBar.className = 'license-status-progress expiring';
-            panel.classList.add('license-expiring');
-            panel.classList.remove('license-expired');
-            
-            const width = Math.max(5, (licenseDaysLeft / 7) * 100);
-            progressBar.style.width = width + '%';
-        } else {
-            progressBar.className = 'license-status-progress';
-            panel.classList.remove('license-expired', 'license-expiring');
-            progressBar.style.width = '100%';
-        }
-    }
-
     // 🔹 Check licencji na starcie
     async function checkLicenseOnStart() {
         console.log('🔍 Checking license on start...');
@@ -3381,125 +2873,68 @@ input:checked + .slider:before {
         const savedActive = SW.GM_getValue(CONFIG.LICENSE_ACTIVE, false);
         const savedExpiry = SW.GM_getValue(CONFIG.LICENSE_EXPIRY);
         
-        if (savedKey && savedActive && savedExpiry) {
-            licenseExpiry = new Date(savedExpiry);
-            userAccountId = 'USER_' + savedKey.substr(-8).toUpperCase();
+        if (savedKey && savedActive) {
+            isLicenseVerified = true;
+            userAccountId = 'USER_' + savedKey.substr(0, 8).toUpperCase();
             
-            checkLicenseValidity();
-            
-            console.log('✅ License loaded from storage');
-        } else {
-            console.log('⚠️ No valid license found in storage');
-            isLicenseVerified = false;
-            updateLicenseDisplay();
-            updateLicenseStatusBar();
-        }
-        
-        console.log('✅ License verification complete');
-    }
-
-    // 🔹 Pokaż komunikat o licencji
-    function showLicenseMessage(message, type = 'info') {
-        const messageEl = document.getElementById('swLicenseMessage');
-        if (messageEl) {
-            messageEl.textContent = message;
-            messageEl.className = `license-message license-${type}`;
-            messageEl.style.display = 'block';
-            
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 5000);
-        }
-    }
-
-    // 🔹 Pokaż warning o wygasającej licencji
-    function showLicenseWarning(message) {
-        const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            panel.classList.add('license-expiring');
-            
-            window.SynergyWraithAPI.showToast(message, 'warning');
-            
-            setTimeout(() => {
-                panel.classList.remove('license-expiring');
-            }, 5000);
-        }
-    }
-
-    // 🔹 Pokaż overlay gdy licencja wygasła
-    function showLicenseExpiredOverlay(message) {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        let overlay = panel.querySelector('.license-expired-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = 'license-expired-overlay';
-            
-            overlay.innerHTML = `
-                <div class="license-expired-title">LICENCJA WYGASŁA</div>
-                <div class="license-expired-message">${message}</div>
-                <button class="license-expired-button" id="swRenewLicense">Aktywuj Licencję</button>
-            `;
-            
-            panel.appendChild(overlay);
-            
-            const renewBtn = overlay.querySelector('#swRenewLicense');
-            if (renewBtn) {
-                renewBtn.addEventListener('click', function() {
-                    const modal = document.getElementById('swLicenseModal');
-                    if (modal) {
-                        modal.style.display = 'flex';
-                    }
-                });
+            if (savedExpiry) {
+                licenseExpiry = new Date(savedExpiry);
+                const now = new Date();
+                if (licenseExpiry < now) {
+                    isLicenseVerified = false;
+                    console.log('⚠️ License expired');
+                }
+            } else {
+                licenseExpiry = new Date();
+                licenseExpiry.setFullYear(licenseExpiry.getFullYear() + 1);
             }
+            
+            // Test połączenia z serwerem
+            serverConnected = true; // Symulacja
+            
+            console.log('✅ License verified');
+        } else {
+            console.log('⚠️ No valid license found');
         }
         
-        panel.style.display = 'block';
-        SW.GM_setValue(CONFIG.PANEL_VISIBLE, true);
-    }
-
-    // 🔹 Ukryj overlay licencji
-    function hideLicenseExpiredOverlay() {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        const overlay = panel.querySelector('.license-expired-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
-        
-        panel.classList.remove('license-expired');
+        updateLicenseDisplay();
+        console.log('✅ License verification complete');
     }
 
     // 🔹 Ładowanie włączonych dodatków
     function loadEnabledAddons() {
-        console.log('🔓 Loading enabled addons...');
+        console.log('🔓 Ładowanie dodatków...');
         
         if (!isLicenseVerified) {
-            console.log('⏸️ License not verified, only loading free addons');
-            
-            currentAddons.forEach(addon => {
-                if (addon.enabled && !addon.requiresLicense) {
-                    console.log(`📁 Loading free addon: ${addon.id}`);
-                    loadAddonScript(addon.id);
-                }
-            });
+            console.log('⏩ Licencja niezweryfikowana, pomijam ładowanie dodatków');
             return;
         }
         
-        currentAddons.forEach(addon => {
-            if (addon.enabled) {
-                console.log(`📁 Loading addon: ${addon.id}`);
-                loadAddonScript(addon.id);
-            }
-        });
+        const kcsAddon = currentAddons.find(a => a.id === 'kcs-icons');
+        if (kcsAddon && kcsAddon.enabled) {
+            console.log('✅ KCS Icons włączony, uruchamiam dodatek...');
+            setTimeout(initKCSIcons, 100);
+        } else {
+            console.log('⏩ KCS Icons jest wyłączony, pomijam ładowanie');
+        }
+    }
+
+    // 🔹 Inicjalizacja KCS Icons (przykładowa funkcja)
+    function initKCSIcons() {
+        console.log('🔄 Initializing KCS Icons addon...');
+        // Tutaj prawdziwa logika inicjalizacji dodatku
     }
 
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPanel);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded, initializing panel...');
+            initPanel();
+            console.log('✅ SynergyWraith panel ready!');
+        });
     } else {
+        console.log('✅ DOM already loaded, initializing panel...');
         initPanel();
+        console.log('✅ SynergyWraith panel ready!');
     }
 })();
