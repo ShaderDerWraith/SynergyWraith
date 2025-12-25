@@ -1,11 +1,9 @@
 // ==UserScript==
-// @name         SynergyWraith - Panel Dodatków
-// @version      1.8
-// @description  Zaawansowany panel dodatków do Margonem
-// @author       ShaderDerWraith
-// @license      MIT
-// @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/synergywraith.user.js
-// @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg
+// @name         Synergy Wraith Panel
+// @namespace    http://synergywraith.com/
+// @version      2.3
+// @description  Premium gaming panel z systemem licencji terminowej
+// @author       SynergyWraith
 // @match        http*://*.margonem.pl/*
 // @match        http*://*.margonem.com/*
 // @exclude      http*://margonem.*/*
@@ -14,14 +12,16 @@
 // @exclude      http*://forum.margonem.*/*
 // @exclude      http*://commons.margonem.*/*
 // @exclude      http*://dev-commons.margonem.*/*
-// @grant        GM_xmlhttpRequest
-// @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_listValues
-// @connect      raw.githubusercontent.com
-// @connect      github.com
-// @run-at       document-body
+// @grant        unsafeWindow
+// @grant        GM_addStyle
+// @grant        GM_registerMenuCommand
+// @grant        GM_notification
+// @run-at       document-end
+// @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg
 // ==/UserScript==
 
 (function() {
