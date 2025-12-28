@@ -72,16 +72,21 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "chuj"
+            "zaden",
+            "thowarek",
+            "nie",
+            "bedzie",
+            "moim",
+            "bratem"
         ]
     };
 
     // 🔹 Skróty klawiszowe dla dodatków
     const DEFAULT_SHORTCUTS = [
         { addonId: 'kcs-icons', shortcut: 'Ctrl+Shift+I', description: 'Przełącz ikony' },
-        { addonId: 'auto-looter', shortcut: 'Ctrl+L', description: 'Szybki loot' },
-        { addonId: 'quest-helper', shortcut: 'Ctrl+Q', description: 'Pokaż zadania' },
-        { addonId: 'trade-helper', shortcut: 'Ctrl+T', description: 'Otwórz handel' }
+        { addonId: '1', shortcut: 'Ctrl+L', description: '1' },
+        { addonId: '2', shortcut: 'Ctrl+Q', description: '2' },
+        { addonId: '3', shortcut: 'Ctrl+T', description: '3' }
     ];
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
