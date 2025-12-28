@@ -31,37 +31,37 @@
             favorite: false
         },
         {
-            id: 1',
-            name: '1',
-            description: '1',
+            id: 'auto-looter',
+            name: 'Auto Looter',
+            description: 'Automatycznie zbiera loot',
             enabled: false,
             favorite: false
         },
         {
-            id: '2',
-            name: '2',
-            description: '2',
+            id: 'quest-helper',
+            name: 'Quest Helper',
+            description: 'Pomocnik zadań',
             enabled: false,
             favorite: false
         },
         {
-            id: '3',
-            name: '3',
-            description: '3',
+            id: 'enhanced-stats',
+            name: 'Enhanced Stats',
+            description: 'Rozszerzone statystyki',
             enabled: false,
             favorite: false
         },
         {
-            id: '4',
-            name: '4',
-            description: '4',
+            id: 'trade-helper',
+            name: 'Trade Helper',
+            description: 'Pomocnik handlu',
             enabled: false,
             favorite: false
         },
         {
-            id: '5',
-            name: '5',
-            description: '5',
+            id: 'combat-log',
+            name: 'Combat Log',
+            description: 'Rozszerzony log walki',
             enabled: false,
             favorite: false
         }
@@ -72,21 +72,22 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "zaden",
-            "thowarek",
-            "nie",
-            "bedzie",
-            "moim",
-            "bratem"
+            "Dodano wyszukiwarkę dodatków",
+            "Dodano konfigurowalne skróty klawiszowe",
+            "Nowa zakładka 'Skróty'",
+            "Nowa zakładka 'Informacje'",
+            "Rozszerzona sekcja licencji",
+            "Przycisk zamykania panelu",
+            "Ulepszenia interfejsu"
         ]
     };
 
     // 🔹 Skróty klawiszowe dla dodatków
     const DEFAULT_SHORTCUTS = [
         { addonId: 'kcs-icons', shortcut: 'Ctrl+Shift+I', description: 'Przełącz ikony' },
-        { addonId: '1', shortcut: 'Ctrl+L', description: '1' },
-        { addonId: '2', shortcut: 'Ctrl+Q', description: '2' },
-        { addonId: '3', shortcut: 'Ctrl+T', description: '3' }
+        { addonId: 'auto-looter', shortcut: 'Ctrl+L', description: 'Szybki loot' },
+        { addonId: 'quest-helper', shortcut: 'Ctrl+Q', description: 'Pokaż zadania' },
+        { addonId: 'trade-helper', shortcut: 'Ctrl+T', description: 'Otwórz handel' }
     ];
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
