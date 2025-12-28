@@ -72,8 +72,7 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "chuj",
-            ""
+            "chuj"
         ]
     };
 
