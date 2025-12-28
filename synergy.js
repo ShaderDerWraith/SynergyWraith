@@ -31,37 +31,37 @@
             favorite: false
         },
         {
-            id: 'auto-looter',
-            name: 'Auto Looter',
-            description: 'Automatycznie zbiera loot',
+            id: 1',
+            name: '1',
+            description: '1',
             enabled: false,
             favorite: false
         },
         {
-            id: 'quest-helper',
-            name: 'Quest Helper',
-            description: 'Pomocnik zadań',
+            id: '2',
+            name: '2',
+            description: '2',
             enabled: false,
             favorite: false
         },
         {
-            id: 'enhanced-stats',
-            name: 'Enhanced Stats',
-            description: 'Rozszerzone statystyki',
+            id: '3',
+            name: '3',
+            description: '3',
             enabled: false,
             favorite: false
         },
         {
-            id: 'trade-helper',
-            name: 'Trade Helper',
-            description: 'Pomocnik handlu',
+            id: '4',
+            name: '4',
+            description: '4',
             enabled: false,
             favorite: false
         },
         {
-            id: 'combat-log',
-            name: 'Combat Log',
-            description: 'Rozszerzony log walki',
+            id: '5',
+            name: '5',
+            description: '5',
             enabled: false,
             favorite: false
         }
@@ -72,13 +72,8 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "Dodano wyszukiwarkę dodatków",
-            "Dodano konfigurowalne skróty klawiszowe",
-            "Nowa zakładka 'Skróty'",
-            "Nowa zakładka 'Informacje'",
-            "Rozszerzona sekcja licencji",
-            "Przycisk zamykania panelu",
-            "Ulepszenia interfejsu"
+            "chuj",
+            ""
         ]
     };
 
