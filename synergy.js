@@ -72,12 +72,13 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "Żaden",
-            "thowarek",
-            "nie'",
-            "jest",
-            "moim",
-            "bratem'
+            "Dodano wyszukiwarkę dodatków",
+            "Dodano konfigurowalne skróty klawiszowe",
+            "Nowa zakładka 'Skróty'",
+            "Nowa zakładka 'Informacje'",
+            "Rozszerzona sekcja licencji",
+            "Przycisk zamykania panelu",
+            "Ulepszenia interfejsu"
         ]
     };
 
