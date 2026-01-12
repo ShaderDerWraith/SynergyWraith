@@ -179,24 +179,7 @@
                 if (accountId) {
                     return accountId;
                 }
-            }
-        } catch (e) {
-            console.log('⚠️ Nie udało się pobrać przez API');
-        }
-        
-        // Metoda 5: Spróbuj znaleźć w localStorage
-        try {
-            const savedAccountId = SW.GM_getValue(CONFIG.ACCOUNT_ID);
-            if (savedAccountId) {
-                console.log('✅ Znaleziono zapisane ID konta:', savedAccountId);
-                return savedAccountId;
-            }
-        } catch (e) {
-            console.log('⚠️ Nie znaleziono zapisanego ID');
-        }
-        
-        console.log('❌ Nie znaleziono ID konta');
-        return null;
+          }
     }
 
     // Funkcja 2: Pobierz ID konta przez API (async)
