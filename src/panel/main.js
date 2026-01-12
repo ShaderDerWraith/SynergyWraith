@@ -2241,18 +2241,3 @@ input:checked + .slider:before {
             setTimeout(() => messageEl.style.display = 'none', 5000);
         }
     }
-
-    function resetAllSettings() {
-        Object.keys(CONFIG).forEach(key => SW.GM_deleteValue(CONFIG[key]));
-        currentAddons = ADDONS.map(addon => ({ ...addon, enabled: addon.id === 'kcs-icons', favorite: false }));
-        activeCategories = { enabled: true, disabled: true, favorites: true };
-        customShortcut = 'Ctrl+A'; searchQuery = ''; userAccountId = null; isLicenseVerified = false;
-        loadSavedState(); updateFilterSwitches(); renderAddons(); updateAccountDisplay('Nie znaleziono'); updateLicenseDisplay();
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeSlider && fontSizeValue) { fontSizeSlider.value = '12'; fontSizeValue.textContent = '12px'; }
-        const backgroundToggle = document.getElementById('backgroundToggle');
-        if (backgroundToggle) { backgroundToggle.checked = true; updateBackgroundVisibility(true); }
-        const shortcutInput = document.getElementById('shortcutInput');
-        if (shortcutInput) shortcutInput.value = 'Ctrl+A';
-        const searchInput = document.getElementById('
