@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel loaded v2.2');
+    console.log('🚀 Synergy Panel loaded v2.2');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -514,6 +514,10 @@
     display: none;
     height: calc(100% - 50px);
     animation: fadeEffect 0.3s ease;
+}
+
+.tabcontent.active {
+    display: block;
 }
 
 @keyframes fadeEffect {
@@ -1356,6 +1360,68 @@ input:checked + .slider:before {
     box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
 }
 
+/* 🔹 SHORTCUTS TAB STYLES 🔹 */
+.shortcuts-container {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.shortcuts-header {
+    color: #00ff00;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(40, 40, 40, 0.6);
+    border: 1px solid #333;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.shortcut-item:hover {
+    border-color: #00ff00;
+    background: rgba(50, 50, 50, 0.8);
+    transform: translateY(-2px);
+}
+
+.shortcut-key {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 8px 12px;
+    background: rgba(0, 50, 0, 0.3);
+    border-radius: 4px;
+    border: 1px solid #00ff00;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.shortcut-description {
+    color: #ccc;
+    font-size: 14px;
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
 /* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
@@ -1501,13 +1567,14 @@ input:checked + .slider:before {
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH v2.2</strong>
+                <strong>SYNERGY</strong>
             </div>
             
             <div class="tab-container">
                 <button class="tablink active" data-tab="addons">Dodatki</button>
                 <button class="tablink" data-tab="license">Licencja</button>
                 <button class="tablink" data-tab="settings">Ustawienia</button>
+                <button class="tablink" data-tab="shortcuts">Skróty klawiszowe</button>
                 <button class="tablink" data-tab="info">Informacje</button>
             </div>
 
@@ -1632,17 +1699,51 @@ input:checked + .slider:before {
                 </div>
             </div>
 
+            <div id="shortcuts" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="shortcuts-container">
+                        <div class="shortcuts-header">Skróty klawiszowe</div>
+                        <div class="shortcuts-list">
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">Ctrl + A</span>
+                                <span class="shortcut-description">Otwórz/ukryj panel Synergy</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">ESC</span>
+                                <span class="shortcut-description">Zamknij panel</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">F5</span>
+                                <span class="shortcut-description">Odśwież panel</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">Ctrl + F</span>
+                                <span class="shortcut-description">Wyszukaj dodatki</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">Ctrl + S</span>
+                                <span class="shortcut-description">Zapisz ustawienia</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <span class="shortcut-key">Ctrl + R</span>
+                                <span class="shortcut-description">Resetuj ustawienia</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
-                        <div class="info-header">Historia zmian v2.2</div>
+                        <div class="info-header">Historia zmian v${VERSION_INFO.version}</div>
                         
                         <div class="info-patch-notes">
                             ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                         </div>
                         
                         <div class="info-footer">
-                            © 2024 Synergy Wraith Panel • Wszelkie prawa zastrzeżone
+                            © 2024 Synergy Panel • Wszelkie prawa zastrzeżone
                         </div>
                     </div>
                 </div>
@@ -1875,7 +1976,9 @@ input:checked + .slider:before {
                 this.classList.add('active');
                 
                 const tabContents = document.querySelectorAll('.tabcontent');
-                tabContents.forEach(content => content.classList.remove('active'));
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
                 
                 const tabContent = document.getElementById(tabName);
                 if (tabContent) {
@@ -2574,11 +2677,11 @@ input:checked + .slider:before {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ DOM loaded, initializing panel...');
             initPanel();
-            console.log('✅ SynergyWraith panel ready!');
+            console.log('✅ Synergy panel ready!');
         });
     } else {
         console.log('✅ DOM already loaded, initializing panel...');
         initPanel();
-        console.log('✅ SynergyWraith panel ready!');
+        console.log('✅ Synergy panel ready!');
     }
 })();
