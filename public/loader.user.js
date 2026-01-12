@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SynergyWraith - Panel Dodatków
-// @version      1.8
-// @description  Zaawansowany panel dodatków do Margonem
+// @version      2.1
+// @description  Zaawansowany panel dodatków do Margonem z systemem licencji
 // @author       ShaderDerWraith
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/loader.user.js
@@ -26,11 +26,15 @@
 (function () {
     'use strict';
     
-    console.log('🚀 SynergyWraith loader started - v1.8');
+    console.log('🚀 SynergyWraith loader started - v2.1');
     
     // 🔹 UŻYJ RAW GITHUB URL DO NOWEJ STRUKTURY
     const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/';
     const TIMESTAMP = Date.now();
+    
+    // 🔹 Debug info
+    console.log('🔧 DEBUG: Base URL:', BASE_URL);
+    console.log('🔧 DEBUG: JS URL:', BASE_URL + 'panel/main.js?v=' + TIMESTAMP);
     
     // 🔹 Globalny obiekt
     const synergyWraith = {};
@@ -46,23 +50,7 @@
     
     synergyWraith.GM_xmlhttpRequest = GM_xmlhttpRequest;
 
-    // 🔹 Ładuj CSS
-    function loadCSS() {
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: BASE_URL + 'panel/panel.css?v=' + TIMESTAMP,
-            onload: function(response) {
-                if (response.status === 200) {
-                    const style = document.createElement('style');
-                    style.textContent = response.responseText;
-                    document.head.appendChild(style);
-                    console.log('✅ CSS loaded from RAW GitHub');
-                }
-            }
-        });
-    }
-
-    // 🔹 Ładuj JS
+    // 🔹 Ładuj tylko JS - CSS będzie wstrzyknięty przez main.js
     function loadJS() {
         GM_xmlhttpRequest({
             method: 'GET',
@@ -73,7 +61,12 @@
                     script.textContent = response.responseText;
                     document.head.appendChild(script);
                     console.log('✅ JS loaded from RAW GitHub');
+                } else {
+                    console.error('❌ Failed to load JS:', response.status);
                 }
+            },
+            onerror: function(error) {
+                console.error('❌ Error loading JS:', error);
             }
         });
     }
@@ -81,7 +74,6 @@
     // 🔹 Start ładowania
     function init() {
         console.log('🎯 Loading from RAW GitHub');
-        loadCSS();
         loadJS();
     }
 

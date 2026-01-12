@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu z systemem ID konta
+// synergy.js - Główny kod panelu z systemem ID konta (stary wygląd)
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel loaded v2.0');
+    console.log('🚀 SynergyWraith Panel loaded v2.1');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -70,14 +70,14 @@
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "2.0",
+        version: "2.1",
         releaseDate: "2024-01-15",
         patchNotes: [
             "Dodano automatyczne wykrywanie ID konta",
             "Poprawiono strukturę repozytorium",
+            "Przywrócono stary, działający wygląd panelu",
             "Nowy system licencji w przygotowaniu",
-            "Ulepszone wykrywanie konta z API gry",
-            "Lepsza organizacja kodu"
+            "Ulepszone wykrywanie konta z API gry"
         ]
     };
 
@@ -298,115 +298,1203 @@
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 Funkcja zapobiegająca zmianom rozmiaru
-    function preventPanelResize() {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        // Ustaw stałe wymiary
-        panel.style.minWidth = '640px';
-        panel.style.maxWidth = '640px';
-        panel.style.width = '640px';
-        panel.style.resize = 'none';
-        
-        // Obserwuj zmiany w DOM
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                    // Przywróć oryginalne style jeśli zostały zmienione
-                    panel.style.minWidth = '640px';
-                    panel.style.maxWidth = '640px';
-                    panel.style.width = '640px';
-                    panel.style.resize = 'none';
-                }
-            });
-        });
-        
-        observer.observe(panel, { attributes: true, attributeFilter: ['style'] });
-        
-        // Również obserwuj zmiany w elementach wewnątrz
-        const innerObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList') {
-                    // Resetuj style po dodaniu nowych elementów
-                    document.querySelectorAll('.addon-item').forEach(item => {
-                        item.style.minHeight = 'auto';
-                        item.style.maxHeight = '50px';
-                    });
-                }
-            });
-        });
-        
-        innerObserver.observe(panel, { childList: true, subtree: true });
-    }
-
-    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
-    function updatePanelFontSize(size) {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        // Usuń wszystkie poprzednie style font-size
-        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
-        
-        // Ustaw nowy rozmiar czcionki z !important
-        panel.style.setProperty('font-size', size + 'px', 'important');
-        
-        // Również ustaw dla wszystkich elementów wewnątrz panelu
-        const allElements = panel.querySelectorAll('*');
-        allElements.forEach(element => {
-            element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
-            element.style.setProperty('font-size', size + 'px', 'important');
-        });
-        
-        console.log('📏 Font size updated to:', size + 'px');
-    }
-
-    // 🔹 Wstrzyknij CSS
+    // 🔹 Wstrzyknij CSS - STARĄ WERSJA
     function injectCSS() {
-        // CSS jest już wstrzykiwany przez loader, więc ta funkcja jest pusta
-        console.log('✅ CSS already injected by loader');
+        const style = document.createElement('style');
+        style.textContent = `
+/* 🔹 BASE STYLES 🔹 */
+#swPanelToggle {
+    position: fixed;
+    top: 70px;
+    left: 70px;
+    width: 50px;
+    height: 50px;
+    background: transparent;
+    border: 3px solid #00ff00;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 1000000;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 5px black;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+}
+
+#swPanelToggle.dragging {
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
+    border: 3px solid #ffff00;
+    z-index: 1000001;
+}
+
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.08);
+    box-shadow: 0 0 25px rgba(255, 30, 30, 1);
+    cursor: grab;
+}
+
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+}
+
+/* Save indication animation */
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
     }
-    // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
-    function setupMouseWheelScrolling() {
-        const addonList = document.getElementById('addon-list');
-        if (!addonList) return;
-        
-        let isScrolling = false;
-        
-        addonList.addEventListener('wheel', function(e) {
-            const isScrollable = this.scrollHeight > this.clientHeight;
-            const isAtTop = this.scrollTop === 0;
-            const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
-            
-            if (isScrollable) {
-                const isScrollingDown = e.deltaY > 0;
-                const isScrollingUp = e.deltaY < 0;
-                
-                if (isAtTop && isScrollingUp) {
-                    return;
-                }
-                if (isAtBottom && isScrollingDown) {
-                    return;
-                }
-                
-                e.preventDefault();
-                
-                if (!isScrolling) {
-                    isScrolling = true;
-                    
-                    requestAnimationFrame(() => {
-                        const scrollAmount = e.deltaY * 0.8;
-                        this.scrollTop += scrollAmount;
-                        
-                        setTimeout(() => {
-                            isScrolling = false;
-                        }, 16);
-                    });
-                }
-            }
-        }, { passive: false });
-        
-        console.log('✅ Enhanced mouse wheel scrolling enabled');
+    50% { 
+        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
+        border-color: #00ff00;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+        border-color: #00ff00;
+    }
+}
+
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out;
+}
+
+/* Prevent text selection during drag */
+#swPanelToggle.dragging::selection {
+    background: transparent;
+}
+
+#swPanelToggle.dragging::-moz-selection {
+    background: transparent;
+}
+
+/* 🔹 MAIN PANEL - ZMODYFIKOWANE DOPASOWANIE DO IKONY 🔹 */
+#swAddonsPanel {
+    position: fixed;
+    top: 140px;
+    left: 70px;
+    width: 350px;
+    background: linear-gradient(135deg, #0a0a0a, #121212);
+    border: 3px solid #00ff00;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 999999;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 0, 0.1);
+    backdrop-filter: blur(10px);
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+/* Neonowy efekt na krawędziach */
+#swAddonsPanel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    padding: 2px;
+    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+}
+
+#swPanelHeader {
+    background: linear-gradient(to right, #1a1a1a, #222222);
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #00ff00;
+    cursor: grab;
+    position: relative;
+    overflow: hidden;
+}
+
+#swPanelHeader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.sw-tab-content {
+    padding: 15px;
+    background: rgba(10, 10, 10, 0.9);
+}
+
+/* 🔹 TABS STYLES 🔹 */
+.tab-container {
+    display: flex;
+    background: linear-gradient(to bottom, #1a1a1a, #151515);
+    border-bottom: 1px solid #00ff00;
+    padding: 0 5px;
+}
+
+.tablink {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    color: #aaaaaa;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.tablink::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #00ff00;
+    transition: width 0.3s ease;
+}
+
+.tablink:hover::before {
+    width: 80%;
+}
+
+.tablink.active {
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.tablink.active::before {
+    width: 100%;
+    background: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+.tablink:hover:not(.active) {
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 TAB CONTENT 🔹 */
+.tabcontent {
+    display: none;
+    padding: 15px;
+    animation: fadeEffect 0.3s ease;
+}
+
+@keyframes fadeEffect {
+    from { 
+        opacity: 0; 
+        transform: translateY(5px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.tabcontent h3 {
+    margin: 0 0 15px 0;
+    color: #00ff00;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    position: relative;
+}
+
+.tabcontent h3::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 50px;
+    height: 1px;
+    background: #ff0000;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+/* 🔹 ADDONS LIST 🔹 */
+.addon {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.addon:hover {
+    background: rgba(40, 40, 40, 0.9);
+    border-color: #00ff00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
+}
+
+.addon:hover::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    border-radius: 8px;
+    z-index: -1;
+    animation: borderGlow 2s linear infinite;
+}
+
+@keyframes borderGlow {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+.addon-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.addon-header > div {
+    display: flex;
+    align-items: center;
+}
+
+.addon-title {
+    font-weight: 600;
+    color: #00ff00;
+    font-size: 13px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.addon-description {
+    color: #aaaaaa;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: none;
+}
+
+.addon.expanded .addon-description {
+    display: block;
+}
+
+/* 🔹 SETTINGS GEAR ICON 🔹 */
+.addon-settings-btn {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #333;
+    color: #00ff00;
+    cursor: pointer;
+    padding: 2px 5px;
+    margin-left: 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.addon-settings-btn:hover {
+    color: #ffffff;
+    background: rgba(0, 255, 0, 0.3);
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 SWITCH STYLE - ZMODYFIKOWANY 🔹 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 18px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 18px;
+    border: 1px solid #555;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+input:checked + .slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 LICENSE SYSTEM 🔹 */
+.license-container {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.license-status-header {
+    color: #00ff00;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+}
+
+.license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.license-status-label {
+    color: #00ff00;
+    font-weight: 600;
+}
+
+.license-status-value {
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+.license-status-valid {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.license-status-invalid {
+    color: #ff0000 !important;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+.license-status-connected {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.license-status-disconnected {
+    color: #ff0000 !important;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+/* 🔹 PRZYCISK AKTYWACJI LICENCJI 🔹 */
+.license-activation-container {
+    text-align: center;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+.license-activation-button {
+    padding: 12px 30px;
+    background: linear-gradient(to right, #003300, #006600);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 200px;
+}
+
+.license-activation-button:hover {
+    background: linear-gradient(to right, #006600, #009900);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 MODAL AKTYWACJI LICENCJI 🔹 */
+#swLicenseModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000003;
+    justify-content: center;
+    align-items: center;
+}
+
+.license-modal-content {
+    background: linear-gradient(135deg, #0a0a0a, #121212);
+    width: 400px;
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    padding: 25px 35px;
+    position: relative;
+}
+
+.license-modal-header {
+    color: #00ff00;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.license-modal-input {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #00ff00;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.license-modal-input:focus {
+    outline: none;
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.license-modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 0 15px;
+}
+
+.license-modal-button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.license-modal-button.activate {
+    background: linear-gradient(to right, #003300, #006600);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+}
+
+.license-modal-button.activate:hover {
+    background: linear-gradient(to right, #006600, #009900);
+    color: #ffffff;
+}
+
+.license-modal-button.cancel {
+    background: rgba(30, 30, 30, 0.8);
+    color: #888;
+    border: 1px solid #333;
+}
+
+.license-modal-button.cancel:hover {
+    background: rgba(40, 40, 40, 0.9);
+    color: #ffffff;
+}
+
+.license-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.license-modal-close:hover {
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+/* 🔹 SETTINGS TAB 🔹 */
+.settings-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.settings-item:hover {
+    border-color: #00ff00;
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.settings-label {
+    display: block;
+    color: #00ff00;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
+.font-size-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.font-size-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+    outline: none;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #00ff00;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: #00cc00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.font-size-value {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 12px;
+    min-width: 30px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+/* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
+.background-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.background-toggle-label {
+    color: #00ff00;
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.background-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.background-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.background-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 24px;
+    border: 1px solid #555;
+}
+
+.background-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.background-toggle input:checked + .background-toggle-slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+.background-toggle input:checked + .background-toggle-slider:before {
+    transform: translateX(26px);
+    background-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
+.reset-settings-container {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #333;
+}
+
+.reset-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ff0000;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover {
+    background: rgba(50, 30, 30, 0.9);
+    border-color: #ff0000;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
+
+.reset-settings-button:active {
+    transform: translateY(0);
+}
+
+.reset-settings-icon {
+    color: #ff0000;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover .reset-settings-icon {
+    transform: rotate(180deg);
+    color: #ffffff;
+}
+
+/* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
+#swAddonsPanel.transparent-background {
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+}
+
+#swAddonsPanel.transparent-background .sw-tab-content,
+#swAddonsPanel.transparent-background .addon,
+#swAddonsPanel.transparent-background .settings-item,
+#swAddonsPanel.transparent-background .license-status-container {
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(5px);
+}
+
+#swAddonsPanel.transparent-background .tab-container {
+    background: rgba(20, 20, 20, 0.9);
+}
+
+/* 🔹 OPCJE W TYTUŁACH DODATKÓW 🔹 */
+.addon-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 🔹 BUTTONS 🔹 */
+#reset-settings {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to right, #660000, #990000);
+    color: #ff0000;
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+#reset-settings:hover {
+    background: linear-gradient(to right, #990000, #cc0000);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+/* 🔹 SCROLLBAR STYLES 🔹 */
+.admin-list::-webkit-scrollbar,
+.usage-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-list::-webkit-scrollbar-track,
+.usage-log::-webkit-scrollbar-track {
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 4px;
+}
+
+.admin-list::-webkit-scrollbar-thumb,
+.usage-log::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #00ff00, #006600);
+    border-radius: 4px;
+}
+
+.admin-list::-webkit-scrollbar-thumb:hover,
+.usage-log::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #00ff00, #009900);
+}
+
+/* 🔹 ANIMACJE DODATKOWE 🔹 */
+@keyframes pulse {
+    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+}
+
+.addon.active {
+    animation: pulse 2s infinite;
+}
+
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
+@media (max-width: 400px) {
+    #swAddonsPanel {
+        width: 300px;
+        left: 10px;
+    }
+    
+    .tablink {
+        padding: 10px 5px;
+        font-size: 11px;
+    }
+    
+    .license-status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+    
+    .license-status-value {
+        max-width: 100%;
+        text-align: left;
+    }
+    
+    .admin-input-group {
+        flex-direction: column;
+    }
+    
+    .font-size-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .font-size-slider {
+        width: 100%;
+    }
+    
+    .background-toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* 🔹 KATEGORIE FILTRÓW 🔹 */
+.category-filters {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    margin-bottom: 15px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.category-filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 5px 10px;
+    background: rgba(30, 30, 30, 0.6);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    gap: 10px;
+}
+
+.category-filter-item:hover {
+    background: rgba(40, 40, 40, 0.8);
+    transform: translateY(-2px);
+}
+
+.category-filter-label {
+    display: flex;
+    align-items: center;
+    color: #00ff00;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
+.category-switch {
+    position: relative;
+    display: inline-block;
+    width: 35px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-left: 0;
+}
+
+.category-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.category-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .3s;
+    border-radius: 18px;
+    border: 1px solid #555;
+}
+
+.category-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #00ff00;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+}
+
+.category-switch input:checked + .category-slider {
+    background-color: #003300;
+    border-color: #00ff00;
+}
+
+.category-switch input:checked + .category-slider:before {
+    transform: translateX(17px);
+    background-color: #00ff00;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
+}
+
+/* 🔹 WYSZUKIWARKA 🔹 */
+.search-container {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #00ff00;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+}
+
+.search-input::placeholder {
+    color: #666;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* 🔹 LISTA DODATKÓW 🔹 */
+.addon-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.addon-list-empty {
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    padding: 20px 10px;
+    font-style: italic;
+    background: rgba(30, 30, 30, 0.5);
+    border-radius: 6px;
+    margin: 5px 0;
+}
+
+/* 🔹 FAVORITE STAR 🔹 */
+.favorite-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 3px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+.favorite-btn:hover {
+    color: #ffaa00;
+    transform: scale(1.1);
+}
+
+.favorite-btn.favorite {
+    color: #ffaa00;
+    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5);
+}
+
+/* 🔹 PRZYCISK ODŚWIEŻ 🔹 */
+.refresh-button-container {
+    text-align: center;
+    margin-top: 10px;
+    padding: 10px;
+    border-top: 1px solid #333;
+}
+
+.refresh-button {
+    padding: 10px 30px;
+    background: linear-gradient(to right, #003300, #006600);
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 150px;
+}
+
+.refresh-button:hover {
+    background: linear-gradient(to right, #006600, #009900);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+}
+
+/* 🔹 INFORMACJE TAB 🔹 */
+.info-container {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.info-header {
+    color: #00ff00;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.info-patch-notes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-patch-notes li {
+    color: #ccc;
+    font-size: 12px;
+    margin-bottom: 8px;
+    padding-left: 0;
+    position: relative;
+    line-height: 1.4;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+}
+
+.info-patch-notes li:before {
+    content: "•";
+    color: #00ff00;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 8px;
+    flex-shrink: 0;
+    margin-top: 0;
+    display: inline-block;
+    line-height: 1.4;
+}
+
+.info-footer {
+    color: #666;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+    font-style: italic;
+}
+
+/* 🔹 LICENSE MESSAGE 🔹 */
+.license-message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid;
+}
+
+.license-success {
+    background: rgba(0, 100, 0, 0.2);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.license-error {
+    background: rgba(100, 0, 0, 0.2);
+    color: #ff0000;
+    border-color: #ff0000;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.license-info {
+    background: rgba(0, 50, 100, 0.2);
+    color: #00aaff;
+    border-color: #00aaff;
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+        `;
+        document.head.appendChild(style);
+        console.log('✅ CSS injected');
     }
 
     // 🔹 Główne funkcje
@@ -428,14 +1516,6 @@
         createToggleButton();
         createMainPanel();
         createLicenseModal();
-        
-        // 🔹 Zapobiegaj zmianom rozmiaru
-        preventPanelResize();
-        
-        // 🔹 Dodaj obsługę scrollowania myszką
-        setTimeout(() => {
-            setupMouseWheelScrolling();
-        }, 500);
         
         // Ładujemy zapisany stan (w tym pozycję przycisku)
         loadSavedState();
@@ -478,7 +1558,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu
+    // 🔹 Tworzenie głównego panelu - STARĄ WERSJA
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -488,14 +1568,13 @@
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH v2.0</strong>
+                <strong>SYNERGY WRAITH v2.1</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
             <div class="tab-container">
                 <button class="tablink active" data-tab="addons">Dodatki</button>
                 <button class="tablink" data-tab="license">Licencja</button>
-                <button class="tablink" data-tab="shortcuts">Skróty</button>
                 <button class="tablink" data-tab="settings">Ustawienia</button>
                 <button class="tablink" data-tab="info">Informacje</button>
             </div>
@@ -553,7 +1632,7 @@
             <div id="license" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="license-container">
-                        <div class="license-header">Status Licencji</div>
+                        <div class="license-status-header">Status Licencji</div>
                         <div class="license-status-item">
                             <span class="license-status-label">ID Konta:</span>
                             <span id="swAccountId" class="license-status-value">Ładowanie...</span>
@@ -582,22 +1661,6 @@
                 </div>
             </div>
 
-            <div id="shortcuts" class="tabcontent">
-                <div class="sw-tab-content">
-                    <div class="info-container">
-                        <div class="info-header">Skróty Klawiszowe</div>
-                        <div class="info-section">
-                            <div class="shortcuts-list" id="shortcuts-list">
-                                <!-- Skróty zostaną dodane dynamicznie -->
-                            </div>
-                        </div>
-                        <div class="info-footer">
-                            Skróty są dostępne tylko dla włączonych dodatków
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="settings-item">
@@ -622,7 +1685,7 @@
                         <div class="shortcut-input-container">
                             <span class="shortcut-input-label">Skrót do widgetu:</span>
                             <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" readonly>
-                            <button class="shortcut-set-btn" id="shortcutSetBtn" style="padding: 8px 15px; background: rgba(51, 17, 0, 0.8); border: 1px solid #ff9900; color: #ff9900; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Ustaw skrót</button>
+                            <button class="shortcut-set-btn" id="shortcutSetBtn" style="padding: 8px 15px; background: rgba(51, 17, 0, 0.8); border: 1px solid #00ff00; color: #00ff00; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">Ustaw skrót</button>
                         </div>
                     </div>
                     
@@ -640,7 +1703,7 @@
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
-                        <div class="info-header">Historia zmian v2.0</div>
+                        <div class="info-header">Historia zmian v2.1</div>
                         
                         <div class="info-patch-notes">
                             ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
@@ -657,7 +1720,6 @@
         document.body.appendChild(panel);
         renderAddons();
         updateFilterSwitches();
-        renderShortcuts();
         console.log('✅ Panel created');
     }
 
@@ -892,6 +1954,7 @@
         
         console.log('✅ Tabs setup complete');
     }
+
     // 🔹 Setup przeciągania panelu
     function setupDrag() {
         const header = document.getElementById('swPanelHeader');
@@ -988,8 +2051,8 @@
         
         shortcutSetBtn.addEventListener('click', function() {
             isShortcutInputFocused = true;
-            shortcutInput.style.borderColor = '#ff9900';
-            shortcutInput.style.boxShadow = '0 0 10px rgba(255, 153, 0, 0.5)';
+            shortcutInput.style.borderColor = '#00ff00';
+            shortcutInput.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
             shortcutInput.value = 'Wciśnij kombinację klawiszy...';
             shortcutKeys = [];
             
@@ -1089,7 +2152,6 @@
             const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
             fontSizeSlider.value = savedSize;
             fontSizeValue.textContent = savedSize + 'px';
-            updatePanelFontSize(savedSize);
             
             fontSizeSlider.addEventListener('input', function() {
                 const size = this.value;
@@ -1247,7 +2309,7 @@
                 toggleFavorite(addonId);
             }
             
-            if (e.target.type === 'checkbox' && e.target.closest('.addon-item')) {
+            if (e.target.type === 'checkbox' && e.target.closest('.addon')) {
                 const addonId = e.target.dataset.id;
                 const isEnabled = e.target.checked;
                 toggleAddon(addonId, isEnabled);
@@ -1268,7 +2330,7 @@
         }
     }
 
-    // 🔹 Renderowanie dodatków z wyszukiwaniem
+    // 🔹 Renderowanie dodatków z wyszukiwaniem - STARĄ WERSJA
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -1293,73 +2355,59 @@
         
         if (filteredAddons.length > 0) {
             filteredAddons.forEach(addon => {
-                listContainer.appendChild(createAddonElement(addon));
+                const div = document.createElement('div');
+                div.className = 'addon';
+                div.dataset.id = addon.id;
+                
+                if (addon.enabled) div.classList.add('enabled');
+                if (addon.favorite) div.classList.add('favorite');
+                
+                div.innerHTML = `
+                    <div class="addon-header">
+                        <div>
+                            <span class="addon-title">${addon.name}</span>
+                        </div>
+                        <div class="addon-controls">
+                            <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                                ★
+                            </button>
+                            <label class="switch">
+                                <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="addon-description">
+                        ${addon.description}
+                    </div>
+                `;
+                
+                listContainer.appendChild(div);
             });
         } else {
             listContainer.innerHTML = '<div class="addon-list-empty">Brak dodatków spełniających kryteria wyszukiwania</div>';
         }
     }
 
-    // 🔹 Tworzenie elementu dodatku
-    function createAddonElement(addon) {
-        const div = document.createElement('div');
-        div.className = 'addon-item';
-        div.dataset.id = addon.id;
+    // 🔹 Aktualizacja rozmiaru czcionki dla całego panelu
+    function updatePanelFontSize(size) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
         
-        if (addon.enabled) div.classList.add('enabled');
-        if (addon.favorite) div.classList.add('favorite');
+        // Usuń wszystkie poprzednie style font-size
+        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
         
-        div.innerHTML = `
-            <div class="addon-item-header">
-                <div class="addon-item-title">
-                    ${addon.name}
-                </div>
-                <div class="addon-item-description">
-                    ${addon.description}
-                </div>
-            </div>
-            <div class="addon-item-actions">
-                <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
-                    ★
-                </button>
-                <label class="switch">
-                    <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        `;
+        // Ustaw nowy rozmiar czcionki
+        panel.style.setProperty('font-size', size + 'px', 'important');
         
-        return div;
-    }
-
-    // 🔹 Renderowanie skrótów
-    function renderShortcuts() {
-        const shortcutsList = document.getElementById('shortcuts-list');
-        if (!shortcutsList) return;
-        
-        shortcutsList.innerHTML = '';
-        
-        DEFAULT_SHORTCUTS.forEach(shortcut => {
-            const addon = currentAddons.find(a => a.id === shortcut.addonId);
-            if (addon && addon.enabled) {
-                const shortcutItem = document.createElement('div');
-                shortcutItem.className = 'shortcut-item';
-                
-                shortcutItem.innerHTML = `
-                    <div class="shortcut-info">
-                        <div class="shortcut-name">${addon.name}</div>
-                        <div class="shortcut-description">${shortcut.description}</div>
-                    </div>
-                    <div class="shortcut-key">${shortcut.shortcut}</div>
-                `;
-                
-                shortcutsList.appendChild(shortcutItem);
-            }
+        // Również ustaw dla wszystkich elementów wewnątrz panelu
+        const allElements = panel.querySelectorAll('*');
+        allElements.forEach(element => {
+            element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
+            element.style.setProperty('font-size', size + 'px', 'important');
         });
         
-        if (shortcutsList.children.length === 0) {
-            shortcutsList.innerHTML = '<div class="addon-list-empty">Brak aktywnych skrótów. Włącz dodatki aby zobaczyć ich skróty.</div>';
-        }
+        console.log('📏 Font size updated to:', size + 'px');
     }
 
     // 🔹 Toggle ulubionych
@@ -1411,7 +2459,6 @@
         }
         
         renderAddons();
-        renderShortcuts();
         console.log(`🔧 Toggle ${addonId}: ${isEnabled ? 'enabled' : 'disabled'}`);
     }
 
@@ -1461,7 +2508,6 @@
         loadSavedState();
         updateFilterSwitches();
         renderAddons();
-        renderShortcuts();
         updateAccountDisplay('Nie znaleziono');
         updateLicenseDisplay();
         
