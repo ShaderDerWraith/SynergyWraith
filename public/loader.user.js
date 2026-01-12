@@ -4,8 +4,8 @@
 // @description  Zaawansowany panel dodatków do Margonem
 // @author       ShaderDerWraith
 // @license      MIT
-// @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/synergywraith.user.js
-// @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg
+// @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/loader.user.js
+// @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
 // @match        http*://*.margonem.pl/*
 // @match        http*://*.margonem.com/*
 // @exclude      http*://margonem.*/*
@@ -20,7 +20,6 @@
 // @grant        GM_deleteValue
 // @grant        GM_listValues
 // @connect      raw.githubusercontent.com
-// @connect      github.com
 // @run-at       document-body
 // ==/UserScript==
 
@@ -29,8 +28,8 @@
     
     console.log('🚀 SynergyWraith loader started - v1.8');
     
-    // 🔹 UŻYJ RAW GITHUB URL
-    const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/';
+    // 🔹 UŻYJ RAW GITHUB URL DO NOWEJ STRUKTURY
+    const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/';
     const TIMESTAMP = Date.now();
     
     // 🔹 Globalny obiekt
@@ -51,7 +50,7 @@
     function loadCSS() {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BASE_URL + 'panel.css?v=' + TIMESTAMP,
+            url: BASE_URL + 'panel/panel.css?v=' + TIMESTAMP,
             onload: function(response) {
                 if (response.status === 200) {
                     const style = document.createElement('style');
@@ -67,7 +66,7 @@
     function loadJS() {
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BASE_URL + 'synergy.js?v=' + TIMESTAMP,
+            url: BASE_URL + 'panel/main.js?v=' + TIMESTAMP,
             onload: function(response) {
                 if (response.status === 200) {
                     const script = document.createElement('script');

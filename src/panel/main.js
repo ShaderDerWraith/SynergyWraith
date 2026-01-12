@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu z nowymi ustawieniami
+// synergy.js - Główny kod panelu z systemem ID konta
 (function() {
     'use strict';
 
-    console.log('🚀 SynergyWraith Panel loaded');
+    console.log('🚀 SynergyWraith Panel loaded v2.0');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -18,7 +18,8 @@
         LICENSE_EXPIRY: "sw_license_expiry",
         LICENSE_ACTIVE: "sw_license_active",
         SHORTCUT_KEY: "sw_shortcut_key",
-        CUSTOM_SHORTCUT: "sw_custom_shortcut"
+        CUSTOM_SHORTCUT: "sw_custom_shortcut",
+        ACCOUNT_ID: "sw_account_id"
     };
 
     // 🔹 Lista dostępnych dodatków
@@ -72,13 +73,11 @@
         version: "2.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "Dodano wyszukiwarkę dodatków",
-            "Dodano konfigurowalne skróty klawiszowe",
-            "Nowa zakładka 'Skróty'",
-            "Nowa zakładka 'Informacje'",
-            "Rozszerzona sekcja licencji",
-            "Przycisk zamykania panelu",
-            "Ulepszenia interfejsu"
+            "Dodano automatyczne wykrywanie ID konta",
+            "Poprawiono strukturę repozytorium",
+            "Nowy system licencji w przygotowaniu",
+            "Ulepszone wykrywanie konta z API gry",
+            "Lepsza organizacja kodu"
         ]
     };
 
@@ -149,6 +148,156 @@
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
 
+    // =========================================================================
+    // 🔹 FUNKCJE DO POBRANIA ID KONTA
+    // =========================================================================
+
+    // Funkcja 1: Pobierz ID konta z różnych źródeł
+    async function getAccountId() {
+        console.log('🔍 Szukam ID konta...');
+        
+        // Metoda 1: Z cookies (działa na wszystkich poddomenach)
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'user_id') {
+                console.log('✅ Znaleziono w cookie user_id:', value);
+                return value;
+            }
+            if (name === 'mchar_id') {
+                console.log('✅ Znaleziono w cookie mchar_id:', value);
+                return value;
+            }
+        }
+        
+        // Metoda 2: Z URL (jeśli jesteśmy na stronie profilu)
+        const urlMatch = window.location.href.match(/profile\/view,(\d+)/);
+        if (urlMatch && urlMatch[1]) {
+            console.log('✅ Znaleziono w URL:', urlMatch[1]);
+            return urlMatch[1];
+        }
+        
+        // Metoda 3: Spróbuj z API gry (jeśli jesteśmy w grze)
+        try {
+            // Sprawdź czy jesteśmy na stronie gry (ma engine)
+            if (typeof Engine !== 'undefined' && Engine.characterList) {
+                const chars = Engine.characterList.list;
+                if (chars && chars.length > 0) {
+                    // Wszystkie postacie mają to samo ID konta w tle
+                    console.log('✅ Znaleziono przez Engine.characterList');
+                    return `char_${chars[0].id}`;
+                }
+            }
+        } catch (e) {
+            console.log('⚠️ Engine.characterList nie dostępny');
+        }
+        
+        // Metoda 4: Spróbuj pobrać przez hs3 token (async)
+        try {
+            const hs3Match = document.cookie.match(/hs3=([^;]+)/);
+            if (hs3Match && hs3Match[1]) {
+                console.log('🔄 Próbuję pobrać przez API z hs3...');
+                const accountId = await fetchAccountIdFromAPI(hs3Match[1]);
+                if (accountId) {
+                    return accountId;
+                }
+            }
+        } catch (e) {
+            console.log('⚠️ Nie udało się pobrać przez API');
+        }
+        
+        // Metoda 5: Spróbuj znaleźć w localStorage
+        try {
+            const savedAccountId = SW.GM_getValue(CONFIG.ACCOUNT_ID);
+            if (savedAccountId) {
+                console.log('✅ Znaleziono zapisane ID konta:', savedAccountId);
+                return savedAccountId;
+            }
+        } catch (e) {
+            console.log('⚠️ Nie znaleziono zapisanego ID');
+        }
+        
+        console.log('❌ Nie znaleziono ID konta');
+        return null;
+    }
+
+    // Funkcja 2: Pobierz ID konta przez API (async)
+    async function fetchAccountIdFromAPI(hs3Token) {
+        try {
+            const response = await fetch(`https://public-api.margonem.pl/account/charlist?hs3=${hs3Token}`);
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                // API zwraca listę postaci - możemy użyć ID pierwszej
+                const accountId = data[0].id;
+                console.log('✅ Pobrano z API:', accountId);
+                return accountId;
+            }
+        } catch (error) {
+            console.error('❌ Błąd przy pobieraniu z API:', error);
+        }
+        return null;
+    }
+
+    // Funkcja 3: Inicjalizacja konta i licencji
+    async function initAccountAndLicense() {
+        const accountId = await getAccountId();
+        if (accountId) {
+            console.log('🎮 TWOJE ID KONTA TO:', accountId);
+            console.log('💡 Zapisz to ID:', accountId);
+            
+            // Zapisz do zmiennej globalnej
+            userAccountId = accountId;
+            
+            // Zapisz do storage
+            SW.GM_setValue(CONFIG.ACCOUNT_ID, accountId);
+            
+            // Zaktualizuj wyświetlanie w panelu
+            updateAccountDisplay(accountId);
+            
+            // Sprawdź licencję dla tego konta
+            await checkLicenseForAccount(accountId);
+        } else {
+            console.log('⚠️ Nie udało się znaleźć ID konta');
+            updateAccountDisplay('Nie znaleziono');
+        }
+    }
+
+    // Funkcja 4: Aktualizuj wyświetlanie ID konta w panelu
+    function updateAccountDisplay(accountId) {
+        const accountEl = document.getElementById('swAccountId');
+        if (accountEl) {
+            accountEl.textContent = accountId;
+            if (accountId && accountId !== 'Nie znaleziono') {
+                accountEl.classList.remove('license-status-invalid');
+                accountEl.classList.add('license-status-valid');
+            } else {
+                accountEl.classList.remove('license-status-valid');
+                accountEl.classList.add('license-status-invalid');
+            }
+        }
+    }
+
+    // Funkcja 5: Sprawdź licencję dla konta (tymczasowa)
+    async function checkLicenseForAccount(accountId) {
+        console.log('🔐 Sprawdzam licencję dla konta:', accountId);
+        
+        // Tymczasowo - ustaw jako aktywną dla testów
+        isLicenseVerified = true;
+        licenseExpiry = new Date();
+        licenseExpiry.setMonth(licenseExpiry.getMonth() + 1); // +1 miesiąc
+        
+        SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
+        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
+        
+        updateLicenseDisplay();
+        console.log('✅ Licencja tymczasowo aktywowana na 1 miesiąc');
+    }
+
+    // =========================================================================
+    // 🔹 GŁÓWNE FUNKCJE PANELU
+    // =========================================================================
+
     // 🔹 Funkcja zapobiegająca zmianom rozmiaru
     function preventPanelResize() {
         const panel = document.getElementById('swAddonsPanel');
@@ -214,1404 +363,9 @@
 
     // 🔹 Wstrzyknij CSS
     function injectCSS() {
-        const style = document.createElement('style');
-        style.textContent = `
-/* 🔹 BASE STYLES 🔹 */
-#swPanelToggle {
-    position: fixed;
-    top: 70px;
-    left: 70px;
-    width: 50px;
-    height: 50px;
-    background: transparent;
-    border: 3px solid #00ff00;
-    border-radius: 50%;
-    cursor: grab;
-    z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 0 5px black;
-    transition: all 0.2s ease;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    overflow: hidden;
-}
-
-#swPanelToggle.dragging {
-    cursor: grabbing;
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
-    border: 3px solid #ffff00;
-    z-index: 1000001;
-}
-
-#swPanelToggle:hover:not(.dragging) {
-    transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255, 30, 30, 1);
-    cursor: grab;
-}
-
-#swPanelToggle:active:not(.dragging) {
-    transform: scale(1.05);
-    transition: transform 0.1s ease;
-}
-
-/* Save indication animation */
-@keyframes savePulse {
-    0% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
+        // CSS jest już wstrzykiwany przez loader, więc ta funkcja jest pusta
+        console.log('✅ CSS already injected by loader');
     }
-    50% { 
-        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
-        border-color: #00ff00;
-        transform: scale(1.05);
-    }
-    100% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
-    }
-}
-
-#swPanelToggle.saved {
-    animation: savePulse 1.5s ease-in-out;
-}
-
-/* Prevent text selection during drag */
-#swPanelToggle.dragging::selection {
-    background: transparent;
-}
-
-#swPanelToggle.dragging::-moz-selection {
-    background: transparent;
-}
-
-/* 🔹 FIRE ANIMATION 🔹 */
-@keyframes fireBorder {
-    0%, 100% {
-        border-color: #ff3300;
-        box-shadow: 
-            0 0 15px rgba(255, 50, 0, 0.8),
-            0 0 30px rgba(255, 100, 0, 0.6),
-            inset 0 0 15px rgba(255, 50, 0, 0.3);
-    }
-    25% {
-        border-color: #ff6600;
-        box-shadow: 
-            0 0 20px rgba(255, 100, 0, 0.9),
-            0 0 35px rgba(255, 150, 0, 0.7),
-            inset 0 0 20px rgba(255, 100, 0, 0.4);
-    }
-    50% {
-        border-color: #ff9900;
-        box-shadow: 
-            0 0 18px rgba(255, 150, 0, 0.85),
-            0 0 32px rgba(255, 200, 0, 0.65),
-            inset 0 0 18px rgba(255, 150, 0, 0.35);
-    }
-    75% {
-        border-color: #ffcc00;
-        box-shadow: 
-            0 0 22px rgba(255, 200, 0, 0.95),
-            0 0 38px rgba(255, 255, 0, 0.75),
-            inset 0 0 22px rgba(255, 200, 0, 0.45);
-    }
-}
-
-@keyframes fireText {
-    0%, 100% {
-        color: #ff3300;
-        text-shadow: 
-            0 0 5px rgba(255, 50, 0, 0.8),
-            0 0 10px rgba(255, 100, 0, 0.6),
-            0 0 15px rgba(255, 50, 0, 0.4);
-    }
-    25% {
-        color: #ff6600;
-        text-shadow: 
-            0 0 6px rgba(255, 100, 0, 0.9),
-            0 0 12px rgba(255, 150, 0, 0.7),
-            0 0 18px rgba(255, 100, 0, 0.5);
-    }
-    50% {
-        color: #ff9900;
-        text-shadow: 
-            0 0 7px rgba(255, 150, 0, 0.85),
-            0 0 14px rgba(255, 200, 0, 0.65),
-            0 0 21px rgba(255, 150, 0, 0.45);
-    }
-    75% {
-        color: #ffcc00;
-        text-shadow: 
-            0 0 8px rgba(255, 200, 0, 0.95),
-            0 0 16px rgba(255, 255, 0, 0.75),
-            0 0 24px rgba(255, 200, 0, 0.55);
-    }
-}
-
-/* 🔹 MAIN PANEL - POPRAWIONA WYSOKOŚĆ I LAYOUT 🔹 */
-#swAddonsPanel {
-    position: fixed;
-    top: 140px;
-    left: 70px;
-    width: 700px;
-    height: 580px !important;
-    min-height: 580px !important;
-    max-height: 580px !important;
-    background: linear-gradient(135deg, #0a0a0a, #121212);
-    border: 2px solid #ff3300;
-    border-radius: 8px;
-    color: #ffffff;
-    z-index: 1000002;
-    backdrop-filter: blur(10px);
-    display: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
-    font-size: 12px;
-    animation: fireBorder 8s infinite ease-in-out;
-    box-sizing: border-box !important;
-}
-
-/* Neonowy efekt na krawędziach */
-#swAddonsPanel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 6px;
-    padding: 1px;
-    background: linear-gradient(45deg, #ff3300, #ff9900, #ff3300);
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: -1;
-    animation: fireBorder 8s infinite ease-in-out;
-}
-
-#swPanelHeader {
-    background: linear-gradient(to right, #1a1a1a, #222222);
-    padding: 20px 40px 20px 12px;
-    text-align: center;
-    border-bottom: 1px solid #ff3300;
-    cursor: grab;
-    position: relative;
-    overflow: hidden;
-    height: 60px !important;
-    box-sizing: border-box !important;
-    flex-shrink: 0 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#swPanelHeader strong {
-    font-size: 20px;
-    letter-spacing: 2px;
-    animation: fireText 8s infinite ease-in-out;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-/* 🔹 PRZYCISK ZAMYKANIA 🔹 */
-#swPanelClose {
-    position: absolute !important;
-    top: 15px !important;
-    right: 15px !important;
-    width: 30px !important;
-    height: 30px !important;
-    background: rgba(255, 51, 0, 0.2) !important;
-    border: 1px solid #ff3300 !important;
-    border-radius: 4px !important;
-    color: #ff3300 !important;
-    cursor: pointer !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.3s ease !important;
-    z-index: 1000 !important;
-}
-
-#swPanelClose:hover {
-    background: rgba(255, 51, 0, 0.4) !important;
-    color: #ffffff !important;
-    transform: scale(1.1) !important;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8) !important;
-}
-
-#swPanelClose:active {
-    transform: scale(0.95) !important;
-}
-
-/* 🔹 KONTENER ZAKŁADEK 🔹 */
-.tab-container {
-    display: flex;
-    background: linear-gradient(to bottom, #1a1a1a, #151515);
-    border-bottom: 1px solid #ff3300;
-    padding: 0 5px;
-    height: 40px !important;
-    flex-shrink: 0 !important;
-    box-sizing: border-box !important;
-    align-items: center;
-}
-
-.tablink {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 10px 5px;
-    margin: 0 2px;
-    transition: all 0.3s ease;
-    color: #aaaaaa;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid transparent;
-    position: relative;
-    overflow: hidden;
-    height: 100% !important;
-    box-sizing: border-box !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tablink::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: #ff3300;
-    transition: width 0.3s ease;
-}
-
-.tablink:hover::before {
-    width: 80%;
-}
-
-.tablink.active {
-    color: #ff9900;
-    text-shadow: 0 0 8px rgba(255, 153, 0, 0.5);
-}
-
-.tablink.active::before {
-    width: 100%;
-    background: #ff9900;
-    box-shadow: 0 0 8px rgba(255, 153, 0, 0.8);
-}
-
-.tablink:hover:not(.active) {
-    color: #ff6600;
-    text-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
-}
-
-/* 🔹 ZAKŁADKI CONTENT - FIXED HEIGHT LAYOUT 🔹 */
-.tabcontent {
-    display: none;
-    height: calc(100% - 100px) !important;
-    overflow: hidden;
-    position: relative;
-    box-sizing: border-box !important;
-}
-
-.tabcontent.active {
-    display: block;
-    animation: fadeEffect 0.3s ease;
-}
-
-@keyframes fadeEffect {
-    from { 
-        opacity: 0; 
-        transform: translateY(5px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-}
-
-/* 🔹 ZAKŁADKA DODATKÓW 🔹 */
-#addons .sw-tab-content {
-    padding: 15px;
-    background: rgba(10, 10, 10, 0.9);
-    height: 100% !important;
-    overflow: hidden;
-    display: flex !important;
-    flex-direction: column !important;
-    box-sizing: border-box !important;
-}
-
-/* 🔹 WYSZUKIWARKA DODATKÓW 🔹 */
-.search-container {
-    margin-bottom: 15px;
-    position: relative;
-    flex-shrink: 0 !important;
-}
-
-.search-input {
-    width: 100%;
-    padding: 14px 20px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff9900;
-    font-size: 15px;
-    transition: all 0.3s ease;
-    box-sizing: border-box !important;
-    height: 50px;
-    text-align: center;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #ff9900;
-    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-.search-input::placeholder {
-    color: #666;
-    font-size: 14px;
-    text-align: center;
-}
-
-/* 🔹 CATEGORY FILTERS 🔹 */
-.category-filters {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-    margin-bottom: 15px;
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 10px 30px;
-    flex-shrink: 0 !important;
-    box-sizing: border-box !important;
-}
-
-.category-filter-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding: 5px 10px;
-    background: rgba(30, 30, 30, 0.6);
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    gap: 15px;
-    box-sizing: border-box !important;
-}
-
-.category-filter-item:hover {
-    background: rgba(40, 40, 40, 0.8);
-    transform: translateY(-2px);
-}
-
-.category-filter-label {
-    display: flex;
-    align-items: center;
-    color: #ff9900;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-/* 🔹 PRZEŁĄCZNIKI FILTRÓW 🔹 */
-.category-switch {
-    position: relative;
-    display: inline-block;
-    width: 35px;
-    height: 18px;
-    flex-shrink: 0;
-    margin-left: 0;
-}
-
-.category-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.category-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #333;
-    transition: .3s;
-    border-radius: 18px;
-    border: 1px solid #555;
-}
-
-.category-slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: #ff9900;
-    transition: .3s;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(255, 153, 0, 0.5);
-}
-
-.category-switch input:checked + .category-slider {
-    background-color: #331100;
-    border-color: #ff9900;
-}
-
-.category-switch input:checked + .category-slider:before {
-    transform: translateX(17px);
-    background-color: #ff9900;
-    box-shadow: 0 0 6px rgba(255, 153, 0, 0.8);
-}
-
-/* 🔹 ADDONS LIST 🔹 */
-.addon-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden;
-    padding: 0 10px;
-    margin-bottom: 10px;
-    min-height: 0 !important;
-    box-sizing: border-box !important;
-}
-
-.addon-list-empty {
-    text-align: center !important;
-    color: #666 !important;
-    font-size: 12px !important;
-    padding: 20px 10px !important;
-    font-style: italic !important;
-    background: rgba(30, 30, 30, 0.5) !important;
-    border-radius: 6px !important;
-    margin: 5px 0 !important;
-    flex-shrink: 0 !important;
-}
-
-.addon-item {
-    background: rgba(30, 30, 30, 0.8) !important;
-    border: 1px solid #333 !important;
-    border-radius: 6px !important;
-    padding: 10px 25px !important;
-    transition: all 0.3s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    min-height: 45px !important;
-    max-height: 45px !important;
-    overflow: hidden !important;
-    width: 100%;
-    box-sizing: border-box !important;
-    flex-shrink: 0 !important;
-}
-
-.addon-item:hover {
-    background: rgba(40, 40, 40, 0.9) !important;
-    border-color: #ff6600 !important;
-    transform: translateX(5px);
-}
-
-.addon-item-header {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 !important;
-    min-height: auto !important;
-    overflow: hidden !important;
-    padding-right: 30px;
-    padding-left: 15px;
-    max-width: 75%;
-}
-
-.addon-item-title {
-    font-weight: 600 !important;
-    color: #ff9900 !important;
-    font-size: 13px !important;
-    text-shadow: 0 0 3px rgba(255, 153, 0, 0.3) !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    line-height: 1.3 !important;
-    margin-bottom: 2px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
-
-.addon-item-description {
-    color: #888 !important;
-    font-size: 10px !important;
-    line-height: 1.2 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 1 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    padding-left: 8px;
-}
-
-.addon-item-actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: 20px !important;
-    flex-shrink: 0 !important;
-    margin-right: 5px;
-}
-
-/* 🔹 FAVORITE STAR 🔹 */
-.favorite-btn {
-    background: none !important;
-    border: none !important;
-    color: #888 !important;
-    cursor: pointer !important;
-    padding: 3px !important;
-    font-size: 14px !important;
-    transition: all 0.3s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 3px !important;
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px !important;
-    min-height: 20px !important;
-}
-
-.favorite-btn:hover {
-    color: #ffaa00 !important;
-    transform: scale(1.1) !important;
-}
-
-.favorite-btn.favorite {
-    color: #ffaa00 !important;
-    text-shadow: 0 0 5px rgba(255, 170, 0, 0.5) !important;
-}
-
-/* 🔹 SWITCH STYLE 🔹 */
-.switch {
-    position: relative !important;
-    display: inline-block !important;
-    width: 35px !important;
-    height: 18px !important;
-    flex-shrink: 0 !important;
-    margin-left: 10px;
-}
-
-.switch input {
-    opacity: 0 !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-.slider {
-    position: absolute !important;
-    cursor: pointer !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background-color: #333 !important;
-    transition: .3s !important;
-    border-radius: 18px !important;
-    border: 1px solid #555 !important;
-}
-
-.slider:before {
-    position: absolute !important;
-    content: "" !important;
-    height: 14px !important;
-    width: 14px !important;
-    left: 2px !important;
-    bottom: 2px !important;
-    background-color: #ff9900 !important;
-    transition: .3s !important;
-    border-radius: 50% !important;
-    box-shadow: 0 0 4px rgba(255, 153, 0, 0.5) !important;
-}
-
-input:checked + .slider {
-    background-color: #331100 !important;
-    border-color: #ff9900 !important;
-}
-
-input:checked + .slider:before {
-    transform: translateX(17px) !important;
-    background-color: #ff9900 !important;
-    box-shadow: 0 0 6px rgba(255, 153, 0, 0.8) !important;
-}
-
-/* 🔹 PRZYCISK ODŚWIEŻ 🔹 */
-.refresh-button-container {
-    text-align: center;
-    margin-top: 10px;
-    padding: 10px;
-    border-top: 1px solid #333;
-}
-
-.refresh-button {
-    padding: 10px 30px;
-    background: linear-gradient(to right, #331100, #662200);
-    color: #ff9900;
-    border: 1px solid #ff9900;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    min-width: 150px;
-}
-
-.refresh-button:hover {
-    background: linear-gradient(to right, #662200, #993300);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
-}
-
-/* 🔹 INNE ZAKŁADKI 🔹 */
-#license .sw-tab-content,
-#settings .sw-tab-content,
-#shortcuts .sw-tab-content,
-#info .sw-tab-content {
-    padding: 15px;
-    background: rgba(10, 10, 10, 0.9);
-    height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden;
-    box-sizing: border-box !important;
-    display: block !important;
-}
-
-/* 🔹 LICENSE SYSTEM 🔹 */
-.license-container {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 25px 40px;
-    margin-bottom: 20px;
-}
-
-.license-header {
-    color: #ff9900;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-}
-
-.license-status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 13px;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
-}
-
-.license-status-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.license-status-label {
-    color: #ff9900;
-    font-weight: 600;
-    padding-left: 20px;
-}
-
-.license-status-value {
-    font-weight: 600;
-    text-align: right;
-    max-width: 60%;
-    word-break: break-all;
-    font-size: 12px;
-    padding-right: 20px;
-}
-
-.license-status-valid {
-    color: #ff9900 !important;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
-}
-
-.license-status-invalid {
-    color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
-}
-
-.license-status-connected {
-    color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-}
-
-.license-status-disconnected {
-    color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
-}
-
-/* 🔹 PRZYCISK AKTYWACJI LICENCJI 🔹 */
-.license-activation-container {
-    text-align: center;
-    margin-top: 20px;
-    padding: 0 20px;
-}
-
-.license-activation-button {
-    padding: 12px 30px;
-    background: linear-gradient(to right, #331100, #662200);
-    color: #ff9900;
-    border: 1px solid #ff9900;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    min-width: 200px;
-}
-
-.license-activation-button:hover {
-    background: linear-gradient(to right, #662200, #993300);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
-}
-
-/* 🔹 MODAL AKTYWACJI LICENCJI 🔹 */
-#swLicenseModal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 1000003;
-    justify-content: center;
-    align-items: center;
-}
-
-.license-modal-content {
-    background: linear-gradient(135deg, #0a0a0a, #121212);
-    width: 400px;
-    border: 2px solid #ff3300;
-    border-radius: 8px;
-    padding: 25px 35px;
-    position: relative;
-    animation: fireBorder 8s infinite ease-in-out;
-}
-
-.license-modal-header {
-    color: #ff9900;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-}
-
-.license-modal-input {
-    width: 100%;
-    padding: 12px;
-    margin: 12px 0;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff9900;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-.license-modal-input:focus {
-    outline: none;
-    border-color: #ff9900;
-    box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-.license-modal-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    padding: 0 15px;
-}
-
-.license-modal-button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-}
-
-.license-modal-button.activate {
-    background: linear-gradient(to right, #331100, #662200);
-    color: #ff9900;
-    border: 1px solid #ff9900;
-}
-
-.license-modal-button.activate:hover {
-    background: linear-gradient(to right, #662200, #993300);
-    color: #ffffff;
-}
-
-.license-modal-button.cancel {
-    background: rgba(30, 30, 30, 0.8);
-    color: #888;
-    border: 1px solid #333;
-}
-
-.license-modal-button.cancel:hover {
-    background: rgba(40, 40, 40, 0.9);
-    color: #ffffff;
-}
-
-.license-modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    color: #ff3300;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.license-modal-close:hover {
-    color: #ffffff;
-    transform: scale(1.1);
-}
-
-/* 🔹 SETTINGS TAB 🔹 */
-.settings-item {
-    margin-bottom: 15px;
-    padding: 18px 30px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.settings-label {
-    display: block;
-    color: #ff9900;
-    font-size: 13px;
-    margin-bottom: 12px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-left: 15px;
-}
-
-/* 🔹 SKRÓT KLAWISZOWY - INPUT 🔹 */
-.shortcut-input-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding: 0 15px;
-}
-
-.shortcut-input-label {
-    color: #ff9900;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.shortcut-input {
-    flex: 1;
-    padding: 10px 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff9900;
-    font-size: 13px;
-    text-align: center;
-    width: 130px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.shortcut-input:focus {
-    outline: none;
-    border-color: #ff9900;
-    box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
-}
-
-/* 🔹 ROZMIAR CZCIONKI 🔹 */
-.font-size-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding: 0 15px;
-}
-
-.font-size-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    background: #333;
-    border-radius: 4px;
-    outline: none;
-    margin: 0 20px;
-}
-
-.font-size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #ff9900;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.font-size-slider::-webkit-slider-thumb:hover {
-    background: #ff6600;
-    box-shadow: 0 0 10px rgba(255, 153, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.font-size-value {
-    color: #ff9900;
-    font-weight: bold;
-    font-size: 13px;
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-    padding-right: 15px;
-}
-
-/* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
-.background-toggle-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    padding: 0 15px;
-}
-
-.background-toggle-label {
-    color: #ff9900;
-    font-size: 13px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-}
-
-.background-toggle {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    margin-right: 0;
-}
-
-.background-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.background-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #333;
-    transition: .3s;
-    border-radius: 24px;
-    border: 1px solid #555;
-}
-
-.background-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #ff9900;
-    transition: .3s;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
-}
-
-.background-toggle input:checked + .background-toggle-slider {
-    background-color: #331100;
-    border-color: #ff9900;
-}
-
-.background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(26px);
-    background-color: #ff9900;
-    box-shadow: 0 0 10px rgba(255, 153, 0, 0.8);
-}
-
-/* 🔹 ZAKŁADKA SKRÓTÓW 🔹 */
-.shortcuts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 0 15px;
-}
-
-.shortcut-item {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 14px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s ease;
-}
-
-.shortcut-item:hover {
-    background: rgba(40, 40, 40, 0.9);
-    border-color: #ff6600;
-}
-
-.shortcut-info {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.shortcut-name {
-    color: #ff9900;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.shortcut-description {
-    color: #888;
-    font-size: 11px;
-}
-
-.shortcut-key {
-    background: rgba(51, 17, 0, 0.8);
-    color: #ff9900;
-    padding: 6px 22px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid #ff9900;
-    text-shadow: 0 0 3px rgba(255, 153, 0, 0.3);
-    min-width: 100px;
-    text-align: center;
-}
-
-/* 🔹 ZAKŁADKA INFORMACJI - POPRAWIONA (Z BULLET POMPARAŃCZOWYM) 🔹 */
-.info-container {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 25px 30px;
-    margin: 0 10px;
-}
-
-.info-header {
-    color: #ff9900;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.3);
-}
-
-.info-patch-notes {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.info-patch-notes li {
-    color: #ccc;
-    font-size: 12px;
-    margin-bottom: 8px;
-    padding-left: 0;
-    position: relative;
-    line-height: 1.4;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-}
-
-.info-patch-notes li:before {
-    content: "•";
-    color: #ff9900;
-    font-size: 16px;
-    font-weight: bold;
-    margin-right: 8px;
-    flex-shrink: 0;
-    margin-top: 0;
-    display: inline-block;
-    line-height: 1.4;
-}
-
-.info-footer {
-    color: #666;
-    font-size: 11px;
-    text-align: center;
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid #333;
-    font-style: italic;
-}
-
-/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
-.reset-settings-container {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #333;
-    padding: 15px 15px 0;
-}
-
-.reset-settings-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 12px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ff3300;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover {
-    background: rgba(50, 30, 30, 0.9);
-    border-color: #ff3300;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
-}
-
-.reset-settings-button:active {
-    transform: translateY(0);
-}
-
-.reset-settings-icon {
-    color: #ff3300;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover .reset-settings-icon {
-    transform: rotate(180deg);
-    color: #ffffff;
-}
-
-/* 🔹 DODATKOWE STYLE DLA PANELU BEZ TŁA 🔹 */
-#swAddonsPanel.transparent-background {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    border: 2px solid #ff3300 !important;
-    animation: fireBorder 8s infinite ease-in-out !important;
-}
-
-#swAddonsPanel.transparent-background::before {
-    display: none !important;
-}
-
-#swAddonsPanel.transparent-background #swPanelHeader,
-#swAddonsPanel.transparent-background .tab-container,
-#swAddonsPanel.transparent-background .sw-tab-content,
-#swAddonsPanel.transparent-background .addon-item,
-#swAddonsPanel.transparent-background .settings-item,
-#swAddonsPanel.transparent-background .license-container,
-#swAddonsPanel.transparent-background .category-filters,
-#swAddonsPanel.transparent-background .info-container,
-#swAddonsPanel.transparent-background .shortcut-item {
-    background: transparent !important;
-    backdrop-filter: blur(5px) !important;
-}
-
-#swAddonsPanel.transparent-background .tab-container {
-    background: rgba(20, 20, 20, 0.9) !important;
-}
-
-/* 🔹 RESET STYLI GRY 🔹 */
-#swAddonsPanel * {
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    line-height: 1.3 !important;
-}
-
-/* 🔹 ZAPOBIEGANIE ROZCIĄGANIU 🔹 */
-#swAddonsPanel {
-    min-width: 700px !important;
-    max-width: 700px !important;
-    width: 700px !important;
-    resize: none !important;
-}
-
-/* 🔹 FIX DLA INPUTÓW 🔹 */
-#swAddonsPanel input[type="checkbox"] {
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
-    min-height: 16px !important;
-}
-
-/* 🔹 FIX DLA PRZYCISKÓW 🔹 */
-#swAddonsPanel button {
-    min-height: 30px !important;
-    max-height: 40px !important;
-}
-
-/* 🔹 SCROLLBAR STYLES 🔹 */
-.sw-tab-content::-webkit-scrollbar,
-.addon-list::-webkit-scrollbar {
-    width: 12px !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-track,
-.addon-list::-webkit-scrollbar-track {
-    background: rgba(20, 20, 20, 0.8) !important;
-    border-radius: 6px !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb,
-.addon-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff9900, #993300) !important;
-    border-radius: 6px !important;
-    border: 2px solid rgba(20, 20, 20, 0.8) !important;
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb:hover,
-.addon-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #ffcc00, #cc6600) !important;
-}
-
-/* 🔹 OBSŁUGA KÓŁKA MYSZY 🔹 */
-.addon-list {
-    scroll-behavior: smooth !important;
-    will-change: scroll-position !important;
-    transform: translateZ(0) !important;
-    backface-visibility: hidden !important;
-    -webkit-font-smoothing: antialiased !important;
-}
-
-/* 🔹 OPTYMALIZACJA WYDAJNOŚCI 🔹 */
-.addon-item {
-    transform: translateZ(0) !important;
-    will-change: transform !important;
-    contain: content !important;
-}
-
-/* 🔹 ZAPOBIEGANIE LAGOM 🔹 */
-.sw-tab-content {
-    transform: translateZ(0) !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* 🔹 USUŃ NIE POTRZEBNĄ PUSTĄ PRZESTRZEŃ 🔹 */
-.sw-tab-content:after {
-    content: '' !important;
-    display: block !important;
-    height: 0 !important;
-    clear: both !important;
-}
-
-/* 🔹 STYL DLA KOMUNIKATU W DODATKACH 🔹 */
-#swAddonsMessage {
-    flex-shrink: 0 !important;
-    margin-top: 10px !important;
-    padding: 0 15px !important;
-}
-
-/* 🔹 RESPONSYWNOŚĆ 🔹 */
-@media (max-width: 750px) {
-    #swAddonsPanel {
-        width: 550px !important;
-        min-width: 550px !important;
-        max-width: 550px !important;
-        left: 10px !important;
-        height: 500px !important;
-        min-height: 500px !important;
-        max-height: 500px !important;
-    }
-    
-    .category-filters {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .category-filter-item {
-        width: 100%;
-    }
-    
-    .tablink {
-        padding: 8px 3px;
-        font-size: 10px;
-    }
-    
-    .license-modal-content {
-        width: 90%;
-        max-width: 350px;
-    }
-}
-        `;
-        document.head.appendChild(style);
-        console.log('✅ CSS injected');
-    }
-
     // 🔹 Dodaj obsługę scrollowania myszką dla listy dodatków
     function setupMouseWheelScrolling() {
         const addonList = document.getElementById('addon-list');
@@ -1667,6 +421,9 @@ input:checked + .slider:before {
         loadCategoriesState();
         loadSettings();
         
+        // Inicjalizuj konto i licencję
+        await initAccountAndLicense();
+        
         // Tworzymy elementy
         createToggleButton();
         createMainPanel();
@@ -1694,9 +451,6 @@ input:checked + .slider:before {
         setupDrag();
         setupKeyboardShortcut();
         
-        // Sprawdzamy licencję
-        await checkLicenseOnStart();
-        
         // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
         if (isLicenseVerified) {
             loadEnabledAddons();
@@ -1713,7 +467,7 @@ input:checked + .slider:before {
         toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
         
         toggleBtn.innerHTML = `
-            <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/icon.jpg" 
+            <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg" 
                  alt="SW" 
                  style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
         `;
@@ -1734,7 +488,7 @@ input:checked + .slider:before {
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY WRAITH</strong>
+                <strong>SYNERGY WRAITH v2.0</strong>
                 <button id="swPanelClose" title="Zamknij panel">×</button>
             </div>
             
@@ -1801,15 +555,15 @@ input:checked + .slider:before {
                     <div class="license-container">
                         <div class="license-header">Status Licencji</div>
                         <div class="license-status-item">
-                            <span class="license-status-label">Status:</span>
+                            <span class="license-status-label">ID Konta:</span>
+                            <span id="swAccountId" class="license-status-value">Ładowanie...</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Status Licencji:</span>
                             <span id="swLicenseStatus" class="license-status-invalid">Nieaktywna</span>
                         </div>
                         <div class="license-status-item">
-                            <span class="license-status-label">ID Konta:</span>
-                            <span id="swAccountId" class="license-status-value">-</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Wygaśnie:</span>
+                            <span class="license-status-label">Ważna do:</span>
                             <span id="swLicenseExpiry" class="license-status-value">-</span>
                         </div>
                         <div class="license-status-item">
@@ -1886,7 +640,7 @@ input:checked + .slider:before {
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
-                        <div class="info-header">Historia zmian</div>
+                        <div class="info-header">Historia zmian v2.0</div>
                         
                         <div class="info-patch-notes">
                             ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
@@ -1926,6 +680,62 @@ input:checked + .slider:before {
         
         document.body.appendChild(modal);
         console.log('✅ License modal created');
+    }
+
+    // 🔹 Update wyświetlania licencji
+    function updateLicenseDisplay() {
+        const statusEl = document.getElementById('swLicenseStatus');
+        const expiryEl = document.getElementById('swLicenseExpiry');
+        const serverEl = document.getElementById('swServerStatus');
+        
+        if (statusEl) {
+            statusEl.textContent = isLicenseVerified ? 'Aktywna' : 'Nieaktywna';
+            statusEl.className = isLicenseVerified ? 'license-status-valid' : 'license-status-invalid';
+        }
+        
+        if (expiryEl) {
+            if (licenseExpiry) {
+                const now = new Date();
+                const diffTime = licenseExpiry - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                expiryEl.textContent = `${diffDays} dni`;
+            } else {
+                expiryEl.textContent = '-';
+            }
+        }
+        
+        if (serverEl) {
+            serverEl.textContent = serverConnected ? 'Aktywne' : 'Brak połączenia';
+            serverEl.className = serverConnected ? 'license-status-connected' : 'license-status-disconnected';
+        }
+    }
+
+    // 🔹 Aktywacja licencji
+    function activateLicense(licenseKey) {
+        console.log('🔐 Activating license:', licenseKey);
+        
+        // Symulacja aktywacji licencji
+        isLicenseVerified = true;
+        licenseExpiry = new Date();
+        licenseExpiry.setFullYear(licenseExpiry.getFullYear() + 1);
+        
+        SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
+        SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
+        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
+        
+        updateLicenseDisplay();
+        loadEnabledAddons();
+        
+        const messageEl = document.getElementById('swLicenseMessage');
+        if (messageEl) {
+            messageEl.textContent = 'Licencja aktywowana pomyślnie!';
+            messageEl.className = 'license-message license-success';
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
     }
 
     // 🔹 Obsługa przeciągania przycisku
@@ -2082,7 +892,6 @@ input:checked + .slider:before {
         
         console.log('✅ Tabs setup complete');
     }
-
     // 🔹 Setup przeciągania panelu
     function setupDrag() {
         const header = document.getElementById('swPanelHeader');
@@ -2138,26 +947,20 @@ input:checked + .slider:before {
         console.log(`✅ Keyboard shortcut setup: ${customShortcut || 'brak'}`);
     }
 
-    // 🔹 Obsługa skrótu klawiszowego z zapobieganiem domyślnym akcjom przeglądarki
+    // 🔹 Obsługa skrótu klawiszowego
     function handleKeyboardShortcut(e) {
-        // Ignoruj jeśli użytkownik wpisuje skrót
         if (isShortcutInputFocused) return;
         
-        // Rozdzielamy zapisany skrót
         const shortcutParts = customShortcut.split('+');
-        
-        // Sprawdzamy czy skrót zawiera Ctrl
         const hasCtrl = shortcutParts.includes('Ctrl');
         const hasShift = shortcutParts.includes('Shift');
         const key = shortcutParts[shortcutParts.length - 1].toUpperCase();
         
-        // Sprawdzamy warunki
         const ctrlMatch = hasCtrl ? e.ctrlKey : true;
         const shiftMatch = hasShift ? e.shiftKey : true;
         const keyMatch = e.key.toUpperCase() === key;
         
         if (ctrlMatch && shiftMatch && keyMatch) {
-            // Blokuj domyślne akcje przeglądarki dla popularnych skrótów
             const blockedShortcuts = ['P', 'S', 'O', 'N', 'W', 'T', 'U', 'I'];
             if (hasCtrl && blockedShortcuts.includes(key)) {
                 e.preventDefault();
@@ -2167,24 +970,22 @@ input:checked + .slider:before {
             const toggleBtn = document.getElementById('swPanelToggle');
             if (toggleBtn) {
                 toggleBtn.click();
-                toggleBtn.click(); // Podwójne kliknięcie dla toggle
+                toggleBtn.click();
             }
         }
     }
 
-    // 🔹 Ustawianie nowego skrótu klawiszowego z obsługą Ctrl i Shift
+    // 🔹 Ustawianie nowego skrótu klawiszowego
     function setupShortcutInput() {
         const shortcutInput = document.getElementById('shortcutInput');
         const shortcutSetBtn = document.getElementById('shortcutSetBtn');
         
         if (!shortcutInput || !shortcutSetBtn) return;
         
-        // Załaduj zapisany skrót
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         customShortcut = savedShortcut;
         shortcutInput.value = customShortcut;
         
-        // Nasłuchuj kliknięcie przycisku "Ustaw skrót"
         shortcutSetBtn.addEventListener('click', function() {
             isShortcutInputFocused = true;
             shortcutInput.style.borderColor = '#ff9900';
@@ -2192,15 +993,10 @@ input:checked + .slider:before {
             shortcutInput.value = 'Wciśnij kombinację klawiszy...';
             shortcutKeys = [];
             
-            // Tymczasowy nasłuchiwacz klawiatury
             const keyDownHandler = function(e) {
-                // Ignoruj powtarzające się zdarzenia
                 if (e.repeat) return;
-                
-                // Zbieraj wciśnięte klawisze
                 const key = e.key.toUpperCase();
                 
-                // Dodaj klawisze modyfikujące
                 if (e.ctrlKey && !shortcutKeys.includes('Ctrl')) {
                     shortcutKeys.push('Ctrl');
                 }
@@ -2208,12 +1004,10 @@ input:checked + .slider:before {
                     shortcutKeys.push('Shift');
                 }
                 
-                // Dodaj klawisz główny (A-Z, 0-9)
                 if (key.length === 1 && /[A-Z0-9]/.test(key) && !shortcutKeys.includes(key)) {
                     shortcutKeys.push(key);
                 }
                 
-                // Aktualizuj wyświetlany skrót
                 if (shortcutKeys.length > 0) {
                     shortcutInput.value = shortcutKeys.join('+');
                 }
@@ -2222,23 +1016,19 @@ input:checked + .slider:before {
             const keyUpHandler = function(e) {
                 const key = e.key.toUpperCase();
                 
-                // Jeśli puszczono klawisz główny, zakończ ustawianie
                 if (key.length === 1 && /[A-Z0-9]/.test(key)) {
-                    // Sprawdź czy mamy przynajmniej Ctrl i klawisz główny
                     if (shortcutKeys.includes('Ctrl') && shortcutKeys.length >= 2) {
                         customShortcut = shortcutKeys.join('+');
                         shortcutInput.value = customShortcut;
                         SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
                         setupKeyboardShortcut();
                         
-                        // Usuń nasłuchiwanie
                         document.removeEventListener('keydown', keyDownHandler);
                         document.removeEventListener('keyup', keyUpHandler);
                         isShortcutInputFocused = false;
                         shortcutInput.style.borderColor = '#333';
                         shortcutInput.style.boxShadow = 'none';
                         
-                        // Pokaż komunikat
                         const messageEl = document.getElementById('swResetMessage');
                         if (messageEl) {
                             messageEl.textContent = `Skrót ustawiony na: ${customShortcut}`;
@@ -2252,7 +1042,6 @@ input:checked + .slider:before {
                             }, 3000);
                         }
                     } else {
-                        // Jeśli brak Ctrl, zresetuj i pokaż błąd
                         shortcutInput.value = 'Musi zawierać Ctrl + klawisz';
                         setTimeout(() => {
                             shortcutInput.value = customShortcut;
@@ -2265,7 +1054,6 @@ input:checked + .slider:before {
                     }
                 }
                 
-                // Jeśli puszczono Escape, anuluj
                 if (e.key === 'Escape') {
                     shortcutInput.value = customShortcut;
                     document.removeEventListener('keydown', keyDownHandler);
@@ -2276,11 +1064,9 @@ input:checked + .slider:before {
                 }
             };
             
-            // Dodaj nasłuchiwanie klawiatury
             document.addEventListener('keydown', keyDownHandler);
             document.addEventListener('keyup', keyUpHandler);
             
-            // Usuń nasłuchiwanie po 10 sekundach
             setTimeout(() => {
                 if (isShortcutInputFocused) {
                     document.removeEventListener('keydown', keyDownHandler);
@@ -2435,7 +1221,6 @@ input:checked + .slider:before {
             });
         }
 
-        // Zamknięcie modala po kliknięciu poza nim
         if (modal) {
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
@@ -2492,7 +1277,6 @@ input:checked + .slider:before {
         
         const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
         
-        // Filtruj dodatki według kategorii i wyszukiwania
         const filteredAddons = sortedAddons.filter(addon => {
             const showEnabled = activeCategories.enabled && addon.enabled;
             const showDisabled = activeCategories.disabled && !addon.enabled;
@@ -2500,7 +1284,6 @@ input:checked + .slider:before {
             
             const categoryMatch = showEnabled || showDisabled || showFavorites;
             
-            // Wyszukiwanie - priorytet na nazwę, potem opis
             const searchMatch = searchQuery === '' || 
                 addon.name.toLowerCase().includes(searchQuery) || 
                 addon.description.toLowerCase().includes(searchQuery);
@@ -2574,7 +1357,6 @@ input:checked + .slider:before {
             }
         });
         
-        // Jeśli brak skrótów
         if (shortcutsList.children.length === 0) {
             shortcutsList.innerHTML = '<div class="addon-list-empty">Brak aktywnych skrótów. Włącz dodatki aby zobaczyć ich skróty.</div>';
         }
@@ -2629,7 +1411,7 @@ input:checked + .slider:before {
         }
         
         renderAddons();
-        renderShortcuts(); // Odśwież skróty jeśli dodatek został włączony/wyłączony
+        renderShortcuts();
         console.log(`🔧 Toggle ${addonId}: ${isEnabled ? 'enabled' : 'disabled'}`);
     }
 
@@ -2644,6 +1426,7 @@ input:checked + .slider:before {
         SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
         SW.GM_deleteValue(CONFIG.ACTIVE_CATEGORIES);
         SW.GM_deleteValue(CONFIG.CUSTOM_SHORTCUT);
+        SW.GM_deleteValue(CONFIG.ACCOUNT_ID);
         
         currentAddons = ADDONS.map(addon => ({
             ...addon,
@@ -2659,6 +1442,8 @@ input:checked + .slider:before {
         
         customShortcut = 'Ctrl+A';
         searchQuery = '';
+        userAccountId = null;
+        isLicenseVerified = false;
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
@@ -2677,6 +1462,8 @@ input:checked + .slider:before {
         updateFilterSwitches();
         renderAddons();
         renderShortcuts();
+        updateAccountDisplay('Nie znaleziono');
+        updateLicenseDisplay();
         
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
@@ -2702,7 +1489,6 @@ input:checked + .slider:before {
             searchInput.value = '';
         }
         
-        // Zresetuj skrót klawiszowy
         setupKeyboardShortcut();
         setupShortcutInput();
     }
@@ -2803,104 +1589,6 @@ input:checked + .slider:before {
         console.log('✅ Settings loaded, shortcut:', customShortcut);
     }
 
-    // 🔹 Aktywacja licencji
-    function activateLicense(licenseKey) {
-        console.log('🔐 Activating license:', licenseKey);
-        
-        // Symulacja aktywacji licencji
-        isLicenseVerified = true;
-        userAccountId = 'USER_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        licenseExpiry = new Date();
-        licenseExpiry.setFullYear(licenseExpiry.getFullYear() + 1);
-        
-        SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-        SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
-        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
-        
-        updateLicenseDisplay();
-        loadEnabledAddons();
-        
-        const messageEl = document.getElementById('swLicenseMessage');
-        if (messageEl) {
-            messageEl.textContent = 'Licencja aktywowana pomyślnie!';
-            messageEl.className = 'license-message license-success';
-            messageEl.style.display = 'block';
-            
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 5000);
-        }
-    }
-
-    // 🔹 Update wyświetlania licencji
-    function updateLicenseDisplay() {
-        const statusEl = document.getElementById('swLicenseStatus');
-        const accountEl = document.getElementById('swAccountId');
-        const expiryEl = document.getElementById('swLicenseExpiry');
-        const serverEl = document.getElementById('swServerStatus');
-        
-        if (statusEl) {
-            statusEl.textContent = isLicenseVerified ? 'Aktywna' : 'Nieaktywna';
-            statusEl.className = isLicenseVerified ? 'license-status-valid' : 'license-status-invalid';
-        }
-        
-        if (accountEl) {
-            accountEl.textContent = userAccountId || '-';
-        }
-        
-        if (expiryEl) {
-            if (licenseExpiry) {
-                const now = new Date();
-                const diffTime = licenseExpiry - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                expiryEl.textContent = `${diffDays} dni`;
-            } else {
-                expiryEl.textContent = '-';
-            }
-        }
-        
-        if (serverEl) {
-            serverEl.textContent = serverConnected ? 'Aktywne' : 'Brak połączenia';
-            serverEl.className = serverConnected ? 'license-status-connected' : 'license-status-disconnected';
-        }
-    }
-
-    // 🔹 Check licencji na starcie
-    async function checkLicenseOnStart() {
-        console.log('🔍 Checking license on start...');
-        
-        const savedKey = SW.GM_getValue(CONFIG.LICENSE_KEY);
-        const savedActive = SW.GM_getValue(CONFIG.LICENSE_ACTIVE, false);
-        const savedExpiry = SW.GM_getValue(CONFIG.LICENSE_EXPIRY);
-        
-        if (savedKey && savedActive) {
-            isLicenseVerified = true;
-            userAccountId = 'USER_' + savedKey.substr(0, 8).toUpperCase();
-            
-            if (savedExpiry) {
-                licenseExpiry = new Date(savedExpiry);
-                const now = new Date();
-                if (licenseExpiry < now) {
-                    isLicenseVerified = false;
-                    console.log('⚠️ License expired');
-                }
-            } else {
-                licenseExpiry = new Date();
-                licenseExpiry.setFullYear(licenseExpiry.getFullYear() + 1);
-            }
-            
-            // Test połączenia z serwerem
-            serverConnected = true; // Symulacja
-            
-            console.log('✅ License verified');
-        } else {
-            console.log('⚠️ No valid license found');
-        }
-        
-        updateLicenseDisplay();
-        console.log('✅ License verification complete');
-    }
-
     // 🔹 Ładowanie włączonych dodatków
     function loadEnabledAddons() {
         console.log('🔓 Ładowanie dodatków...');
@@ -2925,6 +1613,7 @@ input:checked + .slider:before {
         // Tutaj prawdziwa logika inicjalizacji dodatku
     }
 
+    // 🔹 Start panelu
     console.log('🎯 Waiting for DOM to load...');
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
