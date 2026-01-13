@@ -612,7 +612,7 @@
     cursor: pointer;
 }
 
-/* 🔹 POPRAWIONY EFEKT HOVER DODATKÓW - BEZ KOLOROWEGO GRADIENTU 🔹 */
+/* 🔹 CAŁKOWICIE USUNIĘTY EFEKT GRADIENTU - TYLKO PROSTE OGNISTE TŁO 🔹 */
 .addon::before {
     content: '';
     position: absolute;
@@ -620,7 +620,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 51, 0, 0.1);
+    background: rgba(102, 0, 0, 0.3);
     border-radius: 8px;
     z-index: -1;
     opacity: 0;
