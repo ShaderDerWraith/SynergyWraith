@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy z systemem licencji (v2.3)
+// synergy.js - Główny kod panelu Synergy z PROSTYM systemem licencji (v2.4)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v2.3 (Premium Addons Hidden without License)');
+    console.log('🚀 Synergy Panel loaded - v2.4 (Simple License System)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -14,17 +14,15 @@
         FONT_SIZE: "sw_panel_font_size",
         BACKGROUND_OPACITY: "sw_panel_background_opacity",
         ACTIVE_CATEGORIES: "sw_active_categories",
-        LICENSE_KEY: "sw_license_key",
         LICENSE_EXPIRY: "sw_license_expiry",
         LICENSE_ACTIVE: "sw_license_active",
         SHORTCUT_KEY: "sw_shortcut_key",
         CUSTOM_SHORTCUT: "sw_custom_shortcut",
         ACCOUNT_ID: "sw_account_id",
-        LICENSE_DATA: "sw_license_data",
-        IS_ADMIN: "sw_is_admin" // Nowe - czy użytkownik jest adminem
+        LICENSE_DATA: "sw_license_data"
     };
 
-    // 🔹 Lista dostępnych dodatków z typami (free/premium) - TERAZ ŁATWO DODAWAĆ NOWE!
+    // 🔹 Lista dostępnych dodatków z typami (free/premium)
     const ADDONS = [
         {
             id: 'kcs-icons',
@@ -33,7 +31,8 @@
             type: 'premium',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         },
         {
             id: 'auto-looter',
@@ -42,7 +41,8 @@
             type: 'premium',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         },
         {
             id: 'quest-helper',
@@ -51,7 +51,8 @@
             type: 'premium',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         },
         {
             id: 'enhanced-stats',
@@ -60,7 +61,8 @@
             type: 'free',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         },
         {
             id: 'trade-helper',
@@ -69,7 +71,8 @@
             type: 'free',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         },
         {
             id: 'combat-log',
@@ -78,28 +81,26 @@
             type: 'premium',
             enabled: false,
             favorite: false,
-            author: 'Synergy Team'
+            author: 'Synergy Team',
+            version: '1.0'
         }
     ];
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "2.3",
+        version: "2.4",
         releaseDate: "2024-01-16",
         patchNotes: [
+            "Prosty system licencji (tylko ID konta)",
             "Premium dodatki ukryte bez licencji",
-            "Ulepszony system filtrowania",
-            "Łatwiejsze dodawanie nowych dodatków",
-            "Poprawki stabilności licencji",
-            "Nowy system admina (wkrótce)"
+            "Automatyczne sprawdzanie licencji",
+            "Brak kluczy aktywacyjnych",
+            "Szybsze działanie"
         ]
     };
 
     // 🔹 Backend URL - ZMIENIĆ NA SWÓJ!
     const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
-
-    // 🔹 Admin ID - Tutaj wpisz swoje ID konta z gry, aby mieć dostęp do panelu admina
-    const ADMIN_ACCOUNT_IDS = ['7411461', 'xxx']; // Zmień na swoje ID konta!
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
@@ -163,97 +164,42 @@
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
     let isCheckingLicense = false;
-    let isAdmin = false;
 
     // =========================================================================
-    // 🔹 FUNKCJE BACKEND - KOMUNIKACJA Z SERWEREM
+    // 🔹 PROSTE FUNKCJE LICENCJI (tylko sprawdzenie po ID konta)
     // =========================================================================
 
-    // Funkcja pomocnicza do wysyłania requestów
-    async function makeBackendRequest(endpoint, data = {}) {
+    // Sprawdź licencję dla konta
+    async function checkLicenseForAccount(accountId) {
         try {
-            console.log(`📡 Wysyłam request do ${BACKEND_URL}${endpoint}`, data);
+            console.log(`📡 Sprawdzam licencję dla: ${accountId}`);
             
-            const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            const response = await fetch(`${BACKEND_URL}/api/check`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ accountId: accountId })
             });
             
-            const result = await response.json();
-            console.log(`📡 Odpowiedź z ${endpoint}:`, result);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
             
-            return {
-                success: response.ok,
-                data: result,
-                status: response.status
-            };
+            const result = await response.json();
+            console.log('📡 Odpowiedź z serwera:', result);
+            
+            return result;
             
         } catch (error) {
-            console.error(`❌ Błąd połączenia z ${endpoint}:`, error);
+            console.error('❌ Błąd połączenia z serwerem:', error);
             return {
                 success: false,
                 error: error.message,
-                data: null
+                hasLicense: false
             };
         }
-    }
-
-    // Weryfikacja klucza licencji
-    async function verifyLicenseKey(licenseKey, accountId) {
-        const result = await makeBackendRequest('/api/verify', {
-            licenseKey: licenseKey,
-            accountId: accountId
-        });
-        
-        if (result.success && result.data.success) {
-            return result.data;
-        }
-        
-        return {
-            success: false,
-            message: result.data?.message || 'Błąd weryfikacji'
-        };
-    }
-
-    // Aktywacja licencji
-    async function activateLicenseKey(licenseKey, accountId) {
-        const result = await makeBackendRequest('/api/activate', {
-            licenseKey: licenseKey,
-            accountId: accountId
-        });
-        
-        if (result.success && result.data.success) {
-            return result.data;
-        }
-        
-        return {
-            success: false,
-            message: result.data?.message || 'Błąd aktywacji'
-        };
-    }
-
-    // Sprawdzenie statusu licencji
-    async function checkLicenseStatus(accountId) {
-        if (!accountId) {
-            return { success: false, message: 'Brak ID konta' };
-        }
-        
-        const result = await makeBackendRequest('/api/check', {
-            accountId: accountId
-        });
-        
-        if (result.success && result.data.success) {
-            return result.data;
-        }
-        
-        return {
-            success: false,
-            message: result.data?.message || 'Błąd sprawdzania licencji'
-        };
     }
 
     // =========================================================================
@@ -384,10 +330,6 @@
             // Zapisz do zmiennej globalnej
             userAccountId = accountId;
             
-            // Sprawdź czy użytkownik jest adminem
-            isAdmin = ADMIN_ACCOUNT_IDS.includes(accountId);
-            SW.GM_setValue(CONFIG.IS_ADMIN, isAdmin);
-            
             // Zapisz do storage
             SW.GM_setValue(CONFIG.ACCOUNT_ID, accountId);
             
@@ -402,7 +344,7 @@
         }
     }
 
-    // Funkcja 4: Sprawdź i zaktualizuj licencję
+    // Funkcja 4: Sprawdź i zaktualizuj licencję (PROSTA)
     async function checkAndUpdateLicense(accountId) {
         if (isCheckingLicense) return;
         isCheckingLicense = true;
@@ -410,10 +352,10 @@
         try {
             console.log('🔐 Sprawdzam status licencji dla konta:', accountId);
             
-            const result = await checkLicenseStatus(accountId);
+            const result = await checkLicenseForAccount(accountId);
             
             if (result.success) {
-                if (result.hasLicense) {
+                if (result.hasLicense && !result.expired) {
                     // Licencja aktywna
                     isLicenseVerified = true;
                     licenseData = result;
@@ -427,13 +369,13 @@
                     console.log('✅ Licencja aktywna, ważna do:', licenseExpiry);
                     
                     // Załaduj dodatki zgodnie z licencją
-                    loadAddonsBasedOnLicense(licenseData.addons || []);
+                    loadAddonsBasedOnLicense(licenseData.addons || ['all']);
                     
                     // Wyświetl komunikat sukcesu
-                    showLicenseMessage('Licencja aktywna! Dostęp do wszystkich funkcji.', 'success');
+                    showLicenseMessage(`Licencja aktywna! Ważna do: ${licenseExpiry ? licenseExpiry.toLocaleDateString('pl-PL') : 'bezterminowo'}`, 'success');
                     
                 } else {
-                    // Brak licencji
+                    // Brak licencji lub wygasła
                     isLicenseVerified = false;
                     licenseData = null;
                     licenseExpiry = null;
@@ -442,17 +384,20 @@
                     SW.GM_deleteValue(CONFIG.LICENSE_EXPIRY);
                     SW.GM_deleteValue(CONFIG.LICENSE_DATA);
                     
-                    console.log('⚠️ Brak aktywnej licencji');
+                    console.log('⚠️ Brak aktywnej licencji:', result.message);
                     
                     // Załaduj tylko darmowe dodatki
                     loadAddonsBasedOnLicense([]);
                     
-                    // Wyświetl komunikat informacyjny
-                    showLicenseMessage('Brak aktywnej licencji. Dostęp tylko do darmowych dodatków.', 'info');
+                    if (result.expired) {
+                        showLicenseMessage('Licencja wygasła. Dostęp tylko do darmowych dodatków.', 'error');
+                    } else {
+                        showLicenseMessage('Brak aktywnej licencji. Dostęp tylko do darmowych dodatków.', 'info');
+                    }
                 }
             } else {
                 // Błąd połączenia
-                console.error('❌ Błąd podczas sprawdzania licencji:', result.message);
+                console.error('❌ Błąd podczas sprawdzania licencji:', result.error || result.message);
                 serverConnected = false;
                 
                 // Spróbuj użyć zapisanych danych
@@ -481,7 +426,8 @@
         // Jeśli brak licencji, pokaż tylko darmowe
         currentAddons = ADDONS.filter(addon => {
             const isFree = addon.type === 'free';
-            const isPremiumAllowed = isLicenseVerified && allowedAddons.includes(addon.id);
+            const hasAccess = allowedAddons.includes('all') || allowedAddons.includes(addon.id);
+            const isPremiumAllowed = isLicenseVerified && hasAccess;
             
             // Jeśli brak licencji, pokazuj tylko darmowe
             if (!isLicenseVerified) {
@@ -492,7 +438,8 @@
             return isFree || isPremiumAllowed;
         }).map(addon => {
             const isFree = addon.type === 'free';
-            const isPremiumAllowed = isLicenseVerified && allowedAddons.includes(addon.id);
+            const hasAccess = allowedAddons.includes('all') || allowedAddons.includes(addon.id);
+            const isPremiumAllowed = isLicenseVerified && hasAccess;
             
             return {
                 ...addon,
@@ -1091,116 +1038,6 @@
     box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
-/* 🔹 MODAL AKTYWACJI LICENCJI 🔹 */
-#swLicenseModal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 1000003;
-    justify-content: center;
-    align-items: center;
-}
-
-.license-modal-content {
-    background: linear-gradient(135deg, #1a0000, #330000);
-    width: 400px;
-    border: 2px solid #ff3300;
-    border-radius: 8px;
-    padding: 25px 35px;
-    position: relative;
-}
-
-.license-modal-header {
-    color: #ffcc00;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.license-modal-input {
-    width: 100%;
-    padding: 12px;
-    margin: 12px 0;
-    background: rgba(51, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ffcc00;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-.license-modal-input:focus {
-    outline: none;
-    border-color: #ff3300;
-    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-.license-modal-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    padding: 0 15px;
-}
-
-.license-modal-button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-}
-
-.license-modal-button.activate {
-    background: linear-gradient(to right, #660000, #990000);
-    color: #ffcc00;
-    border: 1px solid #ff3300;
-}
-
-.license-modal-button.activate:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-}
-
-.license-modal-button.cancel {
-    background: rgba(51, 0, 0, 0.8);
-    color: #ff9966;
-    border: 1px solid #660000;
-}
-
-.license-modal-button.cancel:hover {
-    background: rgba(102, 0, 0, 0.9);
-    color: #ffffff;
-}
-
-.license-modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    color: #ff3300;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.license-modal-close:hover {
-    color: #ffcc00;
-    transform: scale(1.1);
-}
-
 /* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 20px;
@@ -1759,11 +1596,6 @@
         padding: 10px 3px;
         font-size: 11px;
     }
-    
-    .license-modal-content {
-        width: 90%;
-        max-width: 350px;
-    }
 }
 
 /* 🔹 PANEL RESIZE HANDLE 🔹 */
@@ -1846,7 +1678,7 @@
 }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected with license system');
+        console.log('✅ CSS injected with simple license system');
     }
 
     // 🔹 Tworzenie przycisku przełączania
@@ -1870,7 +1702,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu
+    // 🔹 Tworzenie głównego panelu (BEZ AKTYWACJI LICENCJI)
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1881,7 +1713,6 @@
         panel.innerHTML = `
             <div id="swPanelHeader">
                 <strong>SYNERGY v${VERSION_INFO.version}</strong>
-                ${isAdmin ? ' <span style="color:#00ff00; font-size:12px;">(ADMIN)</span>' : ''}
             </div>
             
             <div class="tab-container">
@@ -1890,7 +1721,6 @@
                 <button class="tablink" data-tab="settings">Ustawienia</button>
                 <button class="tablink" data-tab="shortcuts">Skróty</button>
                 <button class="tablink" data-tab="info">Info</button>
-                ${isAdmin ? '<button class="tablink" data-tab="admin" style="color:#00ff00;">Admin</button>' : ''}
             </div>
 
             <div id="addons" class="tabcontent active">
@@ -1972,15 +1802,9 @@
                     <div class="license-info-container">
                         <strong>ℹ️ Informacja:</strong>
                         <p>
-                            Bez aktywnej licencji premium dodatki są ukryte.<br>
-                            Po aktywacji licencji wszystkie funkcje będą dostępne.
+                            System licencji jest automatyczny.<br>
+                            Premium dodatki pojawią się automatycznie po uzyskaniu licencji.
                         </p>
-                    </div>
-                    
-                    <div class="license-activation-container">
-                        <button class="license-activation-button" id="swActivateLicense">
-                            Aktywuj Licencję
-                        </button>
                     </div>
                     
                     <div id="swLicenseMessage" class="license-message"></div>
@@ -2050,59 +1874,12 @@
                     </div>
                 </div>
             </div>
-
-            ${isAdmin ? `
-            <div id="admin" class="tabcontent">
-                <div class="sw-tab-content">
-                    <div class="license-container">
-                        <div class="license-header">Panel Administratora</div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Twoje ID:</span>
-                            <span id="swAdminAccountId" class="license-status-valid">${userAccountId || 'Ładowanie...'}</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Status:</span>
-                            <span class="license-status-valid">Administrator</span>
-                        </div>
-                    </div>
-                    
-                    <div style="margin: 20px 0; padding: 15px; background: rgba(0,50,0,0.2); border: 1px solid #00aa00; border-radius: 6px;">
-                        <strong style="color:#00ff00;">⚠️ UWAGA:</strong>
-                        <p style="color:#aaffaa; font-size: 12px; margin: 5px 0;">
-                            Panel admina jest w budowie.<br>
-                            Funkcje generowania kluczy pojawią się w następnej wersji.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            ` : ''}
         `;
         
         document.body.appendChild(panel);
         renderAddons();
         updateFilterSwitches();
-        console.log('✅ Panel created with license system');
-    }
-
-    // 🔹 Tworzenie modalu licencji
-    function createLicenseModal() {
-        const modal = document.createElement("div");
-        modal.id = "swLicenseModal";
-        
-        modal.innerHTML = `
-            <div class="license-modal-content">
-                <button class="license-modal-close" id="swLicenseModalClose">×</button>
-                <div class="license-modal-header">Aktywacja Licencji</div>
-                <input type="text" class="license-modal-input" id="swLicenseKeyInput" placeholder="Wpisz kod licencji...">
-                <div class="license-modal-buttons">
-                    <button class="license-modal-button cancel" id="swLicenseModalCancel">Anuluj</button>
-                    <button class="license-modal-button activate" id="swLicenseModalActivate">Aktywuj</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        console.log('✅ License modal created');
+        console.log('✅ Panel created with simple license system');
     }
 
     // 🔹 Update wyświetlania licencji
@@ -2130,76 +1907,11 @@
             serverEl.className = serverConnected ? 'license-status-connected' : 'license-status-disconnected';
         }
         
-        if (daysEl && licenseData && licenseData.daysLeft) {
+        if (daysEl && licenseData && licenseData.daysLeft !== undefined) {
             daysEl.textContent = `${licenseData.daysLeft} dni`;
             daysEl.className = licenseData.daysLeft < 7 ? 'license-status-invalid' : 'license-status-valid';
         } else if (daysEl) {
             daysEl.textContent = '-';
-        }
-    }
-
-    // 🔹 Funkcja aktywacji licencji
-    async function activateLicense(licenseKey) {
-        if (!licenseKey || !userAccountId) {
-            showLicenseMessage('Brak klucza lub ID konta', 'error');
-            return;
-        }
-        
-        console.log('🔐 Aktywacja licencji:', licenseKey);
-        
-        // Pokaż ładowanie
-        const activateBtn = document.getElementById('swActivateLicense');
-        if (activateBtn) {
-            activateBtn.disabled = true;
-            activateBtn.textContent = 'Aktywacja...';
-        }
-        
-        try {
-            // 1. Weryfikacja klucza
-            const verifyResult = await verifyLicenseKey(licenseKey, userAccountId);
-            
-            if (!verifyResult.valid) {
-                showLicenseMessage(verifyResult.message || 'Nieprawidłowy klucz licencji', 'error');
-                return;
-            }
-            
-            // 2. Aktywacja
-            const activateResult = await activateLicenseKey(licenseKey, userAccountId);
-            
-            if (activateResult.success) {
-                // Sukces!
-                SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                
-                // Sprawdź ponownie status
-                await checkAndUpdateLicense(userAccountId);
-                
-                // Zamknij modal
-                const modal = document.getElementById('swLicenseModal');
-                if (modal) {
-                    modal.style.display = 'none';
-                }
-                
-                // Wyczyść input
-                const licenseInput = document.getElementById('swLicenseKeyInput');
-                if (licenseInput) {
-                    licenseInput.value = '';
-                }
-                
-                showLicenseMessage('Licencja aktywowana pomyślnie!', 'success');
-                
-            } else {
-                showLicenseMessage(activateResult.message || 'Błąd aktywacji', 'error');
-            }
-            
-        } catch (error) {
-            console.error('❌ Błąd aktywacji:', error);
-            showLicenseMessage('Błąd połączenia z serwerem', 'error');
-        } finally {
-            // Przywróć przycisk
-            if (activateBtn) {
-                activateBtn.disabled = false;
-                activateBtn.textContent = 'Aktywuj Licencję';
-            }
         }
     }
 
@@ -2534,7 +2246,7 @@
         });
     }
 
-    // 🔹 Setup event listenerów
+    // 🔹 Setup event listenerów (PROSTE)
     function setupEventListeners() {
         // Rozmiar czcionki
         const fontSizeSlider = document.getElementById('fontSizeSlider');
@@ -2629,60 +2341,6 @@
             });
         }
 
-        // Modal licencji
-        const activateBtn = document.getElementById('swActivateLicense');
-        const modalCloseBtn = document.getElementById('swLicenseModalClose');
-        const modalCancelBtn = document.getElementById('swLicenseModalCancel');
-        const modalActivateBtn = document.getElementById('swLicenseModalActivate');
-        const modal = document.getElementById('swLicenseModal');
-
-        if (activateBtn && modal) {
-            activateBtn.addEventListener('click', function() {
-                modal.style.display = 'flex';
-            });
-        }
-
-        if (modalCloseBtn) {
-            modalCloseBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
-            });
-        }
-
-        if (modalCancelBtn) {
-            modalCancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
-            });
-        }
-
-        if (modalActivateBtn) {
-            modalActivateBtn.addEventListener('click', function() {
-                const licenseKeyInput = document.getElementById('swLicenseKeyInput');
-                if (licenseKeyInput && licenseKeyInput.value.trim()) {
-                    activateLicense(licenseKeyInput.value.trim());
-                } else {
-                    alert('Proszę wpisać kod licencji!');
-                }
-            });
-        }
-
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-
-        // Enter w inpucie modala
-        const licenseKeyInput = document.getElementById('swLicenseKeyInput');
-        if (licenseKeyInput) {
-            licenseKeyInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    modalActivateBtn.click();
-                }
-            });
-        }
-
         // Delegowane nasłuchiwanie dla dodatków
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('favorite-btn') || e.target.closest('.favorite-btn')) {
@@ -2703,7 +2361,7 @@
             }
         });
 
-        console.log('✅ Event listeners setup complete with license system');
+        console.log('✅ Event listeners setup complete with simple license system');
     }
 
     // 🔹 Toggle panelu
@@ -2861,13 +2519,7 @@
                 checkbox.checked = false;
             }
             
-            if (!isLicenseVerified) {
-                const activateBtn = document.getElementById('swActivateLicense');
-                if (activateBtn) {
-                    activateBtn.click();
-                }
-            }
-            
+            showLicenseMessage('Ten dodatek wymaga aktywnej licencji premium!', 'error');
             return;
         }
         
@@ -2929,11 +2581,9 @@
         SW.GM_deleteValue(CONFIG.ACTIVE_CATEGORIES);
         SW.GM_deleteValue(CONFIG.CUSTOM_SHORTCUT);
         SW.GM_deleteValue(CONFIG.ACCOUNT_ID);
-        SW.GM_deleteValue(CONFIG.LICENSE_KEY);
         SW.GM_deleteValue(CONFIG.LICENSE_ACTIVE);
         SW.GM_deleteValue(CONFIG.LICENSE_EXPIRY);
         SW.GM_deleteValue(CONFIG.LICENSE_DATA);
-        SW.GM_deleteValue(CONFIG.IS_ADMIN);
         
         currentAddons = ADDONS.filter(addon => addon.type === 'free').map(addon => ({
             ...addon,
@@ -2954,7 +2604,6 @@
         isLicenseVerified = false;
         licenseData = null;
         licenseExpiry = null;
-        isAdmin = false;
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
@@ -3130,11 +2779,12 @@
     // 🔹 Inicjalizacja KCS Icons
     function initKCSIcons() {
         console.log('🔄 Initializing KCS Icons addon...');
+        // Tu załadujesz kod dodatku KCS Icons
     }
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v2.3 with license system...');
+        console.log('✅ Initializing panel v2.4 with simple license system...');
         
         injectCSS();
         
@@ -3145,7 +2795,6 @@
         
         createToggleButton();
         createMainPanel();
-        createLicenseModal();
         
         loadSavedState();
         
@@ -3163,11 +2812,18 @@
         
         setTimeout(async () => {
             await initAccountAndLicense();
+            
+            // Automatyczne odświeżanie statusu licencji co 5 minut
+            setInterval(() => {
+                if (userAccountId) {
+                    checkAndUpdateLicense(userAccountId);
+                }
+            }, 5 * 60 * 1000); // 5 minut
         }, 1000);
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v2.3 with Premium Addons Hidden...');
+    console.log('🎯 Starting Synergy Panel v2.4 with Simple License System...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
