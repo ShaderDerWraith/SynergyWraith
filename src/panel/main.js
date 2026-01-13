@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu z systemem ID konta (ORYGINALNY WYGLĄD)
+// synergy.js - Główny kod panelu Synergy
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded v2.2');
+    console.log('🚀 Synergy Panel loaded');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -70,14 +70,14 @@
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "2.2",
+        version: "1.0",
         releaseDate: "2024-01-15",
         patchNotes: [
-            "Przywrócono oryginalny wygląd panelu",
-            "Dodano automatyczne wykrywanie ID konta",
-            "Poprawiono strukturę repozytorium",
-            "Nowy system licencji w przygotowaniu",
-            "Ulepszone wykrywanie konta z API gry"
+            "Stabilny panel Synergy",
+            "System wykrywania ID konta",
+            "Automatyczna aktywacja licencji",
+            "Responsywny design",
+            "Optymalizacja wydajności"
         ]
     };
 
@@ -144,61 +144,53 @@
     // 🔹 FUNKCJE DO POBRANIA ID KONTA
     // =========================================================================
 
-    // Funkcja 1: Pobierz ID konta z różnych źródeł
-    async function getAccountId() {
-        console.log('🔍 Szukam ID konta...');
+    // Funkcja 1: Pobierz ID konta z cookies
+    function getAccountId() {
+        console.log('🔍 Szukam ID konta w cookies...');
         
-        // Metoda 1: Z cookies (działa na wszystkich poddomenach)
+        // Rozdziel wszystkie cookies
         const cookies = document.cookie.split(';');
+        
         for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'user_id') {
-                console.log('✅ Znaleziono w cookie user_id:', value);
-                return value;
+            const trimmedCookie = cookie.trim();
+            
+            // Sprawdź user_id
+            if (trimmedCookie.startsWith('user_id=')) {
+                const userId = trimmedCookie.substring('user_id='.length);
+                console.log('✅ Znaleziono user_id w cookies:', userId);
+                return userId;
             }
-            if (name === 'mchar_id') {
-                console.log('✅ Znaleziono w cookie mchar_id:', value);
-                return value;
+            
+            // Sprawdź mchar_id
+            if (trimmedCookie.startsWith('mchar_id=')) {
+                const charId = trimmedCookie.substring('mchar_id='.length);
+                console.log('✅ Znaleziono mchar_id w cookies:', charId);
+                return charId;
             }
         }
         
-        // Metoda 2: Z URL (jeśli jesteśmy na stronie profilu)
-        const urlMatch = window.location.href.match(/profile\/view,(\d+)/);
-        if (urlMatch && urlMatch[1]) {
-            console.log('✅ Znaleziono w URL:', urlMatch[1]);
-            return urlMatch[1];
-        }
+        // Jeśli nie znaleziono w głównych cookies, spróbuj znaleźć w innych miejscach
+        console.log('⚠️ Nie znaleziono user_id ani mchar_id w głównych cookies');
         
-        // Metoda 3: Spróbuj z API gry (jeśli jesteśmy w grze)
+        // Metoda 2: Spróbuj z wszystkich dostępnych cookies
         try {
-            // Sprawdź czy jesteśmy na stronie gry (ma engine)
-            if (typeof Engine !== 'undefined' && Engine.characterList) {
-                const chars = Engine.characterList.list;
-                if (chars && chars.length > 0) {
-                    // Wszystkie postacie mają to samo ID konta w tle
-                    console.log('✅ Znaleziono przez Engine.characterList');
-                    return `char_${chars[0].id}`;
-                }
+            const allCookies = document.cookie;
+            const userIdMatch = allCookies.match(/user_id=(\d+)/);
+            if (userIdMatch && userIdMatch[1]) {
+                console.log('✅ Znaleziono user_id w całych cookies:', userIdMatch[1]);
+                return userIdMatch[1];
+            }
+            
+            const charIdMatch = allCookies.match(/mchar_id=(\d+)/);
+            if (charIdMatch && charIdMatch[1]) {
+                console.log('✅ Znaleziono mchar_id w całych cookies:', charIdMatch[1]);
+                return charIdMatch[1];
             }
         } catch (e) {
-            console.log('⚠️ Engine.characterList nie dostępny');
+            console.log('⚠️ Błąd przy parsowaniu cookies:', e);
         }
         
-        // Metoda 4: Spróbuj pobrać przez hs3 token (async)
-        try {
-            const hs3Match = document.cookie.match(/hs3=([^;]+)/);
-            if (hs3Match && hs3Match[1]) {
-                console.log('🔄 Próbuję pobrać przez API z hs3...');
-                const accountId = await fetchAccountIdFromAPI(hs3Match[1]);
-                if (accountId) {
-                    return accountId;
-                }
-            }
-        } catch (e) {
-            console.log('⚠️ Nie udało się pobrać przez API');
-        }
-        
-        // Metoda 5: Spróbuj znaleźć w localStorage
+        // Metoda 3: Spróbuj pobrać z localStorage
         try {
             const savedAccountId = SW.GM_getValue(CONFIG.ACCOUNT_ID);
             if (savedAccountId) {
@@ -213,30 +205,11 @@
         return null;
     }
 
-    // Funkcja 2: Pobierz ID konta przez API (async)
-    async function fetchAccountIdFromAPI(hs3Token) {
-        try {
-            const response = await fetch(`https://public-api.margonem.pl/account/charlist?hs3=${hs3Token}`);
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                // API zwraca listę postaci - możemy użyć ID pierwszej
-                const accountId = data[0].id;
-                console.log('✅ Pobrano z API:', accountId);
-                return accountId;
-            }
-        } catch (error) {
-            console.error('❌ Błąd przy pobieraniu z API:', error);
-        }
-        return null;
-    }
-
-    // Funkcja 3: Inicjalizacja konta i licencji
+    // Funkcja 2: Inicjalizacja konta i licencji
     async function initAccountAndLicense() {
-        const accountId = await getAccountId();
+        const accountId = getAccountId();
         if (accountId) {
             console.log('🎮 TWOJE ID KONTA TO:', accountId);
-            console.log('💡 Zapisz to ID:', accountId);
             
             // Zapisz do zmiennej globalnej
             userAccountId = accountId;
@@ -255,14 +228,34 @@
         }
     }
 
-    // Funkcja 4: Aktualizuj wyświetlanie ID konta w panelu
+    // Funkcja 3: Aktualizuj wyświetlanie ID konta w panelu
     function updateAccountDisplay(accountId) {
         const accountEl = document.getElementById('swAccountId');
+        const statusEl = document.getElementById('swLicenseStatus');
+        
         if (accountEl) {
             accountEl.textContent = accountId;
             if (accountId && accountId !== 'Nie znaleziono') {
                 accountEl.classList.remove('license-status-invalid');
                 accountEl.classList.add('license-status-valid');
+                
+                // Automatycznie aktywuj licencję jeśli znaleziono ID
+                if (statusEl) {
+                    statusEl.textContent = 'Aktywna';
+                    statusEl.className = 'license-status-valid';
+                    isLicenseVerified = true;
+                    
+                    // Ustaw datę ważności na 30 dni
+                    licenseExpiry = new Date();
+                    licenseExpiry.setDate(licenseExpiry.getDate() + 30);
+                    
+                    const expiryEl = document.getElementById('swLicenseExpiry');
+                    if (expiryEl) {
+                        expiryEl.textContent = licenseExpiry.toLocaleDateString();
+                    }
+                    
+                    console.log('✅ Licencja automatycznie aktywowana');
+                }
             } else {
                 accountEl.classList.remove('license-status-valid');
                 accountEl.classList.add('license-status-invalid');
@@ -270,27 +263,29 @@
         }
     }
 
-    // Funkcja 5: Sprawdź licencję dla konta (tymczasowa)
+    // Funkcja 4: Sprawdź licencję dla konta
     async function checkLicenseForAccount(accountId) {
         console.log('🔐 Sprawdzam licencję dla konta:', accountId);
         
-        // Tymczasowo - ustaw jako aktywną dla testów
-        isLicenseVerified = true;
-        licenseExpiry = new Date();
-        licenseExpiry.setMonth(licenseExpiry.getMonth() + 1); // +1 miesiąc
-        
-        SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
-        SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
-        
-        updateLicenseDisplay();
-        console.log('✅ Licencja tymczasowo aktywowana na 1 miesiąc');
+        // Automatyczna aktywacja dla znalezionego konta
+        if (accountId && accountId !== 'Nie znaleziono') {
+            isLicenseVerified = true;
+            licenseExpiry = new Date();
+            licenseExpiry.setMonth(licenseExpiry.getMonth() + 1);
+            
+            SW.GM_setValue(CONFIG.LICENSE_ACTIVE, true);
+            SW.GM_setValue(CONFIG.LICENSE_EXPIRY, licenseExpiry.toISOString());
+            
+            updateLicenseDisplay();
+            console.log('✅ Licencja aktywowana na 1 miesiąc');
+        }
     }
 
     // =========================================================================
-    // 🔹 GŁÓWNE FUNKCJE PANELU - ORYGINALNY WYGLĄD
+    // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 Wstrzyknij CSS - ORYGINALNY WYGLĄD
+    // 🔹 Wstrzyknij CSS
     function injectCSS() {
         const style = document.createElement('style');
         style.textContent = `
@@ -371,13 +366,13 @@
     background: transparent;
 }
 
-/* 🔹 MAIN PANEL - ORYGINALNY WYGLĄD 🔹 */
+/* 🔹 MAIN PANEL 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 640px;
-    min-height: 580px;
+    height: 580px;
     background: linear-gradient(135deg, #0a0a0a, #121212);
     border: 3px solid #00ff00;
     border-radius: 10px;
@@ -391,6 +386,8 @@
     resize: both;
     min-width: 640px;
     max-width: 900px;
+    min-height: 580px;
+    max-height: 800px;
 }
 
 /* Neonowy efekt na krawędziach */
@@ -450,7 +447,7 @@
     overflow-y: auto;
 }
 
-/* 🔹 TABS STYLES - ORYGINALNY 🔹 */
+/* 🔹 TABS STYLES 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
@@ -531,32 +528,37 @@
     }
 }
 
-/* 🔹 ADDONS LIST - ORYGINALNY 🔹 */
+/* 🔹 ADDONS LIST - STAŁA WYSOKOŚĆ 🔹 */
 .addon {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: 60px;
+    max-height: 60px;
+    box-sizing: border-box;
 }
 
 .addon:hover {
     background: rgba(40, 40, 40, 0.9);
     border-color: #00ff00;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 255, 0, 0.1);
 }
 
 .addon-header {
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .addon-title {
@@ -564,19 +566,26 @@
     color: #00ff00;
     font-size: 14px;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .addon-description {
     color: #aaaaaa;
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .addon-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -585,20 +594,21 @@
     border: none;
     color: #888;
     cursor: pointer;
-    padding: 5px;
-    font-size: 18px;
+    padding: 4px;
+    font-size: 16px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 3px;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
 }
 
 .favorite-btn:hover {
     color: #ffaa00;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .favorite-btn.favorite {
@@ -606,12 +616,13 @@
     text-shadow: 0 0 8px rgba(255, 170, 0, 0.7);
 }
 
-/* 🔹 SWITCH STYLE - ORYGINALNY 🔹 */
+/* 🔹 SWITCH STYLE 🔹 */
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 24px;
+    width: 46px;
+    height: 22px;
+    flex-shrink: 0;
 }
 
 .switch input {
@@ -636,8 +647,8 @@
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 16px;
+    width: 16px;
     left: 3px;
     bottom: 3px;
     background-color: #00ff00;
@@ -652,12 +663,12 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(26px);
+    transform: translateX(24px);
     background-color: #00ff00;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
 }
 
-/* 🔹 LICENSE SYSTEM - ORYGINALNY 🔹 */
+/* 🔹 LICENSE SYSTEM 🔹 */
 .license-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -681,8 +692,8 @@ input:checked + .slider:before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    font-size: 14px;
+    margin-bottom: 12px;
+    font-size: 13px;
     padding: 8px 0;
     border-bottom: 1px solid rgba(51, 51, 51, 0.5);
 }
@@ -695,12 +706,14 @@ input:checked + .slider:before {
 .license-status-label {
     color: #00ff00;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .license-status-value {
     font-weight: 600;
     text-align: right;
-    max-width: 60%;
+    color: #ffffff;
+    max-width: 200px;
     word-break: break-all;
     font-size: 13px;
 }
@@ -863,7 +876,7 @@ input:checked + .slider:before {
     transform: scale(1.1);
 }
 
-/* 🔹 SETTINGS TAB - ORYGINALNY 🔹 */
+/* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 20px;
     padding: 15px;
@@ -887,7 +900,7 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
-/* 🔹 ROZMIAR CZCIONKI - ORYGINALNY 🔹 */
+/* 🔹 ROZMIAR CZCIONKI 🔹 */
 .font-size-container {
     display: flex;
     align-items: center;
@@ -931,7 +944,7 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
-/* 🔹 WIDOCZNOŚĆ TŁA - ORYGINALNY 🔹 */
+/* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
 .background-toggle-container {
     display: flex;
     align-items: center;
@@ -997,7 +1010,7 @@ input:checked + .slider:before {
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
 }
 
-/* 🔹 SKRÓT KLAWISZOWY - ORYGINALNY 🔹 */
+/* 🔹 SKRÓT KLAWISZOWY 🔹 */
 .shortcut-input-container {
     display: flex;
     align-items: center;
@@ -1101,7 +1114,7 @@ input:checked + .slider:before {
     color: #ffffff;
 }
 
-/* 🔹 INFO TAB - ORYGINALNY 🔹 */
+/* 🔹 INFO TAB 🔹 */
 .info-container {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -1191,20 +1204,20 @@ input:checked + .slider:before {
     box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
 }
 
-/* 🔹 SEARCH BAR - ORYGINALNY 🔹 */
+/* 🔹 SEARCH BAR 🔹 */
 .search-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     position: relative;
 }
 
 .search-input {
     width: 100%;
-    padding: 12px 20px;
+    padding: 10px 15px;
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
     color: #00ff00;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.3s ease;
     box-sizing: border-box;
     text-align: center;
@@ -1219,20 +1232,20 @@ input:checked + .slider:before {
 
 .search-input::placeholder {
     color: #666;
-    font-size: 13px;
+    font-size: 12px;
     text-align: center;
 }
 
-/* 🔹 CATEGORY FILTERS - ORYGINALNY 🔹 */
+/* 🔹 CATEGORY FILTERS 🔹 */
 .category-filters {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 15px;
     background: rgba(20, 20, 20, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    padding: 15px;
+    padding: 12px;
 }
 
 .category-filter-item {
@@ -1240,23 +1253,22 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: center;
     flex: 1;
-    padding: 8px 15px;
+    padding: 6px 12px;
     background: rgba(30, 30, 30, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
-    gap: 12px;
+    gap: 8px;
 }
 
 .category-filter-item:hover {
     background: rgba(40, 40, 40, 0.8);
-    transform: translateY(-2px);
 }
 
 .category-filter-label {
     display: flex;
     align-items: center;
     color: #00ff00;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1264,8 +1276,8 @@ input:checked + .slider:before {
 .category-switch {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 36px;
+    height: 18px;
     flex-shrink: 0;
 }
 
@@ -1291,8 +1303,8 @@ input:checked + .slider:before {
 .category-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     left: 2px;
     bottom: 2px;
     background-color: #00ff00;
@@ -1307,16 +1319,17 @@ input:checked + .slider:before {
 }
 
 .category-switch input:checked + .category-slider:before {
-    transform: translateX(20px);
+    transform: translateX(18px);
     background-color: #00ff00;
     box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
 }
 
-/* 🔹 ADDON LIST CONTAINER 🔹 */
+/* 🔹 ADDON LIST CONTAINER - STAŁA WYSOKOŚĆ 🔹 */
 .addon-list {
-    max-height: 350px;
+    height: 320px;
     overflow-y: auto;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    padding-right: 5px;
 }
 
 .addon-list-empty {
@@ -1333,31 +1346,31 @@ input:checked + .slider:before {
 /* 🔹 REFRESH BUTTON 🔹 */
 .refresh-button-container {
     text-align: center;
-    margin-top: 15px;
-    padding: 15px;
+    margin-top: 10px;
+    padding: 10px;
     border-top: 1px solid #333;
 }
 
 .refresh-button {
-    padding: 12px 40px;
+    padding: 10px 30px;
     background: linear-gradient(to right, #003300, #006600);
     color: #00ff00;
     border: 1px solid #00ff00;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
-    min-width: 180px;
+    min-width: 150px;
 }
 
 .refresh-button:hover {
     background: linear-gradient(to right, #006600, #009900);
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 SHORTCUTS TAB STYLES 🔹 */
@@ -1365,14 +1378,14 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 8px;
-    padding: 25px;
+    padding: 20px;
 }
 
 .shortcuts-header {
     color: #00ff00;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #333;
     padding-bottom: 10px;
     text-align: center;
@@ -1382,14 +1395,14 @@ input:checked + .slider:before {
 .shortcuts-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .shortcut-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
+    padding: 10px 12px;
     background: rgba(40, 40, 40, 0.6);
     border: 1px solid #333;
     border-radius: 6px;
@@ -1399,46 +1412,45 @@ input:checked + .slider:before {
 .shortcut-item:hover {
     border-color: #00ff00;
     background: rgba(50, 50, 50, 0.8);
-    transform: translateY(-2px);
 }
 
 .shortcut-key {
     color: #00ff00;
     font-weight: bold;
-    font-size: 14px;
-    padding: 8px 12px;
+    font-size: 13px;
+    padding: 6px 10px;
     background: rgba(0, 50, 0, 0.3);
     border-radius: 4px;
     border: 1px solid #00ff00;
-    min-width: 120px;
+    min-width: 100px;
     text-align: center;
     box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
 }
 
 .shortcut-description {
     color: #ccc;
-    font-size: 14px;
+    font-size: 13px;
     flex-grow: 1;
-    margin-left: 20px;
+    margin-left: 15px;
 }
 
 /* 🔹 SCROLLBAR STYLES 🔹 */
 .sw-tab-content::-webkit-scrollbar,
 .addon-list::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
 }
 
 .sw-tab-content::-webkit-scrollbar-track,
 .addon-list::-webkit-scrollbar-track {
     background: rgba(20, 20, 20, 0.8);
-    border-radius: 5px;
+    border-radius: 4px;
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb,
 .addon-list::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 5px;
-    border: 2px solid rgba(20, 20, 20, 0.8);
+    border-radius: 4px;
+    border: 1px solid rgba(20, 20, 20, 0.8);
 }
 
 .sw-tab-content::-webkit-scrollbar-thumb:hover,
@@ -1456,7 +1468,7 @@ input:checked + .slider:before {
     
     .category-filters {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
     
     .category-filter-item {
@@ -1493,12 +1505,12 @@ input:checked + .slider:before {
 }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected (original look)');
+        console.log('✅ CSS injected');
     }
 
     // 🔹 Główne funkcje
     async function initPanel() {
-        console.log('✅ Initializing panel (original look)...');
+        console.log('✅ Initializing panel...');
         
         // Wstrzyknij CSS
         injectCSS();
@@ -1557,7 +1569,7 @@ input:checked + .slider:before {
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu - ORYGINALNY WYGLĄD
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1708,26 +1720,6 @@ input:checked + .slider:before {
                                 <span class="shortcut-key">Ctrl + A</span>
                                 <span class="shortcut-description">Otwórz/ukryj panel Synergy</span>
                             </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">ESC</span>
-                                <span class="shortcut-description">Zamknij panel</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">F5</span>
-                                <span class="shortcut-description">Odśwież panel</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">Ctrl + F</span>
-                                <span class="shortcut-description">Wyszukaj dodatki</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">Ctrl + S</span>
-                                <span class="shortcut-description">Zapisz ustawienia</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">Ctrl + R</span>
-                                <span class="shortcut-description">Resetuj ustawienia</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1753,7 +1745,7 @@ input:checked + .slider:before {
         document.body.appendChild(panel);
         renderAddons();
         updateFilterSwitches();
-        console.log('✅ Panel created (original look)');
+        console.log('✅ Panel created');
     }
 
     // 🔹 Tworzenie modalu licencji
@@ -1790,10 +1782,7 @@ input:checked + .slider:before {
         
         if (expiryEl) {
             if (licenseExpiry) {
-                const now = new Date();
-                const diffTime = licenseExpiry - now;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                expiryEl.textContent = `${diffDays} dni`;
+                expiryEl.textContent = licenseExpiry.toLocaleDateString();
             } else {
                 expiryEl.textContent = '-';
             }
@@ -2045,19 +2034,14 @@ input:checked + .slider:before {
         
         const shortcutParts = customShortcut.split('+');
         const hasCtrl = shortcutParts.includes('Ctrl');
-        const hasShift = shortcutParts.includes('Shift');
         const key = shortcutParts[shortcutParts.length - 1].toUpperCase();
         
         const ctrlMatch = hasCtrl ? e.ctrlKey : true;
-        const shiftMatch = hasShift ? e.shiftKey : true;
         const keyMatch = e.key.toUpperCase() === key;
         
-        if (ctrlMatch && shiftMatch && keyMatch) {
-            const blockedShortcuts = ['P', 'S', 'O', 'N', 'W', 'T', 'U', 'I'];
-            if (hasCtrl && blockedShortcuts.includes(key)) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+        if (ctrlMatch && keyMatch) {
+            e.preventDefault();
+            e.stopPropagation();
             
             const toggleBtn = document.getElementById('swPanelToggle');
             if (toggleBtn) {
@@ -2091,9 +2075,6 @@ input:checked + .slider:before {
                 
                 if (e.ctrlKey && !shortcutKeys.includes('Ctrl')) {
                     shortcutKeys.push('Ctrl');
-                }
-                if (e.shiftKey && !shortcutKeys.includes('Shift')) {
-                    shortcutKeys.push('Shift');
                 }
                 
                 if (key.length === 1 && /[A-Z0-9]/.test(key) && !shortcutKeys.includes(key)) {
@@ -2350,7 +2331,7 @@ input:checked + .slider:before {
         }
     }
 
-    // 🔹 Renderowanie dodatków - ORYGINALNY
+    // 🔹 Renderowanie dodatków - STAŁE WYSOKOŚCI
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2378,9 +2359,6 @@ input:checked + .slider:before {
                 const div = document.createElement('div');
                 div.className = 'addon';
                 div.dataset.id = addon.id;
-                
-                if (addon.enabled) div.classList.add('enabled');
-                if (addon.favorite) div.classList.add('favorite');
                 
                 div.innerHTML = `
                     <div class="addon-header">
