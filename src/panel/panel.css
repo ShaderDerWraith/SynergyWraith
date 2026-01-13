@@ -6,11 +6,11 @@
     width: 50px;
     height: 50px;
     background: transparent;
-    border: 3px solid #00ff00;
+    border: 3px solid #ff3300;
     border-radius: 50%;
     cursor: grab;
     z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+    box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
     color: white;
     font-weight: bold;
     font-size: 20px;
@@ -29,14 +29,14 @@
 #swPanelToggle.dragging {
     cursor: grabbing;
     transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
-    border: 3px solid #ffff00;
+    box-shadow: 0 0 30px rgba(255, 102, 0, 1.2);
+    border: 3px solid #ffcc00;
     z-index: 1000001;
 }
 
 #swPanelToggle:hover:not(.dragging) {
     transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255, 30, 30, 1);
+    box-shadow: 0 0 25px rgba(255, 102, 0, 1);
     cursor: grab;
 }
 
@@ -48,17 +48,17 @@
 /* Save indication animation */
 @keyframes savePulse {
     0% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
     }
     50% { 
-        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
-        border-color: #00ff00;
+        box-shadow: 0 0 35px rgba(255, 153, 0, 1.2);
+        border-color: #ffcc00;
         transform: scale(1.05);
     }
     100% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
     }
 }
 
@@ -75,25 +75,25 @@
     background: transparent;
 }
 
-/* 🔹 MAIN PANEL - ZMODYFIKOWANE DOPASOWANIE DO IKONY 🔹 */
+/* 🔹 MAIN PANEL - OGNISTA KOLORYSTYKA 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 350px;
     background: linear-gradient(135deg, #0a0a0a, #121212);
-    border: 3px solid #00ff00;
+    border: 3px solid #ff3300;
     border-radius: 10px;
     color: #ffffff;
     z-index: 999999;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 30px rgba(255, 51, 0, 0.6), inset 0 0 20px rgba(255, 102, 0, 0.1);
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
 }
 
-/* Neonowy efekt na krawędziach */
+/* Ognisty efekt na krawędziach */
 #swAddonsPanel::before {
     content: '';
     position: absolute;
@@ -103,7 +103,7 @@
     bottom: 0;
     border-radius: 8px;
     padding: 2px;
-    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff3300);
     -webkit-mask: 
         linear-gradient(#fff 0 0) content-box, 
         linear-gradient(#fff 0 0);
@@ -117,7 +117,7 @@
     background: linear-gradient(to right, #1a1a1a, #222222);
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid #ff3300;
     cursor: grab;
     position: relative;
     overflow: hidden;
@@ -130,7 +130,7 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 102, 0, 0.1), transparent);
     animation: shine 3s infinite;
 }
 
@@ -148,7 +148,7 @@
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #1a1a1a, #151515);
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid #ff3300;
     padding: 0 5px;
 }
 
@@ -161,7 +161,7 @@
     padding: 12px 5px;
     margin: 0 5px;
     transition: all 0.2s ease;
-    color: #aaaaaa;
+    color: #ff9966;
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
@@ -179,7 +179,7 @@
     transform: translateX(-50%);
     width: 0;
     height: 2px;
-    background: #00ff00;
+    background: #ff3300;
     transition: width 0.3s ease;
 }
 
@@ -188,19 +188,19 @@
 }
 
 .tablink.active {
-    color: #00ff00;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
 }
 
 .tablink.active::before {
     width: 100%;
-    background: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
 }
 
 .tablink:hover:not(.active) {
-    color: #00ff00;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    color: #ff6600;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 /* 🔹 TAB CONTENT 🔹 */
@@ -223,14 +223,14 @@
 
 .tabcontent h3 {
     margin: 0 0 15px 0;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
     position: relative;
 }
 
@@ -241,11 +241,11 @@
     left: 0;
     width: 50px;
     height: 1px;
-    background: #ff0000;
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    background: #ff3300;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
-/* 🔹 ADDONS LIST 🔹 */
+/* 🔹 ADDONS LIST - OGNISTA KOLORYSTYKA 🔹 */
 .addon {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
@@ -259,9 +259,9 @@
 
 .addon:hover {
     background: rgba(40, 40, 40, 0.9);
-    border-color: #00ff00;
+    border-color: #ff3300;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.1);
 }
 
 .addon:hover::before {
@@ -271,15 +271,10 @@
     left: -2px;
     right: -2px;
     bottom: -2px;
-    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff3300);
     border-radius: 8px;
     z-index: -1;
-    animation: borderGlow 2s linear infinite;
-}
-
-@keyframes borderGlow {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
+    opacity: 0.7;
 }
 
 .addon-header {
@@ -297,13 +292,13 @@
 
 .addon-title {
     font-weight: 600;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 .addon-description {
-    color: #aaaaaa;
+    color: #ff9966;
     font-size: 11px;
     line-height: 1.4;
     margin-bottom: 8px;
@@ -316,9 +311,9 @@
 
 /* 🔹 SETTINGS GEAR ICON 🔹 */
 .addon-settings-btn {
-    background: rgba(0, 255, 0, 0.1);
+    background: rgba(255, 102, 0, 0.1);
     border: 1px solid #333;
-    color: #00ff00;
+    color: #ffcc00;
     cursor: pointer;
     padding: 2px 5px;
     margin-left: 8px;
@@ -329,9 +324,9 @@
 
 .addon-settings-btn:hover {
     color: #ffffff;
-    background: rgba(0, 255, 0, 0.3);
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    background: rgba(255, 102, 0, 0.3);
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.3);
 }
 
 .addon-settings-panel {
@@ -356,7 +351,7 @@
 
 .settings-label {
     font-size: 11px;
-    color: #00ff00;
+    color: #ffcc00;
 }
 
 .settings-value {
@@ -364,7 +359,7 @@
     color: #ff5555;
 }
 
-/* 🔹 SWITCH STYLE - ZMODYFIKOWANY 🔹 */
+/* 🔹 SWITCH STYLE - OGNISTY 🔹 */
 .switch {
     position: relative;
     display: inline-block;
@@ -398,21 +393,21 @@
     width: 14px;
     left: 2px;
     bottom: 2px;
-    background-color: #00ff00;
+    background-color: #ff3300;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 input:checked + .slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #331100;
+    border-color: #ff3300;
 }
 
 input:checked + .slider:before {
     transform: translateX(18px);
-    background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -428,24 +423,24 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 5px;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 12px;
     transition: all 0.3s ease;
 }
 
 .license-input:focus {
     outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    border-color: #ff3300;
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
     background: rgba(40, 40, 40, 0.9);
 }
 
 .license-button {
     width: 100%;
     padding: 10px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: linear-gradient(to right, #331100, #662200);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
@@ -456,10 +451,10 @@ input:checked + .slider:before {
 }
 
 .license-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #662200, #993300);
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 .license-message {
@@ -472,24 +467,24 @@ input:checked + .slider:before {
 }
 
 .license-success {
-    background: rgba(0, 100, 0, 0.2);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    background: rgba(100, 50, 0, 0.2);
+    color: #ffcc00;
+    border-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
 
 .license-error {
     background: rgba(100, 0, 0, 0.2);
-    color: #ff0000;
-    border-color: #ff0000;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    color: #ff3300;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
 }
 
 .license-info {
-    background: rgba(0, 50, 100, 0.2);
-    color: #00aaff;
-    border-color: #00aaff;
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+    background: rgba(100, 50, 0, 0.2);
+    color: #ff9966;
+    border-color: #ff9966;
+    box-shadow: 0 0 10px rgba(255, 153, 102, 0.3);
 }
 
 /* 🔹 LICENSE STATUS IN TAB 🔹 */
@@ -502,14 +497,14 @@ input:checked + .slider:before {
 }
 
 .license-status-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     font-weight: bold;
     margin-bottom: 15px;
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 .license-status-item {
@@ -528,7 +523,7 @@ input:checked + .slider:before {
 }
 
 .license-status-label {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: 600;
 }
 
@@ -540,13 +535,13 @@ input:checked + .slider:before {
 }
 
 .license-status-valid {
-    color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    color: #ffcc00 !important;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
 }
 
 .license-status-invalid {
-    color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    color: #ff3300 !important;
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 /* 🔹 ADMIN TAB STYLES 🔹 */
@@ -566,21 +561,21 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 5px;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 12px;
     transition: all 0.3s ease;
 }
 
 .admin-input:focus {
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
 }
 
 .admin-button {
     padding: 10px 15px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: linear-gradient(to right, #331100, #662200);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
@@ -589,10 +584,10 @@ input:checked + .slider:before {
 }
 
 .admin-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #662200, #993300);
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 .admin-list {
@@ -605,12 +600,12 @@ input:checked + .slider:before {
 }
 
 .admin-list-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: bold;
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
     margin-bottom: 10px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 .admin-list-item {
@@ -626,7 +621,7 @@ input:checked + .slider:before {
 }
 
 .admin-list-item:hover {
-    border-color: #00ff00;
+    border-color: #ff3300;
     background: rgba(30, 30, 30, 0.9);
 }
 
@@ -638,9 +633,9 @@ input:checked + .slider:before {
 
 .remove-btn {
     background: #660000;
-    border: 1px solid #ff0000;
+    border: 1px solid #ff3300;
     border-radius: 3px;
-    color: #ff0000;
+    color: #ff3300;
     cursor: pointer;
     padding: 3px 8px;
     font-size: 11px;
@@ -648,9 +643,9 @@ input:checked + .slider:before {
 }
 
 .remove-btn:hover {
-    background: #ff0000;
+    background: #ff3300;
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
 }
 
 /* 🔹 USAGE LOG STYLES 🔹 */
@@ -664,12 +659,12 @@ input:checked + .slider:before {
 }
 
 .usage-log-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: bold;
     border-bottom: 1px solid #333;
     padding-bottom: 8px;
     margin-bottom: 10px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 .usage-log-item {
@@ -682,19 +677,19 @@ input:checked + .slider:before {
 }
 
 .usage-log-item:hover {
-    border-color: #00ff00;
+    border-color: #ff3300;
     transform: translateX(5px);
 }
 
 .usage-log-account {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .usage-log-time {
     font-size: 11px;
-    color: #aaaaaa;
+    color: #ff9966;
 }
 
 .usage-log-empty {
@@ -703,7 +698,7 @@ input:checked + .slider:before {
     padding: 10px;
 }
 
-/* 🔹 SETTINGS TAB - NOWE FUNKCJE 🔹 */
+/* 🔹 SETTINGS TAB 🔹 */
 .settings-item {
     margin-bottom: 15px;
     padding: 12px;
@@ -714,17 +709,17 @@ input:checked + .slider:before {
 }
 
 .settings-item:hover {
-    border-color: #00ff00;
+    border-color: #ff3300;
     background: rgba(40, 40, 40, 0.9);
 }
 
 .settings-label {
     display: block;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 12px;
     margin-bottom: 8px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 /* 🔹 ROZMIAR CZCIONKI - SUWAK 🔹 */
@@ -748,26 +743,26 @@ input:checked + .slider:before {
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
-    background: #00ff00;
+    background: #ff3300;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
     transition: all 0.3s ease;
 }
 
 .font-size-slider::-webkit-slider-thumb:hover {
-    background: #00cc00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background: #ff6600;
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
     transform: scale(1.1);
 }
 
 .font-size-value {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: bold;
     font-size: 12px;
     min-width: 30px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA - PRZEŁĄCZNIK 🔹 */
@@ -779,10 +774,10 @@ input:checked + .slider:before {
 }
 
 .background-toggle-label {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 12px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
 }
 
 .background-toggle {
@@ -818,21 +813,21 @@ input:checked + .slider:before {
     width: 18px;
     left: 2px;
     bottom: 2px;
-    background-color: #00ff00;
+    background-color: #ff3300;
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 .background-toggle input:checked + .background-toggle-slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #331100;
+    border-color: #ff3300;
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
     transform: translateX(26px);
-    background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background-color: #ffcc00;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
 }
 
 /* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
@@ -852,7 +847,7 @@ input:checked + .slider:before {
     background: rgba(30, 30, 30, 0.8);
     border: 1px solid #333;
     border-radius: 6px;
-    color: #ff0000;
+    color: #ff3300;
     cursor: pointer;
     font-weight: 600;
     font-size: 12px;
@@ -863,10 +858,10 @@ input:checked + .slider:before {
 
 .reset-settings-button:hover {
     background: rgba(50, 30, 30, 0.9);
-    border-color: #ff0000;
+    border-color: #ff3300;
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 .reset-settings-button:active {
@@ -874,7 +869,7 @@ input:checked + .slider:before {
 }
 
 .reset-settings-icon {
-    color: #ff0000;
+    color: #ff3300;
     font-size: 14px;
     transition: all 0.3s ease;
 }
@@ -888,7 +883,7 @@ input:checked + .slider:before {
 #swAddonsPanel.transparent-background {
     background: transparent;
     backdrop-filter: none;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6);
+    box-shadow: 0 0 30px rgba(255, 51, 0, 0.6);
 }
 
 #swAddonsPanel.transparent-background .sw-tab-content,
@@ -917,8 +912,8 @@ input:checked + .slider:before {
     width: 100%;
     padding: 10px;
     background: linear-gradient(to right, #660000, #990000);
-    color: #ff0000;
-    border: 1px solid #ff0000;
+    color: #ff3300;
+    border: 1px solid #ff3300;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
@@ -933,7 +928,7 @@ input:checked + .slider:before {
     background: linear-gradient(to right, #990000, #cc0000);
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4);
 }
 
 /* 🔹 SCROLLBAR STYLES 🔹 */
@@ -950,20 +945,20 @@ input:checked + .slider:before {
 
 .admin-list::-webkit-scrollbar-thumb,
 .usage-log::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #00ff00, #006600);
+    background: linear-gradient(to bottom, #ff3300, #662200);
     border-radius: 4px;
 }
 
 .admin-list::-webkit-scrollbar-thumb:hover,
 .usage-log::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #00ff00, #009900);
+    background: linear-gradient(to bottom, #ff6600, #993300);
 }
 
 /* 🔹 ANIMACJE DODATKOWE 🔹 */
 @keyframes pulse {
-    0% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    0% { box-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
 }
 
 .addon.active {
