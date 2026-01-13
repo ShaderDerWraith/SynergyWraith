@@ -593,7 +593,7 @@
     }
 }
 
-/* 🔹 ADDONS LIST 🔹 */
+/* 🔹 ADDONS LIST - OGIEŃ 🔹 */
 .addon {
     background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
     border: 1px solid #660000;
@@ -612,7 +612,7 @@
     cursor: pointer;
 }
 
-/* 🔹 CAŁKOWICIE USUNIĘTY EFEKT GRADIENTU - TYLKO PROSTE OGNISTE TŁO 🔹 */
+/* 🔹 PROSTE OGNISTE TŁO BEZ GRADIENTU - USUNIĘTY GRADIENT 🔹 */
 .addon::before {
     content: '';
     position: absolute;
@@ -620,7 +620,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(102, 0, 0, 0.3);
+    background: rgba(255, 69, 0, 0.2); /* Ognisty pomarańcz */
     border-radius: 8px;
     z-index: -1;
     opacity: 0;
@@ -633,15 +633,15 @@
 
 .addon:hover {
     transform: translateY(-3px);
-    border-color: #ff3300;
-    box-shadow: 0 10px 25px rgba(255, 51, 0, 0.4);
+    border-color: #ff4500; /* Jasny pomarańcz */
+    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.6); /* Ognisty cień */
     z-index: 2;
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9)); /* Ognisty gradient */
 }
 
 .addon:hover .addon-title {
     color: #ffffff;
-    text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8); /* Ognisty neon */
 }
 
 .addon:hover .addon-description {
@@ -649,7 +649,7 @@
 }
 
 .addon:hover .favorite-btn {
-    color: #ffcc00;
+    color: #ff8c00; /* Ciemny pomarańcz/żółty */
     transform: scale(1.2);
 }
 
