@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy z systemem licencji
+// synergy.js - Główny kod panelu Synergy z systemem licencji (v2.3)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v2.2 (License System)');
+    console.log('🚀 Synergy Panel loaded - v2.3 (Premium Addons Hidden without License)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -20,18 +20,20 @@
         SHORTCUT_KEY: "sw_shortcut_key",
         CUSTOM_SHORTCUT: "sw_custom_shortcut",
         ACCOUNT_ID: "sw_account_id",
-        LICENSE_DATA: "sw_license_data"
+        LICENSE_DATA: "sw_license_data",
+        IS_ADMIN: "sw_is_admin" // Nowe - czy użytkownik jest adminem
     };
 
-    // 🔹 Lista dostępnych dodatków z typami (free/premium)
+    // 🔹 Lista dostępnych dodatków z typami (free/premium) - TERAZ ŁATWO DODAWAĆ NOWE!
     const ADDONS = [
         {
             id: 'kcs-icons',
             name: 'KCS Icons',
             description: 'Dodaje ikony do interfejsu gry',
-            type: 'premium', // premium - wymaga licencji
+            type: 'premium',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         },
         {
             id: 'auto-looter',
@@ -39,7 +41,8 @@
             description: 'Automatycznie zbiera loot',
             type: 'premium',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         },
         {
             id: 'quest-helper',
@@ -47,15 +50,17 @@
             description: 'Pomocnik zadań',
             type: 'premium',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         },
         {
             id: 'enhanced-stats',
             name: 'Enhanced Stats',
             description: 'Rozszerzone statystyki',
-            type: 'free', // free - dostępny bez licencji
+            type: 'free',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         },
         {
             id: 'trade-helper',
@@ -63,7 +68,8 @@
             description: 'Pomocnik handlu',
             type: 'free',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         },
         {
             id: 'combat-log',
@@ -71,25 +77,29 @@
             description: 'Rozszerzony log walki',
             type: 'premium',
             enabled: false,
-            favorite: false
+            favorite: false,
+            author: 'Synergy Team'
         }
     ];
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "2.2",
-        releaseDate: "2024-01-15",
+        version: "2.3",
+        releaseDate: "2024-01-16",
         patchNotes: [
-            "Pełny system licencji online",
-            "Komunikacja z backendem Cloudflare",
-            "Weryfikacja licencji w czasie rzeczywistym",
-            "Automatyczne odświeżanie statusu",
-            "Ochrona dodatków premium"
+            "Premium dodatki ukryte bez licencji",
+            "Ulepszony system filtrowania",
+            "Łatwiejsze dodawanie nowych dodatków",
+            "Poprawki stabilności licencji",
+            "Nowy system admina (wkrótce)"
         ]
     };
 
     // 🔹 Backend URL - ZMIENIĆ NA SWÓJ!
     const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
+
+    // 🔹 Admin ID - Tutaj wpisz swoje ID konta z gry, aby mieć dostęp do panelu admina
+    const ADMIN_ACCOUNT_IDS = ['7411461', 'xxx']; // Zmień na swoje ID konta!
 
     // 🔹 Safe fallback - jeśli synergyWraith nie istnieje
     if (!window.synergyWraith) {
@@ -153,6 +163,7 @@
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
     let isCheckingLicense = false;
+    let isAdmin = false;
 
     // =========================================================================
     // 🔹 FUNKCJE BACKEND - KOMUNIKACJA Z SERWEREM
@@ -373,6 +384,10 @@
             // Zapisz do zmiennej globalnej
             userAccountId = accountId;
             
+            // Sprawdź czy użytkownik jest adminem
+            isAdmin = ADMIN_ACCOUNT_IDS.includes(accountId);
+            SW.GM_setValue(CONFIG.IS_ADMIN, isAdmin);
+            
             // Zapisz do storage
             SW.GM_setValue(CONFIG.ACCOUNT_ID, accountId);
             
@@ -462,8 +477,20 @@
     function loadAddonsBasedOnLicense(allowedAddons = []) {
         console.log('🔓 Ładowanie dodatków według licencji:', allowedAddons);
         
-        // Aktualizuj listę dodatków
-        currentAddons = ADDONS.map(addon => {
+        // Jeśli licencja aktywna, pokaż wszystkie dodatki
+        // Jeśli brak licencji, pokaż tylko darmowe
+        currentAddons = ADDONS.filter(addon => {
+            const isFree = addon.type === 'free';
+            const isPremiumAllowed = isLicenseVerified && allowedAddons.includes(addon.id);
+            
+            // Jeśli brak licencji, pokazuj tylko darmowe
+            if (!isLicenseVerified) {
+                return isFree;
+            }
+            
+            // Jeśli licencja aktywna, pokazuj wszystkie
+            return isFree || isPremiumAllowed;
+        }).map(addon => {
             const isFree = addon.type === 'free';
             const isPremiumAllowed = isLicenseVerified && allowedAddons.includes(addon.id);
             
@@ -534,7 +561,7 @@
     }
 
     // =========================================================================
-    // 🔹 GŁÓWNE FUNKCJE PANELU (z Twojego starego kodu)
+    // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
     // 🔹 Wstrzyknij CSS
@@ -1757,28 +1784,27 @@
     opacity: 1;
 }
 
-/* 🔹 NOWE STYLE DLA SYSTEMU LICENCJI 🔹 */
+/* 🔹 ZABLOKOWANE DODATKI 🔹 */
 .addon.locked {
-    opacity: 0.7;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.6), rgba(102, 0, 0, 0.6)) !important;
+    opacity: 0.6;
+    background: linear-gradient(135deg, rgba(30, 0, 0, 0.8), rgba(50, 0, 0, 0.8)) !important;
+    border: 1px solid #330000 !important;
 }
 
 .addon.locked:hover {
     transform: none !important;
     box-shadow: none !important;
+    border: 1px solid #330000 !important;
+    cursor: not-allowed !important;
 }
 
 .addon.locked .addon-title {
-    color: #ff6666 !important;
+    color: #666 !important;
+    text-shadow: none !important;
 }
 
-.addon.locked .addon-switch-slider {
-    background-color: #333 !important;
-    cursor: not-allowed;
-}
-
-.addon.locked .addon-switch input:checked + .addon-switch-slider {
-    background-color: #333 !important;
+.addon.locked .addon-description {
+    color: #666 !important;
 }
 
 .premium-badge {
@@ -1795,6 +1821,28 @@
 #swLicenseDaysLeft {
     font-weight: bold;
     margin-left: 5px;
+}
+
+/* 🔹 LICENSE INFO CONTAINER 🔹 */
+.license-info-container {
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,51,0,0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255,51,0,0.3);
+}
+
+.license-info-container strong {
+    color: #ffcc00;
+    font-size: 13px;
+}
+
+.license-info-container p {
+    color: #ff9966;
+    font-size: 12px;
+    margin: 5px 0;
+    line-height: 1.4;
 }
         `;
         document.head.appendChild(style);
@@ -1822,7 +1870,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu (ZMIENIONE - dodano dni pozostałe)
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1833,6 +1881,7 @@
         panel.innerHTML = `
             <div id="swPanelHeader">
                 <strong>SYNERGY v${VERSION_INFO.version}</strong>
+                ${isAdmin ? ' <span style="color:#00ff00; font-size:12px;">(ADMIN)</span>' : ''}
             </div>
             
             <div class="tab-container">
@@ -1841,6 +1890,7 @@
                 <button class="tablink" data-tab="settings">Ustawienia</button>
                 <button class="tablink" data-tab="shortcuts">Skróty</button>
                 <button class="tablink" data-tab="info">Info</button>
+                ${isAdmin ? '<button class="tablink" data-tab="admin" style="color:#00ff00;">Admin</button>' : ''}
             </div>
 
             <div id="addons" class="tabcontent active">
@@ -1919,6 +1969,14 @@
                         </div>
                     </div>
                     
+                    <div class="license-info-container">
+                        <strong>ℹ️ Informacja:</strong>
+                        <p>
+                            Bez aktywnej licencji premium dodatki są ukryte.<br>
+                            Po aktywacji licencji wszystkie funkcje będą dostępne.
+                        </p>
+                    </div>
+                    
                     <div class="license-activation-container">
                         <button class="license-activation-button" id="swActivateLicense">
                             Aktywuj Licencję
@@ -1992,6 +2050,32 @@
                     </div>
                 </div>
             </div>
+
+            ${isAdmin ? `
+            <div id="admin" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="license-container">
+                        <div class="license-header">Panel Administratora</div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Twoje ID:</span>
+                            <span id="swAdminAccountId" class="license-status-valid">${userAccountId || 'Ładowanie...'}</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Status:</span>
+                            <span class="license-status-valid">Administrator</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 20px 0; padding: 15px; background: rgba(0,50,0,0.2); border: 1px solid #00aa00; border-radius: 6px;">
+                        <strong style="color:#00ff00;">⚠️ UWAGA:</strong>
+                        <p style="color:#aaffaa; font-size: 12px; margin: 5px 0;">
+                            Panel admina jest w budowie.<br>
+                            Funkcje generowania kluczy pojawią się w następnej wersji.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            ` : ''}
         `;
         
         document.body.appendChild(panel);
@@ -2054,7 +2138,7 @@
         }
     }
 
-    // 🔹 Funkcja aktywacji licencji (ZMIENIONA - nowa wersja)
+    // 🔹 Funkcja aktywacji licencji
     async function activateLicense(licenseKey) {
         if (!licenseKey || !userAccountId) {
             showLicenseMessage('Brak klucza lub ID konta', 'error');
@@ -2450,7 +2534,7 @@
         });
     }
 
-    // 🔹 Setup event listenerów (ZMIENIONE - nowy system licencji)
+    // 🔹 Setup event listenerów
     function setupEventListeners() {
         // Rozmiar czcionki
         const fontSizeSlider = document.getElementById('fontSizeSlider');
@@ -2545,7 +2629,7 @@
             });
         }
 
-        // Modal licencji (ZMIENIONE - nowy system)
+        // Modal licencji
         const activateBtn = document.getElementById('swActivateLicense');
         const modalCloseBtn = document.getElementById('swLicenseModalClose');
         const modalCancelBtn = document.getElementById('swLicenseModalCancel');
@@ -2599,19 +2683,23 @@
             });
         }
 
-        // Delegowane nasłuchiwanie dla dodatków (ZMIENIONE - nowy system)
+        // Delegowane nasłuchiwanie dla dodatków
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('favorite-btn') || e.target.closest('.favorite-btn')) {
                 const btn = e.target.classList.contains('favorite-btn') ? e.target : e.target.closest('.favorite-btn');
                 const addonId = btn.dataset.id;
-                toggleFavorite(addonId);
+                if (addonId) {
+                    toggleFavorite(addonId);
+                }
             }
             
             if (e.target.type === 'checkbox' && e.target.closest('.addon-switch')) {
                 const checkbox = e.target;
                 const addonId = checkbox.dataset.id;
                 const isEnabled = checkbox.checked;
-                toggleAddon(addonId, isEnabled);
+                if (addonId) {
+                    toggleAddon(addonId, isEnabled);
+                }
             }
         });
 
@@ -2629,14 +2717,21 @@
         }
     }
 
-    // 🔹 Renderowanie dodatków z oznaczeniami blokady (ZMIENIONE)
+    // 🔹 Renderowanie dodatków
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
         
         listContainer.innerHTML = '';
         
-        const sortedAddons = [...currentAddons].sort((a, b) => a.name.localeCompare(b.name));
+        const sortedAddons = [...currentAddons].sort((a, b) => {
+            // Najpierw ulubione, potem włączone, potem reszta
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            if (a.enabled && !b.enabled) return -1;
+            if (!a.enabled && b.enabled) return 1;
+            return a.name.localeCompare(b.name);
+        });
         
         const filteredAddons = sortedAddons.filter(addon => {
             const showEnabled = activeCategories.enabled && addon.enabled;
@@ -2658,28 +2753,37 @@
                 div.className = 'addon';
                 div.dataset.id = addon.id;
                 
-                // Dodaj klasę dla zablokowanych
                 if (addon.locked) {
                     div.classList.add('locked');
                 }
                 
-                // Ikona blokady dla premium bez licencji
-                const lockIcon = addon.locked ? '🔒 ' : '';
-                const typeBadge = addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : '';
-                
                 div.innerHTML = `
                     <div class="addon-header">
-                        <div class="addon-title">${lockIcon}${typeBadge}${addon.name}</div>
+                        <div class="addon-title">
+                            ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
+                            ${addon.name}
+                            ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
+                        </div>
                         <div class="addon-description">${addon.description}</div>
                     </div>
                     <div class="addon-controls">
-                        <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
-                            ★
-                        </button>
-                        <label class="addon-switch">
-                            <input type="checkbox" ${addon.enabled ? 'checked' : ''} ${addon.locked ? 'disabled' : ''} data-id="${addon.id}">
-                            <span class="addon-switch-slider"></span>
-                        </label>
+                        ${!addon.locked ? `
+                            <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                                ★
+                            </button>
+                            <label class="addon-switch">
+                                <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
+                                <span class="addon-switch-slider"></span>
+                            </label>
+                        ` : `
+                            <button class="favorite-btn" style="color:#666; cursor:default;" title="Wymaga aktywnej licencji">
+                                ★
+                            </button>
+                            <label class="addon-switch">
+                                <input type="checkbox" disabled>
+                                <span class="addon-switch-slider" style="background-color:#333;"></span>
+                            </label>
+                        `}
                     </div>
                 `;
                 
@@ -2712,7 +2816,6 @@
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        // Konwertuj wartość 30-100 na 0.3-1.0
         const opacityValue = opacity / 100;
         panel.style.opacity = opacityValue;
         
@@ -2735,13 +2838,12 @@
         console.log(`⭐ Toggle favorite for ${addonId}`);
     }
 
-    // 🔹 Toggle dodatków z weryfikacją licencji (ZMIENIONE)
+    // 🔹 Toggle dodatków z weryfikacją licencji
     function toggleAddon(addonId, isEnabled) {
         const addon = currentAddons.find(a => a.id === addonId);
         
         if (!addon) return;
         
-        // Sprawdź czy zablokowany (premium bez licencji)
         if (addon.locked && isEnabled) {
             const messageEl = document.getElementById('swAddonsMessage');
             if (messageEl) {
@@ -2754,13 +2856,11 @@
                 }, 5000);
             }
             
-            // Zresetuj checkbox
             const checkbox = document.querySelector(`[data-id="${addonId}"]`);
             if (checkbox) {
                 checkbox.checked = false;
             }
             
-            // Pokaz modal aktywacji jeśli nie ma licencji
             if (!isLicenseVerified) {
                 const activateBtn = document.getElementById('swActivateLicense');
                 if (activateBtn) {
@@ -2771,11 +2871,9 @@
             return;
         }
         
-        // Normalna aktywacja
         const addonIndex = currentAddons.findIndex(a => a.id === addonId);
         currentAddons[addonIndex].enabled = isEnabled;
         
-        // Zapisz stan
         saveAddonsState();
         
         if (addonId === 'kcs-icons') {
@@ -2819,7 +2917,7 @@
         console.log('💾 Addons state saved');
     }
 
-    // 🔹 Reset wszystkich ustawień (ZMIENIONE)
+    // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
@@ -2835,12 +2933,13 @@
         SW.GM_deleteValue(CONFIG.LICENSE_ACTIVE);
         SW.GM_deleteValue(CONFIG.LICENSE_EXPIRY);
         SW.GM_deleteValue(CONFIG.LICENSE_DATA);
+        SW.GM_deleteValue(CONFIG.IS_ADMIN);
         
-        currentAddons = ADDONS.map(addon => ({
+        currentAddons = ADDONS.filter(addon => addon.type === 'free').map(addon => ({
             ...addon,
             enabled: false,
             favorite: false,
-            locked: addon.type === 'premium' // Zablokuj premium po resecie
+            locked: false
         }));
         
         activeCategories = {
@@ -2855,6 +2954,7 @@
         isLicenseVerified = false;
         licenseData = null;
         licenseExpiry = null;
+        isAdmin = false;
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
@@ -2904,7 +3004,6 @@
         setupKeyboardShortcut();
         setupShortcutInput();
         
-        // Po resecie, sprawdź ponownie licencję
         if (userAccountId) {
             setTimeout(() => checkAndUpdateLicense(userAccountId), 1000);
         }
@@ -2948,12 +3047,12 @@
         console.log('✅ Saved state loaded');
     }
 
-    // 🔹 Ładowanie stanu dodatków (ZMIENIONE)
+    // 🔹 Ładowanie stanu dodatków
     function loadAddonsState() {
         const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
         const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, false);
         
-        currentAddons = ADDONS.map(addon => ({
+        currentAddons = currentAddons.map(addon => ({
             ...addon,
             enabled: addon.id === 'kcs-icons' ? kcsEnabled : false,
             favorite: favoriteIds.includes(addon.id)
@@ -3010,7 +3109,7 @@
         }
     }
 
-    // 🔹 Ładowanie włączonych dodatków (ZMIENIONE)
+    // 🔹 Ładowanie włączonych dodatków
     function loadEnabledAddons() {
         console.log('🔓 Ładowanie dodatków...');
         
@@ -3031,32 +3130,25 @@
     // 🔹 Inicjalizacja KCS Icons
     function initKCSIcons() {
         console.log('🔄 Initializing KCS Icons addon...');
-        // Logika dodatku
     }
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v2.2 with license system...');
+        console.log('✅ Initializing panel v2.3 with license system...');
         
-        // Wstrzyknij CSS
         injectCSS();
         
-        // Poczekaj na załadowanie DOM
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Ładujemy zapisane ustawienia
         loadCategoriesState();
         loadSettings();
         
-        // Tworzymy elementy
         createToggleButton();
         createMainPanel();
         createLicenseModal();
         
-        // Ładujemy zapisany stan
         loadSavedState();
         
-        // Inicjujemy przeciąganie
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn) {
             setupToggleDrag(toggleBtn);
@@ -3067,17 +3159,15 @@
         setupDrag();
         setupKeyboardShortcut();
         
-        // Włącz scrollowanie myszką dla listy dodatków
         enableMouseWheelScroll();
         
-        // Inicjalizuj konto i licencję PO utworzeniu panelu
         setTimeout(async () => {
             await initAccountAndLicense();
         }, 1000);
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v2.2 with License System...');
+    console.log('🎯 Starting Synergy Panel v2.3 with Premium Addons Hidden...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
