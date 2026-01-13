@@ -12,7 +12,7 @@
         KCS_ICONS_ENABLED: "kcs_icons_enabled",
         FAVORITE_ADDONS: "sw_favorite_addons",
         FONT_SIZE: "sw_panel_font_size",
-        BACKGROUND_VISIBLE: "sw_panel_background",
+        BACKGROUND_OPACITY: "sw_panel_background_opacity",
         ACTIVE_CATEGORIES: "sw_active_categories",
         LICENSE_KEY: "sw_license_key",
         LICENSE_EXPIRY: "sw_license_expiry",
@@ -163,7 +163,6 @@
         // Metoda 1: Próbuj bezpośrednio z document.cookie
         try {
             const cookies = document.cookie;
-            console.log('📋 Wszystkie cookies:', cookies);
             
             // Szukaj user_id w całym stringu cookie
             const userIdMatch = cookies.match(/user_id=([^;]+)/);
@@ -233,7 +232,7 @@
                 headers: {
                     'Accept': 'application/json'
                 },
-                credentials: 'include' // Dołącz cookies
+                credentials: 'include'
             });
             
             if (!response.ok) {
@@ -241,10 +240,8 @@
             }
             
             const data = await response.json();
-            console.log('📊 Odpowiedź API:', data);
             
             if (data && Array.isArray(data) && data.length > 0) {
-                // Zwróć ID pierwszej postaci (lub możesz zwrócić user_id jeśli jest w odpowiedzi)
                 return data[0].id ? data[0].id.toString() : null;
             }
         } catch (error) {
@@ -261,7 +258,6 @@
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const accountId = await getAccountId();
-        console.log('📊 Wynik getAccountId:', accountId);
         
         if (accountId) {
             console.log('🎮 TWOJE ID KONTA TO:', accountId);
@@ -455,6 +451,8 @@
     max-width: 900px;
     min-height: 580px;
     max-height: 800px;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
 }
 
 /* Ognisty efekt na krawędziach */
@@ -595,13 +593,13 @@
     }
 }
 
-/* 🔹 ADDONS LIST - STAŁA WYSOKOŚĆ 🔹 */
+/* 🔹 ADDONS LIST 🔹 */
 .addon {
     background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
     border: 1px solid #660000;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 12px 15px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -611,13 +609,62 @@
     min-height: 70px;
     max-height: 70px;
     box-sizing: border-box;
+    cursor: pointer;
+}
+
+/* 🔹 EFEKT OGNISTEGO PODŚWIETLENIA DODATKÓW 🔹 */
+.addon::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        #ff0000, #ff3300, #ff6600, #ff9900, 
+        #ffcc00, #ff9900, #ff6600, #ff3300, #ff0000);
+    background-size: 400% 400%;
+    border-radius: 10px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: fireGlow 3s ease-in-out infinite;
+}
+
+@keyframes fireGlow {
+    0%, 100% {
+        background-position: 0% 50%;
+        filter: brightness(1);
+    }
+    50% {
+        background-position: 100% 50%;
+        filter: brightness(1.2);
+    }
+}
+
+.addon:hover::before {
+    opacity: 1;
 }
 
 .addon:hover {
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
-    border-color: #ff3300;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(255, 51, 0, 0.2);
+    transform: translateY(-3px) scale(1.02);
+    border-color: transparent;
+    box-shadow: 0 10px 25px rgba(255, 51, 0, 0.4);
+    z-index: 2;
+}
+
+.addon:hover .addon-title {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+}
+
+.addon:hover .addon-description {
+    color: #ffffff;
+}
+
+.addon:hover .favorite-btn {
+    color: #ffcc00;
+    transform: scale(1.2);
 }
 
 .addon-header {
@@ -626,6 +673,7 @@
     flex: 1;
     min-width: 0;
     overflow: hidden;
+    z-index: 1;
 }
 
 .addon-title {
@@ -637,6 +685,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: all 0.3s ease;
 }
 
 .addon-description {
@@ -648,6 +697,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: all 0.3s ease;
 }
 
 .addon-controls {
@@ -655,6 +705,7 @@
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
+    z-index: 1;
 }
 
 /* 🔹 FAVORITE STAR 🔹 */
@@ -673,11 +724,12 @@
     width: 22px;
     height: 22px;
     flex-shrink: 0;
+    z-index: 2;
 }
 
 .favorite-btn:hover {
     color: #ffcc00;
-    transform: scale(1.1);
+    transform: scale(1.3);
 }
 
 .favorite-btn.favorite {
@@ -685,22 +737,22 @@
     text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
 }
 
-/* 🔹 SWITCH STYLE - MNIEJSZY 🔹 */
-.switch {
+/* 🔹 NOWY STYL PRZEŁĄCZNIKA - MAŁY I ELEGANCKI 🔹 */
+.addon-switch {
     position: relative;
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    width: 50px;
+    height: 24px;
     flex-shrink: 0;
 }
 
-.switch input {
+.addon-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.slider {
+.addon-switch-slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -709,32 +761,34 @@
     bottom: 0;
     background-color: #660000;
     transition: .3s;
-    border-radius: 20px;
+    border-radius: 24px;
     border: 1px solid #990000;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.slider:before {
+.addon-switch-slider:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
     background: linear-gradient(135deg, #ff6600, #ff3300);
     transition: .3s;
     border-radius: 50%;
     box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
-input:checked + .slider {
+.addon-switch input:checked + .addon-switch-slider {
     background-color: #330000;
     border-color: #ff3300;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 51, 0, 0.3);
 }
 
-input:checked + .slider:before {
-    transform: translateX(20px);
+.addon-switch input:checked + .addon-switch-slider:before {
+    transform: translateX(26px);
     background: linear-gradient(135deg, #ffcc00, #ff9900);
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -1013,70 +1067,48 @@ input:checked + .slider:before {
     text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
-/* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
-.background-toggle-container {
+/* 🔹 PRZEŹROCZYSTOŚĆ PANELU - SUWAK 🔹 */
+.opacity-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 15px;
     margin-bottom: 15px;
-    padding: 0 10px;
 }
 
-.background-toggle-label {
-    color: #ffcc00;
-    font-size: 13px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+.opacity-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    background: linear-gradient(to right, rgba(255, 51, 0, 0.3), rgba(255, 51, 0, 0.9));
+    border-radius: 4px;
+    outline: none;
+    margin: 0 15px;
 }
 
-.background-toggle {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
-
-.background-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.background-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #660000;
-    transition: .3s;
-    border-radius: 24px;
-    border: 1px solid #990000;
-}
-
-.background-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
+.opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, #ff6600, #ff3300);
-    transition: .3s;
     border-radius: 50%;
+    cursor: pointer;
     box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    transition: all 0.3s ease;
 }
 
-.background-toggle input:checked + .background-toggle-slider {
-    background-color: #330000;
-    border-color: #ff3300;
+.opacity-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+    transform: scale(1.1);
 }
 
-.background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(26px);
-    background: linear-gradient(135deg, #ffcc00, #ff9900);
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+.opacity-value {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 /* 🔹 SKRÓT KLAWISZOWY 🔹 */
@@ -1393,12 +1425,17 @@ input:checked + .slider:before {
     box-shadow: 0 0 6px rgba(255, 204, 0, 0.8);
 }
 
-/* 🔹 ADDON LIST CONTAINER - JEDEN SCROLL 🔹 */
+/* 🔹 ADDON LIST CONTAINER - SCROLL Z MYSZKĄ 🔹 */
 .addon-list {
     height: 340px;
     overflow-y: auto;
     margin-bottom: 15px;
     padding-right: 5px;
+}
+
+/* Włącz scrollowanie kółkiem myszy */
+.addon-list {
+    scroll-behavior: smooth;
 }
 
 .addon-list::-webkit-scrollbar {
@@ -1580,6 +1617,9 @@ input:checked + .slider:before {
         setupDrag();
         setupKeyboardShortcut();
         
+        // Włącz scrollowanie myszką dla listy dodatków
+        enableMouseWheelScroll();
+        
         // Inicjalizuj konto i licencję PO utworzeniu panelu
         setTimeout(async () => {
             await initAccountAndLicense();
@@ -1589,6 +1629,19 @@ input:checked + .slider:before {
                 loadEnabledAddons();
             }
         }, 1000);
+    }
+
+    // 🔹 Włącz scrollowanie kółkiem myszy
+    function enableMouseWheelScroll() {
+        const addonList = document.getElementById('addon-list');
+        if (addonList) {
+            addonList.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                this.scrollTop += e.deltaY;
+            }, { passive: false });
+            
+            console.log('✅ Mouse wheel scroll enabled');
+        }
     }
 
     // 🔹 Tworzenie przycisku przełączania
@@ -1726,12 +1779,10 @@ input:checked + .slider:before {
                     </div>
                     
                     <div class="settings-item">
-                        <div class="background-toggle-container">
-                            <span class="background-toggle-label">Widoczność tła panelu</span>
-                            <label class="background-toggle">
-                                <input type="checkbox" id="backgroundToggle" checked>
-                                <span class="background-toggle-slider"></span>
-                            </label>
+                        <div class="opacity-container">
+                            <label class="settings-label">Przeźroczystość panelu:</label>
+                            <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider">
+                            <span class="opacity-value" id="opacityValue">90%</span>
                         </div>
                     </div>
                     
@@ -2211,17 +2262,19 @@ input:checked + .slider:before {
             });
         }
 
-        // Widoczność tła
-        const backgroundToggle = document.getElementById('backgroundToggle');
-        if (backgroundToggle) {
-            const isVisible = SW.GM_getValue(CONFIG.BACKGROUND_VISIBLE, true);
-            backgroundToggle.checked = isVisible;
-            updateBackgroundVisibility(isVisible);
+        // Przeźroczystość panelu
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            const savedOpacity = SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, '90');
+            opacitySlider.value = savedOpacity;
+            opacityValue.textContent = savedOpacity + '%';
             
-            backgroundToggle.addEventListener('change', function() {
-                const isVisible = this.checked;
-                SW.GM_setValue(CONFIG.BACKGROUND_VISIBLE, isVisible);
-                updateBackgroundVisibility(isVisible);
+            opacitySlider.addEventListener('input', function() {
+                const opacity = this.value;
+                opacityValue.textContent = opacity + '%';
+                updatePanelOpacity(opacity);
+                SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, opacity);
             });
         }
 
@@ -2350,9 +2403,10 @@ input:checked + .slider:before {
                 toggleFavorite(addonId);
             }
             
-            if (e.target.type === 'checkbox' && e.target.closest('.addon')) {
-                const addonId = e.target.dataset.id;
-                const isEnabled = e.target.checked;
+            if (e.target.type === 'checkbox' && e.target.closest('.addon-switch')) {
+                const checkbox = e.target;
+                const addonId = checkbox.dataset.id;
+                const isEnabled = checkbox.checked;
                 toggleAddon(addonId, isEnabled);
             }
         });
@@ -2371,7 +2425,7 @@ input:checked + .slider:before {
         }
     }
 
-    // 🔹 Renderowanie dodatków
+    // 🔹 Renderowanie dodatków z nowymi przełącznikami
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2409,9 +2463,9 @@ input:checked + .slider:before {
                         <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
                             ★
                         </button>
-                        <label class="switch">
+                        <label class="addon-switch">
                             <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
-                            <span class="slider"></span>
+                            <span class="addon-switch-slider"></span>
                         </label>
                     </div>
                 `;
@@ -2438,6 +2492,18 @@ input:checked + .slider:before {
         });
         
         console.log('📏 Font size updated to:', size + 'px');
+    }
+
+    // 🔹 Aktualizacja przeźroczystości panelu
+    function updatePanelOpacity(opacity) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        // Konwertuj wartość 30-100 na 0.3-1.0
+        const opacityValue = opacity / 100;
+        panel.style.opacity = opacityValue;
+        
+        console.log('🔍 Panel opacity updated to:', opacityValue);
     }
 
     // 🔹 Toggle ulubionych
@@ -2498,7 +2564,7 @@ input:checked + .slider:before {
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
         SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
         SW.GM_deleteValue(CONFIG.FONT_SIZE);
-        SW.GM_deleteValue(CONFIG.BACKGROUND_VISIBLE);
+        SW.GM_deleteValue(CONFIG.BACKGROUND_OPACITY);
         SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
         SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
         SW.GM_deleteValue(CONFIG.ACTIVE_CATEGORIES);
@@ -2549,10 +2615,12 @@ input:checked + .slider:before {
             updatePanelFontSize('12');
         }
         
-        const backgroundToggle = document.getElementById('backgroundToggle');
-        if (backgroundToggle) {
-            backgroundToggle.checked = true;
-            updateBackgroundVisibility(true);
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.value = '90';
+            opacityValue.textContent = '90%';
+            updatePanelOpacity('90');
         }
         
         const shortcutInput = document.getElementById('shortcutInput');
@@ -2567,18 +2635,6 @@ input:checked + .slider:before {
         
         setupKeyboardShortcut();
         setupShortcutInput();
-    }
-
-    // 🔹 Update widoczności tła
-    function updateBackgroundVisibility(isVisible) {
-        const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            if (isVisible) {
-                panel.classList.remove('transparent-background');
-            } else {
-                panel.classList.add('transparent-background');
-            }
-        }
     }
 
     // 🔹 Ładowanie zapisanego stanu
@@ -2612,6 +2668,9 @@ input:checked + .slider:before {
         
         const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
         updatePanelFontSize(savedSize);
+        
+        const savedOpacity = SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, '90');
+        updatePanelOpacity(savedOpacity);
         
         console.log('✅ Saved state loaded');
     }
