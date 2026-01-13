@@ -612,23 +612,23 @@
     cursor: pointer;
 }
 
-/* 🔹 POPRAWIONY EFEKT OGNISTEGO PODŚWIETLENIA DODATKÓW 🔹 */
+/* 🔹 POPRAWIONY EFEKT HOVER DODATKÓW - BEZ KOLOROWEGO GRADIENTU 🔹 */
 .addon::before {
     content: '';
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900);
-    border-radius: 10px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 51, 0, 0.1);
+    border-radius: 8px;
     z-index: -1;
     opacity: 0;
     transition: opacity 0.4s ease;
 }
 
 .addon:hover::before {
-    opacity: 0.5;
+    opacity: 1;
 }
 
 .addon:hover {
@@ -636,6 +636,7 @@
     border-color: #ff3300;
     box-shadow: 0 10px 25px rgba(255, 51, 0, 0.4);
     z-index: 2;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
 }
 
 .addon:hover .addon-title {
