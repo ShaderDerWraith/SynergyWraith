@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SynergyWraith - Panel Dodatków
-// @version      2.1
-// @description  Zaawansowany panel dodatków do Margonem z systemem licencji
+// @version      2.2
+// @description  Zaawansowany panel dodatków do Margonem z pełnym systemem licencji
 // @author       ShaderDerWraith
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/loader.user.js
@@ -20,15 +20,16 @@
 // @grant        GM_deleteValue
 // @grant        GM_listValues
 // @connect      raw.githubusercontent.com
+// @connect      synergy-licenses.lozu-oo.workers.dev
 // @run-at       document-body
 // ==/UserScript==
 
 (function () {
     'use strict';
     
-    console.log('🚀 SynergyWraith loader started - v2.1');
+    console.log('🚀 SynergyWraith loader started - v2.2 (Full License System)');
     
-    // 🔹 UŻYJ RAW GITHUB URL DO NOWEJ STRUKTURY
+    // 🔹 UŻYJ RAW GITHUB URL
     const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/';
     const TIMESTAMP = Date.now();
     
@@ -60,7 +61,7 @@
                     const script = document.createElement('script');
                     script.textContent = response.responseText;
                     document.head.appendChild(script);
-                    console.log('✅ JS loaded from RAW GitHub');
+                    console.log('✅ JS loaded from RAW GitHub (v2.2 License System)');
                 } else {
                     console.error('❌ Failed to load JS:', response.status);
                 }
