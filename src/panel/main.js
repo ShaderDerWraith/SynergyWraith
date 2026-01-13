@@ -144,53 +144,73 @@
     // 🔹 FUNKCJE DO POBRANIA ID KONTA
     // =========================================================================
 
-    // Funkcja 1: Pobierz ID konta z cookies
-    function getAccountId() {
-        console.log('🔍 Szukam ID konta w cookies...');
-        
-        // Rozdziel wszystkie cookies
+    // Funkcja pomocnicza do pobierania ciasteczek
+    function getCookie(name) {
         const cookies = document.cookie.split(';');
-        
         for (let cookie of cookies) {
-            const trimmedCookie = cookie.trim();
-            
-            // Sprawdź user_id
-            if (trimmedCookie.startsWith('user_id=')) {
-                const userId = trimmedCookie.substring('user_id='.length);
-                console.log('✅ Znaleziono user_id w cookies:', userId);
-                return userId;
-            }
-            
-            // Sprawdź mchar_id
-            if (trimmedCookie.startsWith('mchar_id=')) {
-                const charId = trimmedCookie.substring('mchar_id='.length);
-                console.log('✅ Znaleziono mchar_id w cookies:', charId);
-                return charId;
+            const [cookieName, cookieValue] = cookie.trim().split('=');
+            if (cookieName === name) {
+                return cookieValue;
             }
         }
+        return null;
+    }
+
+    // Funkcja 1: Pobierz ID konta z cookies (główna metoda)
+    async function getAccountId() {
+        console.log('🔍 Szukam ID konta...');
         
-        // Jeśli nie znaleziono w głównych cookies, spróbuj znaleźć w innych miejscach
-        console.log('⚠️ Nie znaleziono user_id ani mchar_id w głównych cookies');
-        
-        // Metoda 2: Spróbuj z wszystkich dostępnych cookies
+        // Metoda 1: Próbuj bezpośrednio z document.cookie
         try {
-            const allCookies = document.cookie;
-            const userIdMatch = allCookies.match(/user_id=(\d+)/);
+            const cookies = document.cookie;
+            console.log('📋 Wszystkie cookies:', cookies);
+            
+            // Szukaj user_id w całym stringu cookie
+            const userIdMatch = cookies.match(/user_id=([^;]+)/);
             if (userIdMatch && userIdMatch[1]) {
-                console.log('✅ Znaleziono user_id w całych cookies:', userIdMatch[1]);
+                console.log('✅ Znaleziono user_id w cookie:', userIdMatch[1]);
                 return userIdMatch[1];
             }
             
-            const charIdMatch = allCookies.match(/mchar_id=(\d+)/);
+            // Szukaj mchar_id
+            const charIdMatch = cookies.match(/mchar_id=([^;]+)/);
             if (charIdMatch && charIdMatch[1]) {
-                console.log('✅ Znaleziono mchar_id w całych cookies:', charIdMatch[1]);
+                console.log('✅ Znaleziono mchar_id w cookie:', charIdMatch[1]);
                 return charIdMatch[1];
             }
         } catch (e) {
             console.log('⚠️ Błąd przy parsowaniu cookies:', e);
         }
         
-        // Metoda 3: Spróbuj pobrać z localStorage
+        // Metoda 2: Spróbuj funkcją getCookie
+        const userId = getCookie('user_id');
+        if (userId) {
+            console.log('✅ Znaleziono user_id przez getCookie:', userId);
+            return userId;
+        }
+        
+        const mcharId = getCookie('mchar_id');
+        if (mcharId) {
+            console.log('✅ Znaleziono mchar_id przez getCookie:', mcharId);
+            return mcharId;
+        }
+        
+        // Metoda 3: Spróbuj przez API z hs3 tokenem
+        try {
+            const hs3 = getCookie('hs3');
+            if (hs3) {
+                console.log('🔄 Próbuję pobrać ID przez API z hs3 tokenem...');
+                const accountId = await fetchAccountIdFromAPI(hs3);
+                if (accountId) {
+                    console.log('✅ Pobrano ID przez API:', accountId);
+                    return accountId;
+                }
+            }
+        } catch (e) {
+            console.log('⚠️ Nie udało się pobrać przez API:', e);
+        }
+        
+        // Metoda 4: Spróbuj z localStorage
         try {
             const savedAccountId = SW.GM_getValue(CONFIG.ACCOUNT_ID);
             if (savedAccountId) {
@@ -205,9 +225,44 @@
         return null;
     }
 
-    // Funkcja 2: Inicjalizacja konta i licencji
+    // Funkcja 2: Pobierz ID konta przez API
+    async function fetchAccountIdFromAPI(hs3Token) {
+        try {
+            const response = await fetch(`https://public-api.margonem.pl/account/charlist?hs3=${hs3Token}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'include' // Dołącz cookies
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('📊 Odpowiedź API:', data);
+            
+            if (data && Array.isArray(data) && data.length > 0) {
+                // Zwróć ID pierwszej postaci (lub możesz zwrócić user_id jeśli jest w odpowiedzi)
+                return data[0].id ? data[0].id.toString() : null;
+            }
+        } catch (error) {
+            console.error('❌ Błąd przy pobieraniu z API:', error);
+        }
+        return null;
+    }
+
+    // Funkcja 3: Inicjalizacja konta i licencji
     async function initAccountAndLicense() {
-        const accountId = getAccountId();
+        console.log('🔐 Inicjalizacja konta i licencji...');
+        
+        // Poczekaj chwilę na załadowanie cookies
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const accountId = await getAccountId();
+        console.log('📊 Wynik getAccountId:', accountId);
+        
         if (accountId) {
             console.log('🎮 TWOJE ID KONTA TO:', accountId);
             
@@ -228,7 +283,7 @@
         }
     }
 
-    // Funkcja 3: Aktualizuj wyświetlanie ID konta w panelu
+    // Funkcja 4: Aktualizuj wyświetlanie ID konta w panelu
     function updateAccountDisplay(accountId) {
         const accountEl = document.getElementById('swAccountId');
         const statusEl = document.getElementById('swLicenseStatus');
@@ -251,10 +306,22 @@
                     
                     const expiryEl = document.getElementById('swLicenseExpiry');
                     if (expiryEl) {
-                        expiryEl.textContent = licenseExpiry.toLocaleDateString();
+                        expiryEl.textContent = licenseExpiry.toLocaleDateString('pl-PL');
                     }
                     
                     console.log('✅ Licencja automatycznie aktywowana');
+                    
+                    // Wyświetl komunikat
+                    const messageEl = document.getElementById('swLicenseMessage');
+                    if (messageEl) {
+                        messageEl.textContent = 'Licencja aktywowana pomyślnie!';
+                        messageEl.className = 'license-message license-success';
+                        messageEl.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            messageEl.style.display = 'none';
+                        }, 5000);
+                    }
                 }
             } else {
                 accountEl.classList.remove('license-status-valid');
@@ -263,7 +330,7 @@
         }
     }
 
-    // Funkcja 4: Sprawdź licencję dla konta
+    // Funkcja 5: Sprawdź licencję dla konta
     async function checkLicenseForAccount(accountId) {
         console.log('🔐 Sprawdzam licencję dla konta:', accountId);
         
@@ -296,12 +363,12 @@
     left: 70px;
     width: 50px;
     height: 50px;
-    background: transparent;
-    border: 3px solid #00ff00;
+    background: linear-gradient(135deg, #ff3300, #ff6600, #ff9900);
+    border: 2px solid #ff3300;
     border-radius: 50%;
     cursor: grab;
     z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
+    box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
     color: white;
     font-weight: bold;
     font-size: 20px;
@@ -320,14 +387,14 @@
 #swPanelToggle.dragging {
     cursor: grabbing;
     transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 50, 50, 1.2);
-    border: 3px solid #ffff00;
+    box-shadow: 0 0 30px rgba(255, 100, 0, 1.2);
+    border: 2px solid #ffcc00;
     z-index: 1000001;
 }
 
 #swPanelToggle:hover:not(.dragging) {
     transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255, 30, 30, 1);
+    box-shadow: 0 0 25px rgba(255, 80, 0, 1);
     cursor: grab;
 }
 
@@ -339,17 +406,17 @@
 /* Save indication animation */
 @keyframes savePulse {
     0% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
     }
     50% { 
-        box-shadow: 0 0 35px rgba(0, 255, 0, 1.2);
-        border-color: #00ff00;
+        box-shadow: 0 0 35px rgba(255, 102, 0, 1.2);
+        border-color: #ff6600;
         transform: scale(1.05);
     }
     100% { 
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.9);
-        border-color: #00ff00;
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
     }
 }
 
@@ -366,19 +433,19 @@
     background: transparent;
 }
 
-/* 🔹 MAIN PANEL 🔹 */
+/* 🔹 MAIN PANEL - OGNISTY STYL 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
     left: 70px;
     width: 640px;
     height: 580px;
-    background: linear-gradient(135deg, #0a0a0a, #121212);
-    border: 3px solid #00ff00;
+    background: linear-gradient(135deg, #1a0000, #330000, #660000);
+    border: 2px solid #ff3300;
     border-radius: 10px;
     color: #ffffff;
     z-index: 999999;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.6), inset 0 0 20px rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 30px rgba(255, 51, 0, 0.8), inset 0 0 20px rgba(255, 102, 0, 0.2);
     backdrop-filter: blur(10px);
     display: none;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -390,7 +457,7 @@
     max-height: 800px;
 }
 
-/* Neonowy efekt na krawędziach */
+/* Ognisty efekt na krawędziach */
 #swAddonsPanel::before {
     content: '';
     position: absolute;
@@ -400,7 +467,7 @@
     bottom: 0;
     border-radius: 8px;
     padding: 2px;
-    background: linear-gradient(45deg, #00ff00, #ff0000, #00ff00);
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900, #ffcc00, #ff3300);
     -webkit-mask: 
         linear-gradient(#fff 0 0) content-box, 
         linear-gradient(#fff 0 0);
@@ -411,17 +478,17 @@
 }
 
 #swPanelHeader {
-    background: linear-gradient(to right, #1a1a1a, #222222);
+    background: linear-gradient(to right, #330000, #660000);
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #00ff00;
+    border-bottom: 1px solid #ff3300;
     cursor: grab;
     position: relative;
     overflow: hidden;
     font-size: 18px;
     font-weight: bold;
-    color: #00ff00;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
 }
 
 #swPanelHeader::after {
@@ -431,18 +498,18 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-    animation: shine 3s infinite;
+    background: linear-gradient(90deg, transparent, rgba(255, 102, 0, 0.3), transparent);
+    animation: fireShine 2s infinite;
 }
 
-@keyframes shine {
+@keyframes fireShine {
     0% { left: -100%; }
     100% { left: 100%; }
 }
 
 .sw-tab-content {
     padding: 15px;
-    background: rgba(10, 10, 10, 0.9);
+    background: rgba(26, 0, 0, 0.9);
     height: calc(100% - 120px);
     overflow-y: auto;
 }
@@ -450,8 +517,8 @@
 /* 🔹 TABS STYLES 🔹 */
 .tab-container {
     display: flex;
-    background: linear-gradient(to bottom, #1a1a1a, #151515);
-    border-bottom: 1px solid #00ff00;
+    background: linear-gradient(to bottom, #330000, #1a0000);
+    border-bottom: 1px solid #ff3300;
     padding: 0 5px;
 }
 
@@ -464,7 +531,7 @@
     padding: 12px 5px;
     margin: 0 2px;
     transition: all 0.2s ease;
-    color: #aaaaaa;
+    color: #ff9966;
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
@@ -482,7 +549,7 @@
     transform: translateX(-50%);
     width: 0;
     height: 2px;
-    background: #00ff00;
+    background: #ff3300;
     transition: width 0.3s ease;
 }
 
@@ -491,19 +558,19 @@
 }
 
 .tablink.active {
-    color: #00ff00;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
 }
 
 .tablink.active::before {
     width: 100%;
-    background: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
 }
 
 .tablink:hover:not(.active) {
-    color: #00ff00;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    color: #ff6600;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 /* 🔹 TAB CONTENT 🔹 */
@@ -530,8 +597,8 @@
 
 /* 🔹 ADDONS LIST - STAŁA WYSOKOŚĆ 🔹 */
 .addon {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 6px;
     padding: 12px 15px;
     margin-bottom: 8px;
@@ -541,16 +608,16 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 60px;
-    max-height: 60px;
+    min-height: 70px;
+    max-height: 70px;
     box-sizing: border-box;
 }
 
 .addon:hover {
-    background: rgba(40, 40, 40, 0.9);
-    border-color: #00ff00;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+    border-color: #ff3300;
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0, 255, 0, 0.1);
+    box-shadow: 0 3px 10px rgba(255, 51, 0, 0.2);
 }
 
 .addon-header {
@@ -563,9 +630,9 @@
 
 .addon-title {
     font-weight: 600;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 14px;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
     margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
@@ -573,10 +640,12 @@
 }
 
 .addon-description {
-    color: #aaaaaa;
-    font-size: 11px;
+    color: #ff9966;
+    font-size: 12px;
     line-height: 1.3;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -592,7 +661,7 @@
 .favorite-btn {
     background: none;
     border: none;
-    color: #888;
+    color: #ff9966;
     cursor: pointer;
     padding: 4px;
     font-size: 16px;
@@ -607,21 +676,21 @@
 }
 
 .favorite-btn:hover {
-    color: #ffaa00;
+    color: #ffcc00;
     transform: scale(1.1);
 }
 
 .favorite-btn.favorite {
-    color: #ffaa00;
-    text-shadow: 0 0 8px rgba(255, 170, 0, 0.7);
+    color: #ffcc00;
+    text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
 }
 
-/* 🔹 SWITCH STYLE 🔹 */
+/* 🔹 SWITCH STYLE - MNIEJSZY 🔹 */
 .switch {
     position: relative;
     display: inline-block;
-    width: 46px;
-    height: 22px;
+    width: 40px;
+    height: 20px;
     flex-shrink: 0;
 }
 
@@ -638,10 +707,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #333;
+    background-color: #660000;
     transition: .3s;
-    border-radius: 24px;
-    border: 1px solid #555;
+    border-radius: 20px;
+    border: 1px solid #990000;
 }
 
 .slider:before {
@@ -649,43 +718,43 @@
     content: "";
     height: 16px;
     width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #00ff00;
+    left: 2px;
+    bottom: 2px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 input:checked + .slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #330000;
+    border-color: #ff3300;
 }
 
 input:checked + .slider:before {
-    transform: translateX(24px);
-    background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: translateX(20px);
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
 .license-container {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
 }
 
 .license-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 20px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #ff3300;
     padding-bottom: 10px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 .license-status-item {
@@ -695,7 +764,7 @@ input:checked + .slider:before {
     margin-bottom: 12px;
     font-size: 13px;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+    border-bottom: 1px solid rgba(255, 51, 0, 0.3);
 }
 
 .license-status-item:last-child {
@@ -704,7 +773,7 @@ input:checked + .slider:before {
 }
 
 .license-status-label {
-    color: #00ff00;
+    color: #ff9966;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -712,7 +781,7 @@ input:checked + .slider:before {
 .license-status-value {
     font-weight: 600;
     text-align: right;
-    color: #ffffff;
+    color: #ffcc00;
     max-width: 200px;
     word-break: break-all;
     font-size: 13px;
@@ -724,8 +793,8 @@ input:checked + .slider:before {
 }
 
 .license-status-invalid {
-    color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    color: #ff3300 !important;
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 .license-status-connected {
@@ -734,8 +803,8 @@ input:checked + .slider:before {
 }
 
 .license-status-disconnected {
-    color: #ff0000 !important;
-    text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    color: #ff3300 !important;
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 /* 🔹 LICENSE BUTTON 🔹 */
@@ -746,9 +815,9 @@ input:checked + .slider:before {
 
 .license-activation-button {
     padding: 12px 40px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: linear-gradient(to right, #660000, #990000);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
@@ -760,10 +829,10 @@ input:checked + .slider:before {
 }
 
 .license-activation-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #990000, #cc0000);
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 /* 🔹 MODAL AKTYWACJI LICENCJI 🔹 */
@@ -781,31 +850,31 @@ input:checked + .slider:before {
 }
 
 .license-modal-content {
-    background: linear-gradient(135deg, #0a0a0a, #121212);
+    background: linear-gradient(135deg, #1a0000, #330000);
     width: 400px;
-    border: 2px solid #00ff00;
+    border: 2px solid #ff3300;
     border-radius: 8px;
     padding: 25px 35px;
     position: relative;
 }
 
 .license-modal-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 20px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 .license-modal-input {
     width: 100%;
     padding: 12px;
     margin: 12px 0;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
     border-radius: 6px;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     transition: all 0.3s ease;
     box-sizing: border-box;
@@ -813,9 +882,9 @@ input:checked + .slider:before {
 
 .license-modal-input:focus {
     outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
+    border-color: #ff3300;
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
 }
 
 .license-modal-buttons {
@@ -838,24 +907,24 @@ input:checked + .slider:before {
 }
 
 .license-modal-button.activate {
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: linear-gradient(to right, #660000, #990000);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
 }
 
 .license-modal-button.activate:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #990000, #cc0000);
     color: #ffffff;
 }
 
 .license-modal-button.cancel {
-    background: rgba(30, 30, 30, 0.8);
-    color: #888;
-    border: 1px solid #333;
+    background: rgba(51, 0, 0, 0.8);
+    color: #ff9966;
+    border: 1px solid #660000;
 }
 
 .license-modal-button.cancel:hover {
-    background: rgba(40, 40, 40, 0.9);
+    background: rgba(102, 0, 0, 0.9);
     color: #ffffff;
 }
 
@@ -865,14 +934,14 @@ input:checked + .slider:before {
     right: 10px;
     background: none;
     border: none;
-    color: #00ff00;
+    color: #ff3300;
     font-size: 18px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .license-modal-close:hover {
-    color: #ffffff;
+    color: #ffcc00;
     transform: scale(1.1);
 }
 
@@ -880,24 +949,24 @@ input:checked + .slider:before {
 .settings-item {
     margin-bottom: 20px;
     padding: 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 6px;
     transition: all 0.3s ease;
 }
 
 .settings-item:hover {
-    border-color: #00ff00;
-    background: rgba(40, 40, 40, 0.9);
+    border-color: #ff3300;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
 }
 
 .settings-label {
     display: block;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     margin-bottom: 10px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 /* 🔹 ROZMIAR CZCIONKI 🔹 */
@@ -912,7 +981,7 @@ input:checked + .slider:before {
     flex: 1;
     -webkit-appearance: none;
     height: 8px;
-    background: #333;
+    background: #660000;
     border-radius: 4px;
     outline: none;
     margin: 0 15px;
@@ -920,28 +989,28 @@ input:checked + .slider:before {
 
 .font-size-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    background: #00ff00;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
     transition: all 0.3s ease;
 }
 
 .font-size-slider::-webkit-slider-thumb:hover {
-    background: #00cc00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
     transform: scale(1.1);
 }
 
 .font-size-value {
-    color: #00ff00;
+    color: #ffcc00;
     font-weight: bold;
     font-size: 14px;
     min-width: 40px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 /* 🔹 WIDOCZNOŚĆ TŁA 🔹 */
@@ -954,17 +1023,17 @@ input:checked + .slider:before {
 }
 
 .background-toggle-label {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     font-weight: 600;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 .background-toggle {
     position: relative;
     display: inline-block;
-    width: 60px;
-    height: 30px;
+    width: 50px;
+    height: 24px;
 }
 
 .background-toggle input {
@@ -980,34 +1049,34 @@ input:checked + .slider:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #333;
+    background-color: #660000;
     transition: .3s;
-    border-radius: 30px;
-    border: 1px solid #555;
+    border-radius: 24px;
+    border: 1px solid #990000;
 }
 
 .background-toggle-slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
-    left: 4px;
-    bottom: 4px;
-    background-color: #00ff00;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
 .background-toggle input:checked + .background-toggle-slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #330000;
+    border-color: #ff3300;
 }
 
 .background-toggle input:checked + .background-toggle-slider:before {
-    transform: translateX(30px);
-    background-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+    transform: translateX(26px);
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
 }
 
 /* 🔹 SKRÓT KLAWISZOWY 🔹 */
@@ -1020,7 +1089,7 @@ input:checked + .slider:before {
 }
 
 .shortcut-input-label {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
@@ -1029,10 +1098,10 @@ input:checked + .slider:before {
 .shortcut-input {
     flex: 1;
     padding: 10px 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
     border-radius: 6px;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     text-align: center;
     width: 120px;
@@ -1043,16 +1112,16 @@ input:checked + .slider:before {
 
 .shortcut-input:focus {
     outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
 }
 
 .shortcut-set-btn {
     padding: 10px 20px;
-    background: rgba(51, 17, 0, 0.8);
-    border: 1px solid #00ff00;
-    color: #00ff00;
+    background: linear-gradient(to right, #660000, #990000);
+    border: 1px solid #ff3300;
+    color: #ffcc00;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
@@ -1061,7 +1130,7 @@ input:checked + .slider:before {
 }
 
 .shortcut-set-btn:hover {
-    background: rgba(0, 100, 0, 0.8);
+    background: linear-gradient(to right, #990000, #cc0000);
     color: #ffffff;
 }
 
@@ -1069,7 +1138,7 @@ input:checked + .slider:before {
 .reset-settings-container {
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #660000;
 }
 
 .reset-settings-button {
@@ -1079,10 +1148,10 @@ input:checked + .slider:before {
     gap: 10px;
     width: 100%;
     padding: 14px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 6px;
-    color: #ff0000;
+    color: #ff3300;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
@@ -1092,11 +1161,11 @@ input:checked + .slider:before {
 }
 
 .reset-settings-button:hover {
-    background: rgba(50, 30, 30, 0.9);
-    border-color: #ff0000;
-    color: #ffffff;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+    border-color: #ff3300;
+    color: #ffcc00;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
 }
 
 .reset-settings-button:active {
@@ -1104,33 +1173,33 @@ input:checked + .slider:before {
 }
 
 .reset-settings-icon {
-    color: #ff0000;
+    color: #ff3300;
     font-size: 16px;
     transition: all 0.3s ease;
 }
 
 .reset-settings-button:hover .reset-settings-icon {
     transform: rotate(180deg);
-    color: #ffffff;
+    color: #ffcc00;
 }
 
 /* 🔹 INFO TAB 🔹 */
 .info-container {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 8px;
     padding: 25px;
 }
 
 .info-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 20px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #ff3300;
     padding-bottom: 10px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
 .info-patch-notes {
@@ -1140,7 +1209,7 @@ input:checked + .slider:before {
 }
 
 .info-patch-notes li {
-    color: #ccc;
+    color: #ff9966;
     font-size: 13px;
     margin-bottom: 10px;
     padding-left: 0;
@@ -1153,7 +1222,7 @@ input:checked + .slider:before {
 
 .info-patch-notes li:before {
     content: "•";
-    color: #00ff00;
+    color: #ff3300;
     font-size: 18px;
     font-weight: bold;
     margin-right: 10px;
@@ -1164,12 +1233,12 @@ input:checked + .slider:before {
 }
 
 .info-footer {
-    color: #666;
+    color: #ff9966;
     font-size: 12px;
     text-align: center;
     margin-top: 25px;
     padding-top: 15px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #660000;
     font-style: italic;
 }
 
@@ -1192,9 +1261,9 @@ input:checked + .slider:before {
 
 .license-error {
     background: rgba(100, 0, 0, 0.2);
-    color: #ff0000;
-    border-color: #ff0000;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    color: #ff3300;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
 }
 
 .license-info {
@@ -1213,10 +1282,10 @@ input:checked + .slider:before {
 .search-input {
     width: 100%;
     padding: 10px 15px;
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
     border-radius: 6px;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 13px;
     transition: all 0.3s ease;
     box-sizing: border-box;
@@ -1225,13 +1294,13 @@ input:checked + .slider:before {
 
 .search-input:focus {
     outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-    background: rgba(40, 40, 40, 0.9);
+    border-color: #ff3300;
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
 }
 
 .search-input::placeholder {
-    color: #666;
+    color: #ff9966;
     font-size: 12px;
     text-align: center;
 }
@@ -1242,8 +1311,8 @@ input:checked + .slider:before {
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 15px;
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid #333;
+    background: rgba(38, 0, 0, 0.8);
+    border: 1px solid #660000;
     border-radius: 6px;
     padding: 12px;
 }
@@ -1254,20 +1323,20 @@ input:checked + .slider:before {
     justify-content: center;
     flex: 1;
     padding: 6px 12px;
-    background: rgba(30, 30, 30, 0.6);
+    background: rgba(51, 0, 0, 0.6);
     border-radius: 4px;
     transition: all 0.3s ease;
     gap: 8px;
 }
 
 .category-filter-item:hover {
-    background: rgba(40, 40, 40, 0.8);
+    background: rgba(102, 0, 0, 0.8);
 }
 
 .category-filter-label {
     display: flex;
     align-items: center;
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -1276,8 +1345,8 @@ input:checked + .slider:before {
 .category-switch {
     position: relative;
     display: inline-block;
-    width: 36px;
-    height: 18px;
+    width: 32px;
+    height: 16px;
     flex-shrink: 0;
 }
 
@@ -1294,51 +1363,69 @@ input:checked + .slider:before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #333;
+    background-color: #660000;
     transition: .3s;
-    border-radius: 20px;
-    border: 1px solid #555;
+    border-radius: 16px;
+    border: 1px solid #990000;
 }
 
 .category-slider:before {
     position: absolute;
     content: "";
-    height: 14px;
-    width: 14px;
+    height: 12px;
+    width: 12px;
     left: 2px;
     bottom: 2px;
-    background-color: #00ff00;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
     transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 4px rgba(255, 51, 0, 0.5);
 }
 
 .category-switch input:checked + .category-slider {
-    background-color: #003300;
-    border-color: #00ff00;
+    background-color: #330000;
+    border-color: #ff3300;
 }
 
 .category-switch input:checked + .category-slider:before {
-    transform: translateX(18px);
-    background-color: #00ff00;
-    box-shadow: 0 0 6px rgba(0, 255, 0, 0.8);
+    transform: translateX(16px);
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    box-shadow: 0 0 6px rgba(255, 204, 0, 0.8);
 }
 
-/* 🔹 ADDON LIST CONTAINER - STAŁA WYSOKOŚĆ 🔹 */
+/* 🔹 ADDON LIST CONTAINER - JEDEN SCROLL 🔹 */
 .addon-list {
-    height: 320px;
+    height: 340px;
     overflow-y: auto;
     margin-bottom: 15px;
     padding-right: 5px;
 }
 
+.addon-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.addon-list::-webkit-scrollbar-track {
+    background: rgba(51, 0, 0, 0.8);
+    border-radius: 3px;
+}
+
+.addon-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ff3300, #ff6600);
+    border-radius: 3px;
+}
+
+.addon-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #ff6600, #ff9900);
+}
+
 .addon-list-empty {
     text-align: center;
-    color: #666;
+    color: #ff9966;
     font-size: 13px;
     padding: 30px 10px;
     font-style: italic;
-    background: rgba(30, 30, 30, 0.5);
+    background: rgba(51, 0, 0, 0.5);
     border-radius: 6px;
     margin: 10px 0;
 }
@@ -1348,14 +1435,14 @@ input:checked + .slider:before {
     text-align: center;
     margin-top: 10px;
     padding: 10px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #660000;
 }
 
 .refresh-button {
     padding: 10px 30px;
-    background: linear-gradient(to right, #003300, #006600);
-    color: #00ff00;
-    border: 1px solid #00ff00;
+    background: linear-gradient(to right, #660000, #990000);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
@@ -1367,95 +1454,46 @@ input:checked + .slider:before {
 }
 
 .refresh-button:hover {
-    background: linear-gradient(to right, #006600, #009900);
+    background: linear-gradient(to right, #990000, #cc0000);
     color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 3px 10px rgba(255, 51, 0, 0.3);
 }
 
-/* 🔹 SHORTCUTS TAB STYLES 🔹 */
+/* 🔹 SHORTCUTS TAB - PUSTY 🔹 */
 .shortcuts-container {
-    background: rgba(30, 30, 30, 0.8);
-    border: 1px solid #333;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
     border-radius: 8px;
-    padding: 20px;
+    padding: 25px;
 }
 
 .shortcuts-header {
-    color: #00ff00;
+    color: #ffcc00;
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ff3300;
     padding-bottom: 10px;
     text-align: center;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
-.shortcuts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.shortcut-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: rgba(40, 40, 40, 0.6);
-    border: 1px solid #333;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.shortcut-item:hover {
-    border-color: #00ff00;
-    background: rgba(50, 50, 50, 0.8);
-}
-
-.shortcut-key {
-    color: #00ff00;
-    font-weight: bold;
-    font-size: 13px;
-    padding: 6px 10px;
-    background: rgba(0, 50, 0, 0.3);
-    border-radius: 4px;
-    border: 1px solid #00ff00;
-    min-width: 100px;
+.shortcuts-message {
+    color: #ff9966;
     text-align: center;
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
-}
-
-.shortcut-description {
-    color: #ccc;
     font-size: 13px;
-    flex-grow: 1;
-    margin-left: 15px;
+    font-style: italic;
+    padding: 20px;
 }
 
-/* 🔹 SCROLLBAR STYLES 🔹 */
-.sw-tab-content::-webkit-scrollbar,
-.addon-list::-webkit-scrollbar {
-    width: 8px;
+/* 🔹 SCROLLBAR STYLES - JEDEN SCROLL 🔹 */
+.sw-tab-content {
+    overflow: hidden;
 }
 
-.sw-tab-content::-webkit-scrollbar-track,
-.addon-list::-webkit-scrollbar-track {
-    background: rgba(20, 20, 20, 0.8);
-    border-radius: 4px;
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb,
-.addon-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #00ff00, #006600);
-    border-radius: 4px;
-    border: 1px solid rgba(20, 20, 20, 0.8);
-}
-
-.sw-tab-content::-webkit-scrollbar-thumb:hover,
-.addon-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #00ff00, #009900);
+.sw-tab-content::-webkit-scrollbar {
+    display: none;
 }
 
 /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1494,7 +1532,7 @@ input:checked + .slider:before {
     right: 2px;
     width: 15px;
     height: 15px;
-    background: linear-gradient(135deg, transparent 50%, #00ff00 50%);
+    background: linear-gradient(135deg, transparent 50%, #ff3300 50%);
     cursor: nwse-resize;
     opacity: 0.5;
     transition: opacity 0.3s ease;
@@ -1515,13 +1553,13 @@ input:checked + .slider:before {
         // Wstrzyknij CSS
         injectCSS();
         
+        // Poczekaj na załadowanie DOM
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Ładujemy zapisane ustawienia
         loadAddonsState();
         loadCategoriesState();
         loadSettings();
-        
-        // Inicjalizuj konto i licencję
-        await initAccountAndLicense();
         
         // Tworzymy elementy
         createToggleButton();
@@ -1542,10 +1580,15 @@ input:checked + .slider:before {
         setupDrag();
         setupKeyboardShortcut();
         
-        // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
-        if (isLicenseVerified) {
-            loadEnabledAddons();
-        }
+        // Inicjalizuj konto i licencję PO utworzeniu panelu
+        setTimeout(async () => {
+            await initAccountAndLicense();
+            
+            // 🔹 ZAŁADUJ DODATKI PO WERYFIKACJI LICENCJI
+            if (isLicenseVerified) {
+                loadEnabledAddons();
+            }
+        }, 1000);
     }
 
     // 🔹 Tworzenie przycisku przełączania
@@ -1646,7 +1689,7 @@ input:checked + .slider:before {
                         <div class="license-header">Status Licencji</div>
                         <div class="license-status-item">
                             <span class="license-status-label">ID Konta:</span>
-                            <span id="swAccountId" class="license-status-value">Ładowanie...</span>
+                            <span id="swAccountId" class="license-status-value">Szukam ID konta...</span>
                         </div>
                         <div class="license-status-item">
                             <span class="license-status-label">Status Licencji:</span>
@@ -1715,11 +1758,8 @@ input:checked + .slider:before {
                 <div class="sw-tab-content">
                     <div class="shortcuts-container">
                         <div class="shortcuts-header">Skróty klawiszowe</div>
-                        <div class="shortcuts-list">
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">Ctrl + A</span>
-                                <span class="shortcut-description">Otwórz/ukryj panel Synergy</span>
-                            </div>
+                        <div class="shortcuts-message">
+                            Funkcja keybindów dla dodatków będzie dostępna w przyszłej wersji.
                         </div>
                     </div>
                 </div>
@@ -1782,7 +1822,7 @@ input:checked + .slider:before {
         
         if (expiryEl) {
             if (licenseExpiry) {
-                expiryEl.textContent = licenseExpiry.toLocaleDateString();
+                expiryEl.textContent = licenseExpiry.toLocaleDateString('pl-PL');
             } else {
                 expiryEl.textContent = '-';
             }
@@ -2064,8 +2104,8 @@ input:checked + .slider:before {
         
         shortcutSetBtn.addEventListener('click', function() {
             isShortcutInputFocused = true;
-            shortcutInput.style.borderColor = '#00ff00';
-            shortcutInput.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+            shortcutInput.style.borderColor = '#ff3300';
+            shortcutInput.style.boxShadow = '0 0 10px rgba(255, 51, 0, 0.5)';
             shortcutInput.value = 'Wciśnij kombinację klawiszy...';
             shortcutKeys = [];
             
@@ -2099,15 +2139,15 @@ input:checked + .slider:before {
                         document.removeEventListener('keydown', keyDownHandler);
                         document.removeEventListener('keyup', keyUpHandler);
                         isShortcutInputFocused = false;
-                        shortcutInput.style.borderColor = '#333';
+                        shortcutInput.style.borderColor = '#660000';
                         shortcutInput.style.boxShadow = 'none';
                         
                         const messageEl = document.getElementById('swResetMessage');
                         if (messageEl) {
                             messageEl.textContent = `Skrót ustawiony na: ${customShortcut}`;
-                            messageEl.style.background = 'rgba(0, 255, 0, 0.1)';
-                            messageEl.style.color = '#00ff00';
-                            messageEl.style.border = '1px solid #00ff00';
+                            messageEl.style.background = 'rgba(255, 51, 0, 0.1)';
+                            messageEl.style.color = '#ff3300';
+                            messageEl.style.border = '1px solid #ff3300';
                             messageEl.style.display = 'block';
                             
                             setTimeout(() => {
@@ -2121,7 +2161,7 @@ input:checked + .slider:before {
                             document.removeEventListener('keydown', keyDownHandler);
                             document.removeEventListener('keyup', keyUpHandler);
                             isShortcutInputFocused = false;
-                            shortcutInput.style.borderColor = '#333';
+                            shortcutInput.style.borderColor = '#660000';
                             shortcutInput.style.boxShadow = 'none';
                         }, 1500);
                     }
@@ -2132,7 +2172,7 @@ input:checked + .slider:before {
                     document.removeEventListener('keydown', keyDownHandler);
                     document.removeEventListener('keyup', keyUpHandler);
                     isShortcutInputFocused = false;
-                    shortcutInput.style.borderColor = '#333';
+                    shortcutInput.style.borderColor = '#660000';
                     shortcutInput.style.boxShadow = 'none';
                 }
             };
@@ -2146,7 +2186,7 @@ input:checked + .slider:before {
                     document.removeEventListener('keyup', keyUpHandler);
                     isShortcutInputFocused = false;
                     shortcutInput.value = customShortcut;
-                    shortcutInput.style.borderColor = '#333';
+                    shortcutInput.style.borderColor = '#660000';
                     shortcutInput.style.boxShadow = 'none';
                 }
             }, 10000);
@@ -2331,7 +2371,7 @@ input:checked + .slider:before {
         }
     }
 
-    // 🔹 Renderowanie dodatków - STAŁE WYSOKOŚCI
+    // 🔹 Renderowanie dodatków
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2650,7 +2690,8 @@ input:checked + .slider:before {
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Waiting for DOM to load...');
+    console.log('🎯 Starting Synergy Panel...');
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ DOM loaded, initializing panel...');
