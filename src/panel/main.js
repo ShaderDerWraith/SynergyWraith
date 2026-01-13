@@ -620,9 +620,7 @@
     left: -2px;
     right: -2px;
     bottom: -2px;
-    background: linear-gradient(45deg, 
-        #ff0000, #ff3300, #ff6600, #ff9900, 
-        #ffcc00, #ff9900, #ff6600, #ff3300, #ff0000);
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900, #ffcc00);
     background-size: 400% 400%;
     border-radius: 10px;
     z-index: -1;
@@ -643,11 +641,11 @@
 }
 
 .addon:hover::before {
-    opacity: 1;
+    opacity: 0.7;
 }
 
 .addon:hover {
-    transform: translateY(-3px) scale(1.02);
+    transform: translateY(-3px);
     border-color: transparent;
     box-shadow: 0 10px 25px rgba(255, 51, 0, 0.4);
     z-index: 2;
@@ -2573,7 +2571,7 @@
         
         currentAddons = ADDONS.map(addon => ({
             ...addon,
-            enabled: addon.id === 'kcs-icons' ? true : false,
+            enabled: false, // Wszystkie dodatki wyłączone, w tym KCS Icons
             favorite: false
         }));
         
@@ -2678,7 +2676,7 @@
     // 🔹 Ładowanie stanu dodatków
     function loadAddonsState() {
         const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
-        const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, true);
+        const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, false); // Domyślnie wyłączony
         
         currentAddons = ADDONS.map(addon => ({
             ...addon,
