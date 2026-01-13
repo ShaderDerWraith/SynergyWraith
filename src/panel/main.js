@@ -612,7 +612,7 @@
     cursor: pointer;
 }
 
-/* 🔹 EFEKT OGNISTEGO PODŚWIETLENIA DODATKÓW 🔹 */
+/* 🔹 POPRAWIONY EFEKT OGNISTEGO PODŚWIETLENIA DODATKÓW 🔹 */
 .addon::before {
     content: '';
     position: absolute;
@@ -620,33 +620,20 @@
     left: -2px;
     right: -2px;
     bottom: -2px;
-    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900, #ffcc00);
-    background-size: 400% 400%;
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900);
     border-radius: 10px;
     z-index: -1;
     opacity: 0;
     transition: opacity 0.4s ease;
-    animation: fireGlow 3s ease-in-out infinite;
-}
-
-@keyframes fireGlow {
-    0%, 100% {
-        background-position: 0% 50%;
-        filter: brightness(1);
-    }
-    50% {
-        background-position: 100% 50%;
-        filter: brightness(1.2);
-    }
 }
 
 .addon:hover::before {
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .addon:hover {
     transform: translateY(-3px);
-    border-color: transparent;
+    border-color: #ff3300;
     box-shadow: 0 10px 25px rgba(255, 51, 0, 0.4);
     z-index: 2;
 }
@@ -1423,17 +1410,20 @@
     box-shadow: 0 0 6px rgba(255, 204, 0, 0.8);
 }
 
-/* 🔹 ADDON LIST CONTAINER - SCROLL Z MYSZKĄ 🔹 */
+/* 🔹 POPRAWIONE: ADDON LIST CONTAINER - SCROLL Z MYSZKĄ 🔹 */
 .addon-list {
     height: 340px;
     overflow-y: auto;
     margin-bottom: 15px;
     padding-right: 5px;
+    padding-bottom: 10px; /* Dodatkowy padding na dole */
 }
 
 /* Włącz scrollowanie kółkiem myszy */
 .addon-list {
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.8);
 }
 
 .addon-list::-webkit-scrollbar {
