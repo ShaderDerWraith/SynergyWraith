@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v3.0 - FIXED)
+// synergy.js - Główny kod panelu Synergy (v3.0)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v3.0 (Final Fix)');
+    console.log('🚀 Synergy Panel loaded - v3.0 (Full License System + Admin)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -24,7 +24,7 @@
         LICENSE_KEY: "sw_license_key"
     };
 
-    // 🔹 Lista dostępnych dodatków (TUTAJ ZMIENIAMY - NA STARCIE TYLKO DARMOWE!)
+    // 🔹 Lista dostępnych dodatków (premium ukryte na start)
     let ADDONS = [
         {
             id: 'kcs-icons',
@@ -35,7 +35,7 @@
             favorite: false,
             author: 'Synergy Team',
             version: '1.0',
-            hidden: true // ⭐ NOWE: ukryj od razu!
+            hidden: true
         },
         {
             id: 'auto-looter',
@@ -103,18 +103,19 @@
             "Przycisk odśwież zawsze widoczny",
             "Panel admina tylko dla wybranych ID",
             "Nowy system licencji z Cloudflare",
-            "Automatyczne sprawdzanie ważności"
+            "Automatyczne sprawdzanie ważności",
+            "System aktywacji przez klucze"
         ]
     };
 
     // 🔹 Backend URL - Cloudflare Worker
     const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
 
-    // 🔹 Admin ID - TUTAJ WPISZ SWOJE ID KONTA ⭐⭐⭐ ZMIEŃ TUTAJ ⭐⭐⭐
-    const ADMIN_ACCOUNT_IDS = ['TWÓJ_NUMER_ID_Z_GRY']; // ← ZMIEŃ NA SWOJE ID!
+    // ⭐⭐⭐ ZMIEŃ TUTAJ: wpisz swoje ID konta z gry (może być tablica wielu ID)
+    const ADMIN_ACCOUNT_IDS = ['TWÓJ_ID_KONTA'];
 
-    // 🔹 Admin Token - musi być taki sam jak w Cloudflare Worker ⭐⭐⭐
-    const ADMIN_TOKEN = 'SYNERGY_ADMIN_2024_SECRET'; // ← ZMIEŃ JAK ZMIENIŁEŚ W WORKERZE!
+    // ⭐⭐⭐ ZMIEŃ TUTAJ: jeśli w Cloudflare Worker zmieniłeś ADMIN_TOKEN, to wpisz ten sam tutaj
+    const ADMIN_TOKEN = 'SYNERGY_ADMIN_2024_SECRET';
 
     // 🔹 Safe fallback
     if (!window.synergyWraith) {
@@ -171,23 +172,22 @@
     let licenseExpiry = null;
     let licenseData = null;
     let serverConnected = true;
-    let currentAddons = []; // PUSTA LISTA NA START
+    let currentAddons = [];
     let activeCategories = {
         enabled: true,
         disabled: true,
         favorites: true
     };
     let searchQuery = '';
-    let customShortcut = 'A';
+    let customShortcut = 'Ctrl+A';
     let isShortcutInputFocused = false;
     let shortcutKeys = [];
     let isCheckingLicense = false;
     let isAdmin = false;
     let panelInitialized = false;
-    let licenseActivationMode = false;
 
     // =========================================================================
-    // 🔹 FUNKCJE LICENCJI - NOWE!
+    // 🔹 FUNKCJE LICENCJI
     // =========================================================================
 
     async function checkLicenseForAccount(accountId) {
@@ -335,7 +335,7 @@
             
             updateAccountDisplay(accountId);
             
-            // ⭐ WAŻNE: Najpierw pokaż tylko darmowe dodatki
+            // Najpierw pokaż tylko darmowe dodatki
             loadAddonsBasedOnLicense([]);
             
             // Potem sprawdź licencję
@@ -382,7 +382,7 @@
                     
                     console.log('⚠️ Brak licencji:', result.message);
                     
-                    // ⭐ TYLKO DARMOWE DODATKI
+                    // TYLKO DARMOWE DODATKI
                     loadAddonsBasedOnLicense([]);
                     
                     if (result.expired) {
@@ -417,17 +417,13 @@
     function loadAddonsBasedOnLicense(allowedAddons = []) {
         console.log('🔓 Ładowanie dodatków według licencji:', allowedAddons);
         
-        // ⭐ WAŻNE: Filtruj na podstawie licencji
         const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.length > 0);
         
         currentAddons = ADDONS.filter(addon => {
             const isFree = addon.type === 'free';
             const isPremium = addon.type === 'premium';
             
-            // Jeśli darmowy, zawsze pokazuj
             if (isFree) return true;
-            
-            // Jeśli premium, pokazuj tylko z licencją
             if (isPremium && isPremiumAllowed) return true;
             
             return false;
@@ -440,7 +436,7 @@
                 ...addon,
                 enabled: false,
                 favorite: addon.favorite || false,
-                locked: isPremium && !isPremiumAllowed // Zablokuj jeśli premium bez licencji
+                locked: isPremium && !isPremiumAllowed
             };
         });
         
@@ -526,69 +522,1328 @@
         }
     }
 
-    // 🔹 Obsługa aktywacji licencji
-    async function handleLicenseActivation() {
-        const licenseKeyInput = document.getElementById('licenseKeyInput');
-        const activateBtn = document.getElementById('activateLicenseBtn');
-        const resultDiv = document.getElementById('activationResult');
+    // =========================================================================
+    // 🔹 CSS
+    // =========================================================================
+
+    function injectCSS() {
+        const style = document.createElement('style');
+        style.textContent = `
+/* 🔹 BASE STYLES 🔹 */
+#swPanelToggle {
+    position: fixed;
+    top: 70px;
+    left: 70px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ff3300, #ff6600, #ff9900);
+    border: 2px solid #ff3300;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 1000000;
+    box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 5px black;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    overflow: hidden;
+}
+
+#swPanelToggle.dragging {
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(255, 100, 0, 1.2);
+    border: 2px solid #ffcc00;
+    z-index: 1000001;
+}
+
+#swPanelToggle:hover:not(.dragging) {
+    transform: scale(1.08);
+    box-shadow: 0 0 25px rgba(255, 80, 0, 1);
+    cursor: grab;
+}
+
+#swPanelToggle:active:not(.dragging) {
+    transform: scale(1.05);
+    transition: transform 0.1s ease;
+}
+
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
+    }
+    50% { 
+        box-shadow: 0 0 35px rgba(255, 102, 0, 1.2);
+        border-color: #ff6600;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
+    }
+}
+
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out;
+}
+
+/* 🔹 MAIN PANEL - OGNISTY STYL 🔹 */
+#swAddonsPanel {
+    position: fixed;
+    top: 140px;
+    left: 70px;
+    width: 640px;
+    height: 580px;
+    background: linear-gradient(135deg, #1a0000, #330000, #660000);
+    border: 2px solid #ff3300;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 999999;
+    box-shadow: 0 0 30px rgba(255, 51, 0, 0.8), inset 0 0 20px rgba(255, 102, 0, 0.2);
+    backdrop-filter: blur(10px);
+    display: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    resize: both;
+    min-width: 640px;
+    max-width: 900px;
+    min-height: 580px;
+    max-height: 800px;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+#swAddonsPanel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 8px;
+    padding: 2px;
+    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900, #ffcc00, #ff3300);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+}
+
+#swPanelHeader {
+    background: linear-gradient(to right, #330000, #660000);
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ff3300;
+    cursor: grab;
+    position: relative;
+    overflow: hidden;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
+}
+
+#swPanelHeader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 102, 0, 0.3), transparent);
+    animation: fireShine 2s infinite;
+}
+
+@keyframes fireShine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.sw-tab-content {
+    padding: 15px;
+    background: rgba(26, 0, 0, 0.9);
+    height: calc(100% - 120px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔹 TABS STYLES 🔹 */
+.tab-container {
+    display: flex;
+    background: linear-gradient(to bottom, #330000, #1a0000);
+    border-bottom: 1px solid #ff3300;
+    padding: 0 5px;
+}
+
+.tablink {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 5px;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+    color: #ff9966;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.tablink::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #ff3300;
+    transition: width 0.3s ease;
+}
+
+.tablink:hover::before {
+    width: 80%;
+}
+
+.tablink.active {
+    color: #ffcc00;
+    text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+}
+
+.tablink.active::before {
+    width: 100%;
+    background: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
+}
+
+.tablink:hover:not(.active) {
+    color: #ff6600;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+/* 🔹 TAB CONTENT 🔹 */
+.tabcontent {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    animation: fadeEffect 0.3s ease;
+}
+
+.tabcontent.active {
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes fadeEffect {
+    from { 
+        opacity: 0; 
+        transform: translateY(5px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* 🔹 ADDONS LIST 🔹 */
+.addon {
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 70px;
+    max-height: 70px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.addon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 69, 0, 0.2);
+    border-radius: 8px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.addon:hover::before {
+    opacity: 1;
+}
+
+.addon:hover {
+    transform: translateY(-3px);
+    border-color: #ff4500;
+    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.6);
+    z-index: 2;
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9));
+}
+
+.addon:hover .addon-title {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8);
+}
+
+.addon:hover .addon-description {
+    color: #ffffff;
+}
+
+.addon:hover .favorite-btn {
+    color: #ff8c00;
+    transform: scale(1.2);
+}
+
+.addon-header {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.addon-title {
+    font-weight: 600;
+    color: #ffcc00;
+    font-size: 14px;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+}
+
+.addon-description {
+    color: #ff9966;
+    font-size: 12px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+}
+
+.addon-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+/* 🔹 FAVORITE STAR 🔹 */
+.favorite-btn {
+    background: none;
+    border: none;
+    color: #ff9966;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.favorite-btn:hover {
+    color: #ffcc00;
+    transform: scale(1.3);
+}
+
+.favorite-btn.favorite {
+    color: #ffcc00;
+    text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+}
+
+/* 🔹 SWITCH 🔹 */
+.addon-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.addon-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.addon-switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #660000;
+    transition: .3s;
+    border-radius: 24px;
+    border: 1px solid #990000;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.addon-switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+}
+
+.addon-switch input:checked + .addon-switch-slider {
+    background-color: #330000;
+    border-color: #ff3300;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 51, 0, 0.3);
+}
+
+.addon-switch input:checked + .addon-switch-slider:before {
+    transform: translateX(26px);
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    box-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
+}
+
+/* 🔹 LICENSE SYSTEM 🔹 */
+.license-container {
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.license-header {
+    color: #ffcc00;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ff3300;
+    padding-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.license-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 51, 0, 0.3);
+}
+
+.license-status-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.license-status-label {
+    color: #ff9966;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.license-status-value {
+    font-weight: 600;
+    text-align: right;
+    color: #ffcc00;
+    max-width: 200px;
+    word-break: break-all;
+    font-size: 13px;
+}
+
+.license-status-valid {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.license-status-invalid {
+    color: #ff3300 !important;
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+}
+
+.license-status-connected {
+    color: #00ff00 !important;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.license-status-disconnected {
+    color: #ff3300 !important;
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+}
+
+/* 🔹 SEARCH BAR 🔹 */
+.search-container {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
+    border-radius: 6px;
+    color: #ffcc00;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ff3300;
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
+}
+
+.search-input::placeholder {
+    color: #ff9966;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* 🔹 CATEGORY FILTERS 🔹 */
+.category-filters {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 15px;
+    background: rgba(38, 0, 0, 0.8);
+    border: 1px solid #660000;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.category-filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 6px 12px;
+    background: rgba(51, 0, 0, 0.6);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    gap: 8px;
+}
+
+.category-filter-item:hover {
+    background: rgba(102, 0, 0, 0.8);
+}
+
+.category-filter-label {
+    display: flex;
+    align-items: center;
+    color: #ffcc00;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.category-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.category-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.category-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #660000;
+    transition: .3s;
+    border-radius: 16px;
+    border: 1px solid #990000;
+}
+
+.category-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(255, 51, 0, 0.5);
+}
+
+.category-switch input:checked + .category-slider {
+    background-color: #330000;
+    border-color: #ff3300;
+}
+
+.category-switch input:checked + .category-slider:before {
+    transform: translateX(16px);
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    box-shadow: 0 0 6px rgba(255, 204, 0, 0.8);
+}
+
+/* 🔹 ADDON LIST CONTAINER 🔹 */
+.addon-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding-right: 5px;
+}
+
+.addon-list {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.8);
+}
+
+.addon-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.addon-list::-webkit-scrollbar-track {
+    background: rgba(51, 0, 0, 0.8);
+    border-radius: 3px;
+}
+
+.addon-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ff3300, #ff6600);
+    border-radius: 3px;
+}
+
+.addon-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #ff6600, #ff9900);
+}
+
+.addon-list-empty {
+    text-align: center;
+    color: #ff9966;
+    font-size: 13px;
+    padding: 30px 10px;
+    font-style: italic;
+    background: rgba(51, 0, 0, 0.5);
+    border-radius: 6px;
+    margin: 10px 0;
+}
+
+/* 🔹 REFRESH BUTTON - ZAWSZE WIDOCZNY! 🔹 */
+.refresh-button-container {
+    flex-shrink: 0;
+    text-align: center;
+    margin-top: auto;
+    padding: 10px;
+    border-top: 1px solid #660000;
+    background: rgba(26, 0, 0, 0.9);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.refresh-button {
+    padding: 10px 30px;
+    background: linear-gradient(to right, #660000, #990000);
+    color: #ffcc00;
+    border: 1px solid #ff3300;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 150px;
+}
+
+.refresh-button:hover {
+    background: linear-gradient(to right, #990000, #cc0000);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 51, 0, 0.3);
+}
+
+/* 🔹 ZABLOKOWANE DODATKI 🔹 */
+.addon.locked {
+    opacity: 0.6;
+    background: linear-gradient(135deg, rgba(30, 0, 0, 0.8), rgba(50, 0, 0, 0.8)) !important;
+    border: 1px solid #330000 !important;
+}
+
+.addon.locked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border: 1px solid #330000 !important;
+    cursor: not-allowed !important;
+}
+
+.addon.locked .addon-title {
+    color: #666 !important;
+    text-shadow: none !important;
+}
+
+.addon.locked .addon-description {
+    color: #666 !important;
+}
+
+.premium-badge {
+    background: linear-gradient(135deg, #ff3300, #ff6600);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.license-info-container {
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,51,0,0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(255,51,0,0.3);
+}
+
+.license-info-container strong {
+    color: #ffcc00;
+    font-size: 13px;
+}
+
+.license-info-container p {
+    color: #ff9966;
+    font-size: 12px;
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+/* 🔹 LICENSE MESSAGE 🔹 */
+.license-message {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid;
+}
+
+.license-success {
+    background: rgba(0, 100, 0, 0.2);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.license-error {
+    background: rgba(100, 0, 0, 0.2);
+    color: #ff3300;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
+}
+
+.license-info {
+    background: rgba(0, 50, 100, 0.2);
+    color: #00aaff;
+    border-color: #00aaff;
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
+/* 🔹 ADMIN SECTION 🔹 */
+.admin-tab {
+    display: none !important;
+}
+
+.admin-visible .admin-tab {
+    display: flex !important;
+}
+
+/* 🔹 SETTINGS STYLES 🔹 */
+.settings-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.settings-item:hover {
+    border-color: #ff3300;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+}
+
+.settings-label {
+    display: block;
+    color: #ffcc00;
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.font-size-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.font-size-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    background: #660000;
+    border-radius: 4px;
+    outline: none;
+    margin: 0 15px;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.font-size-value {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.opacity-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.opacity-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    background: linear-gradient(to right, rgba(255, 51, 0, 0.3), rgba(255, 51, 0, 0.9));
+    border-radius: 4px;
+    outline: none;
+    margin: 0 15px;
+}
+
+.opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.opacity-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.opacity-value {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.shortcut-input-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.shortcut-input-label {
+    color: #ffcc00;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.shortcut-input {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
+    border-radius: 6px;
+    color: #ffcc00;
+    font-size: 13px;
+    text-align: center;
+    width: 120px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.shortcut-input:focus {
+    outline: none;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
+}
+
+.shortcut-set-btn {
+    padding: 10px 20px;
+    background: linear-gradient(to right, #660000, #990000);
+    border: 1px solid #ff3300;
+    color: #ffcc00;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.shortcut-set-btn:hover {
+    background: linear-gradient(to right, #990000, #cc0000);
+    color: #ffffff;
+}
+
+.reset-settings-container {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #660000;
+}
+
+.reset-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 6px;
+    color: #ff3300;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover {
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+    border-color: #ff3300;
+    color: #ffcc00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
+}
+
+.reset-settings-button:active {
+    transform: translateY(0);
+}
+
+.reset-settings-icon {
+    color: #ff3300;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover .reset-settings-icon {
+    transform: rotate(180deg);
+    color: #ffcc00;
+}
+
+/* 🔹 INFO TAB 🔹 */
+.info-container {
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.info-header {
+    color: #ffcc00;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ff3300;
+    padding-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.info-patch-notes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-patch-notes li {
+    color: #ff9966;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-left: 0;
+    position: relative;
+    line-height: 1.5;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+}
+
+.info-patch-notes li:before {
+    content: "•";
+    color: #ff3300;
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0;
+    margin-top: 0;
+    display: inline-block;
+    line-height: 1.5;
+}
+
+.info-footer {
+    color: #ff9966;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #660000;
+    font-style: italic;
+}
+
+/* 🔹 PANEL RESIZE HANDLE 🔹 */
+#swAddonsPanel::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(135deg, transparent 50%, #ff3300 50%);
+    cursor: nwse-resize;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+#swAddonsPanel:hover::after {
+    opacity: 1;
+}
+        `;
+        document.head.appendChild(style);
+        console.log('✅ CSS injected');
+    }
+
+    // =========================================================================
+    // 🔹 TWORZENIE PANELU
+    // =========================================================================
+
+    function createToggleButton() {
+        const oldToggle = document.getElementById('swPanelToggle');
+        if (oldToggle) oldToggle.remove();
         
-        if (!licenseKeyInput || !activateBtn || !resultDiv) return;
+        const toggleBtn = document.createElement("div");
+        toggleBtn.id = "swPanelToggle";
+        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
         
-        const licenseKey = licenseKeyInput.value.trim();
+        toggleBtn.innerHTML = `
+            <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg" 
+                 alt="SW" 
+                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        `;
         
-        if (!licenseKey || licenseKey.length < 10) {
-            resultDiv.textContent = 'Wprowadź poprawny klucz licencji';
-            resultDiv.style.background = 'rgba(255,51,0,0.2)';
-            resultDiv.style.color = '#ff3300';
-            resultDiv.style.border = '1px solid #ff3300';
-            resultDiv.style.display = 'block';
-            return;
-        }
+        document.body.appendChild(toggleBtn);
+        console.log('✅ Toggle button created');
         
-        // Zmień tekst przycisku
-        activateBtn.textContent = 'Aktywuję...';
-        activateBtn.disabled = true;
-        activateBtn.style.opacity = '0.7';
+        return toggleBtn;
+    }
+
+    function createMainPanel() {
+        const oldPanel = document.getElementById('swAddonsPanel');
+        if (oldPanel) oldPanel.remove();
         
-        try {
-            const result = await activateLicense(licenseKey);
+        const panel = document.createElement("div");
+        panel.id = "swAddonsPanel";
+        
+        panel.innerHTML = `
+            <div id="swPanelHeader">
+                <strong>SYNERGY v${VERSION_INFO.version}</strong>
+                ${isAdmin ? ' <span style="color:#00ff00; font-size:12px;">(ADMIN)</span>' : ''}
+            </div>
             
-            if (result.success) {
-                resultDiv.innerHTML = `
-                    ✅ <strong>Licencja aktywowana!</strong><br>
-                    Dodatki premium są teraz dostępne.<br>
-                    Ważna do: ${new Date(result.license.expiry).toLocaleDateString('pl-PL')}
-                `;
-                resultDiv.style.background = 'rgba(0,255,0,0.2)';
-                resultDiv.style.color = '#00ff00';
-                resultDiv.style.border = '1px solid #00ff00';
-                
-                // Zapisz klucz
-                SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                
-                // Odśwież panel
-                setTimeout(() => {
-                    checkAndUpdateLicense(userAccountId);
-                    showTab('addons'); // Przełącz na zakładkę dodatków
-                }, 2000);
-                
-            } else {
-                resultDiv.textContent = `❌ Błąd: ${result.message || 'Nieznany błąd'}`;
-                resultDiv.style.background = 'rgba(255,51,0,0.2)';
-                resultDiv.style.color = '#ff3300';
-                resultDiv.style.border = '1px solid #ff3300';
-            }
-            
-        } catch (error) {
-            resultDiv.textContent = `❌ Błąd połączenia: ${error.message}`;
-            resultDiv.style.background = 'rgba(255,51,0,0.2)';
-            resultDiv.style.color = '#ff3300';
-            resultDiv.style.border = '1px solid #ff3300';
-        } finally {
-            resultDiv.style.display = 'block';
-            activateBtn.textContent = '🔓 Aktywuj Licencję';
-            activateBtn.disabled = false;
-            activateBtn.style.opacity = '1';
+            <div class="tab-container">
+                <button class="tablink active" data-tab="addons">Dodatki</button>
+                <button class="tablink" data-tab="license">Licencja</button>
+                <button class="tablink" data-tab="activate">Aktywuj</button>
+                <button class="tablink" data-tab="settings">Ustawienia</button>
+                <button class="tablink" data-tab="info">Info</button>
+            </div>
+
+            <div id="addons" class="tabcontent active">
+                <div class="sw-tab-content">
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="searchAddons" placeholder="Wyszukaj dodatki...">
+                    </div>
+                    
+                    <div class="category-filters">
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
+                                <span>Włączone</span>
+                            </div>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-enabled" checked>
+                                <span class="category-slider"></span>
+                            </label>
+                        </div>
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
+                                <span>Wyłączone</span>
+                            </div>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-disabled" checked>
+                                <span class="category-slider"></span>
+                            </label>
+                        </div>
+                        <div class="category-filter-item">
+                            <div class="category-filter-label">
+                                <span>Ulubione</span>
+                            </div>
+                            <label class="category-switch">
+                                <input type="checkbox" id="filter-favorites" checked>
+                                <span class="category-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="addon-list" id="addon-list">
+                        <!-- Lista dodatków zostanie dodana dynamicznie -->
+                    </div>
+                    
+                    <div class="refresh-button-container">
+                        <button class="refresh-button" id="swRefreshButton">
+                            Odśwież Panel
+                        </button>
+                    </div>
+                    
+                    <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div id="license" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="license-container">
+                        <div class="license-header">Status Licencji</div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">ID Konta:</span>
+                            <span id="swAccountId" class="license-status-value">Szukam ID konta...</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Status Licencji:</span>
+                            <span id="swLicenseStatus" class="license-status-invalid">Nieaktywna</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Ważna do:</span>
+                            <span id="swLicenseExpiry" class="license-status-value">-</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Pozostało dni:</span>
+                            <span id="swLicenseDaysLeft" class="license-status-value">-</span>
+                        </div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Połączenie:</span>
+                            <span id="swServerStatus" class="license-status-connected">Aktywne</span>
+                        </div>
+                    </div>
+                    
+                    <div class="license-info-container">
+                        <strong>ℹ️ Informacja:</strong>
+                        <p>
+                            Premium dodatki pojawią się automatycznie po uzyskaniu licencji.<br>
+                            System automatycznie sprawdza status co 5 minut.
+                        </p>
+                    </div>
+                    
+                    <div id="swLicenseMessage" class="license-message"></div>
+                </div>
+            </div>
+
+            <div id="activate" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="license-container">
+                        <div class="license-header">Aktywacja Licencji</div>
+                        
+                        <div style="margin: 20px 0;">
+                            <label style="display: block; color:#ffcc00; margin-bottom: 10px; font-weight: bold;">
+                                Wprowadź klucz licencji:
+                            </label>
+                            <input type="text" id="licenseKeyInput" 
+                                   style="width: 100%; padding: 12px; background: rgba(30,0,0,0.8); 
+                                          border: 1px solid #ff3300; border-radius: 6px; 
+                                          color: #ffffff; font-size: 14px; text-align: center;"
+                                   placeholder="XXXX-XXXX-XXXX-XXXX">
+                            <small style="color:#ff9966; display: block; margin-top: 5px;">
+                                Klucz otrzymasz po zakupie premium
+                            </small>
+                        </div>
+                        
+                        <button id="activateLicenseBtn" 
+                                style="width: 100%; padding: 15px; background: linear-gradient(to right, #006600, #008800);
+                                       border: 1px solid #00cc00; border-radius: 6px; color: #ffffff;
+                                       font-weight: bold; font-size: 14px; cursor: pointer; margin: 15px 0;">
+                            🔓 Aktywuj Licencję
+                        </button>
+                        
+                        <div id="activationResult" style="display: none; padding: 15px; border-radius: 6px; 
+                                                           margin-top: 15px; text-align: center; font-size: 13px;">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(255,51,0,0.1); 
+                                border-radius: 6px; border: 1px solid rgba(255,51,0,0.3);">
+                        <strong style="color:#ffcc00;">ℹ️ Jak zdobyć licencję?</strong>
+                        <p style="color:#ff9966; font-size: 12px; margin-top: 10px;">
+                            1. Skontaktuj się z administratorem<br>
+                            2. Odbierz unikalny klucz licencji<br>
+                            3. Aktywuj go tutaj<br>
+                            4. Ciesz się wszystkimi dodatkami!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="settings-item">
+                        <div class="font-size-container">
+                            <label class="settings-label">Rozmiar czcionki panelu:</label>
+                            <input type="range" min="10" max="18" value="12" class="font-size-slider" id="fontSizeSlider">
+                            <span class="font-size-value" id="fontSizeValue">12px</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="opacity-container">
+                            <label class="settings-label">Przeźroczystość panelu:</label>
+                            <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider">
+                            <span class="opacity-value" id="opacityValue">90%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-item">
+                        <div class="shortcut-input-container">
+                            <span class="shortcut-input-label">Skrót klawiszowy do panelu:</span>
+                            <input type="text" class="shortcut-input" id="shortcutInput" value="Ctrl+A" readonly>
+                            <button class="shortcut-set-btn" id="shortcutSetBtn">Ustaw skrót</button>
+                        </div>
+                    </div>
+                    
+                    <div class="reset-settings-container">
+                        <button class="reset-settings-button" id="swResetButton">
+                            <span class="reset-settings-icon">↻</span>
+                            Resetuj wszystkie ustawienia
+                        </button>
+                    </div>
+                    
+                    <div id="swResetMessage" style="margin-top: 15px; padding: 12px; border-radius: 6px; display: none;"></div>
+                </div>
+            </div>
+
+            <div id="info" class="tabcontent">
+                <div class="sw-tab-content">
+                    <div class="info-container">
+                        <div class="info-header">Historia zmian v${VERSION_INFO.version}</div>
+                        
+                        <div class="info-patch-notes">
+                            ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
+                        </div>
+                        
+                        <div class="info-footer">
+                            © 2024 Synergy Panel • Wszelkie prawa zastrzeżone
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(panel);
+        renderAddons();
+        updateFilterSwitches();
+        console.log('✅ Panel created');
+        
+        // Dodaj event listener dla aktywacji licencji
+        document.getElementById('activateLicenseBtn').addEventListener('click', handleLicenseActivation);
+        
+        // Jeśli jesteś adminem, dodaj zakładkę admina
+        if (isAdmin) {
+            addAdminTab();
         }
     }
 
@@ -700,7 +1955,76 @@
         console.log('✅ Admin tab added (visible only to you)');
     }
 
-    // 🔹 Setup event listenerów dla admina
+    // =========================================================================
+    // 🔹 OBSŁUGA AKTYWACJI LICENCJI
+    // =========================================================================
+
+    async function handleLicenseActivation() {
+        const licenseKeyInput = document.getElementById('licenseKeyInput');
+        const activateBtn = document.getElementById('activateLicenseBtn');
+        const resultDiv = document.getElementById('activationResult');
+        
+        if (!licenseKeyInput || !activateBtn || !resultDiv) return;
+        
+        const licenseKey = licenseKeyInput.value.trim();
+        
+        if (!licenseKey || licenseKey.length < 10) {
+            resultDiv.textContent = 'Wprowadź poprawny klucz licencji';
+            resultDiv.style.background = 'rgba(255,51,0,0.2)';
+            resultDiv.style.color = '#ff3300';
+            resultDiv.style.border = '1px solid #ff3300';
+            resultDiv.style.display = 'block';
+            return;
+        }
+        
+        activateBtn.textContent = 'Aktywuję...';
+        activateBtn.disabled = true;
+        activateBtn.style.opacity = '0.7';
+        
+        try {
+            const result = await activateLicense(licenseKey);
+            
+            if (result.success) {
+                resultDiv.innerHTML = `
+                    ✅ <strong>Licencja aktywowana!</strong><br>
+                    Dodatki premium są teraz dostępne.<br>
+                    Ważna do: ${new Date(result.license.expiry).toLocaleDateString('pl-PL')}
+                `;
+                resultDiv.style.background = 'rgba(0,255,0,0.2)';
+                resultDiv.style.color = '#00ff00';
+                resultDiv.style.border = '1px solid #00ff00';
+                
+                SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
+                
+                setTimeout(() => {
+                    checkAndUpdateLicense(userAccountId);
+                    showTab('addons');
+                }, 2000);
+                
+            } else {
+                resultDiv.textContent = `❌ Błąd: ${result.message || 'Nieznany błąd'}`;
+                resultDiv.style.background = 'rgba(255,51,0,0.2)';
+                resultDiv.style.color = '#ff3300';
+                resultDiv.style.border = '1px solid #ff3300';
+            }
+            
+        } catch (error) {
+            resultDiv.textContent = `❌ Błąd połączenia: ${error.message}`;
+            resultDiv.style.background = 'rgba(255,51,0,0.2)';
+            resultDiv.style.color = '#ff3300';
+            resultDiv.style.border = '1px solid #ff3300';
+        } finally {
+            resultDiv.style.display = 'block';
+            activateBtn.textContent = '🔓 Aktywuj Licencję';
+            activateBtn.disabled = false;
+            activateBtn.style.opacity = '1';
+        }
+    }
+
+    // =========================================================================
+    // 🔹 FUNKCJE ADMINA
+    // =========================================================================
+
     function setupAdminEvents() {
         if (!isAdmin) return;
         
@@ -876,6 +2200,10 @@
         }
     }
 
+    // =========================================================================
+    // 🔹 PODSTAWOWE FUNKCJE PANELU
+    // =========================================================================
+
     function showTab(tabName) {
         const tabs = document.querySelectorAll('.tablink');
         const tabContents = document.querySelectorAll('.tabcontent');
@@ -894,1292 +2222,791 @@
         }
     }
 
-    // 🔹 Wstrzykiwanie CSS
-    function injectCSS() {
-        const style = document.createElement('style');
-        style.textContent = `
-/* 🔹 BASE STYLES 🔹 */
-#swPanelToggle {
-    position: fixed;
-    top: 70px;
-    left: 70px;
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #ff3300, #ff6600, #ff9900);
-    border: 2px solid #ff3300;
-    border-radius: 50%;
-    cursor: grab;
-    z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 0 5px black;
-    transition: all 0.2s ease;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    overflow: hidden;
-}
-
-#swPanelToggle.dragging {
-    cursor: grabbing;
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 100, 0, 1.2);
-    border: 2px solid #ffcc00;
-    z-index: 1000001;
-}
-
-#swPanelToggle:hover:not(.dragging) {
-    transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255, 80, 0, 1);
-    cursor: grab;
-}
-
-#swPanelToggle:active:not(.dragging) {
-    transform: scale(1.05);
-    transition: transform 0.1s ease;
-}
-
-/* Save indication animation */
-@keyframes savePulse {
-    0% { 
-        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
-        border-color: #ff3300;
-    }
-    50% { 
-        box-shadow: 0 0 35px rgba(255, 102, 0, 1.2);
-        border-color: #ff6600;
-        transform: scale(1.05);
-    }
-    100% { 
-        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
-        border-color: #ff3300;
-    }
-}
-
-#swPanelToggle.saved {
-    animation: savePulse 1.5s ease-in-out;
-}
-
-/* Prevent text selection during drag */
-#swPanelToggle.dragging::selection {
-    background: transparent;
-}
-
-#swPanelToggle.dragging::-moz-selection {
-    background: transparent;
-}
-
-/* 🔹 MAIN PANEL - OGNISTY STYL 🔹 */
-#swAddonsPanel {
-    position: fixed;
-    top: 140px;
-    left: 70px;
-    width: 640px;
-    height: 580px;
-    background: linear-gradient(135deg, #1a0000, #330000, #660000);
-    border: 2px solid #ff3300;
-    border-radius: 10px;
-    color: #ffffff;
-    z-index: 999999;
-    box-shadow: 0 0 30px rgba(255, 51, 0, 0.8), inset 0 0 20px rgba(255, 102, 0, 0.2);
-    backdrop-filter: blur(10px);
-    display: none;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: hidden;
-    resize: both;
-    min-width: 640px;
-    max-width: 900px;
-    min-height: 580px;
-    max-height: 800px;
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
-}
-
-/* Ognisty efekt na krawędziach */
-#swAddonsPanel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 8px;
-    padding: 2px;
-    background: linear-gradient(45deg, #ff3300, #ff6600, #ff9900, #ffcc00, #ff3300);
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: -1;
-}
-
-#swPanelHeader {
-    background: linear-gradient(to right, #330000, #660000);
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ff3300;
-    cursor: grab;
-    position: relative;
-    overflow: hidden;
-    font-size: 18px;
-    font-weight: bold;
-    color: #ffcc00;
-    text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
-}
-
-#swPanelHeader::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 102, 0, 0.3), transparent);
-    animation: fireShine 2s infinite;
-}
-
-@keyframes fireShine {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-.sw-tab-content {
-    padding: 15px;
-    background: rgba(26, 0, 0, 0.9);
-    height: calc(100% - 120px);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-/* 🔹 TABS STYLES 🔹 */
-.tab-container {
-    display: flex;
-    background: linear-gradient(to bottom, #330000, #1a0000);
-    border-bottom: 1px solid #ff3300;
-    padding: 0 5px;
-}
-
-.tablink {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 12px 5px;
-    margin: 0 2px;
-    transition: all 0.2s ease;
-    color: #ff9966;
-    font-weight: 600;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid transparent;
-    position: relative;
-    overflow: hidden;
-}
-
-.tablink::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: #ff3300;
-    transition: width 0.3s ease;
-}
-
-.tablink:hover::before {
-    width: 80%;
-}
-
-.tablink.active {
-    color: #ffcc00;
-    text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-}
-
-.tablink.active::before {
-    width: 100%;
-    background: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
-}
-
-.tablink:hover:not(.active) {
-    color: #ff6600;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-/* 🔹 TAB CONTENT 🔹 */
-.tabcontent {
-    display: none;
-    flex: 1;
-    overflow: hidden;
-    animation: fadeEffect 0.3s ease;
-}
-
-.tabcontent.active {
-    display: flex;
-    flex-direction: column;
-}
-
-@keyframes fadeEffect {
-    from { 
-        opacity: 0; 
-        transform: translateY(5px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-}
-
-/* 🔹 ADDONS LIST - OGIEŃ 🔹 */
-.addon {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 8px;
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-height: 70px;
-    max-height: 70px;
-    box-sizing: border-box;
-    cursor: pointer;
-}
-
-.addon::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 69, 0, 0.2);
-    border-radius: 8px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.addon:hover::before {
-    opacity: 1;
-}
-
-.addon:hover {
-    transform: translateY(-3px);
-    border-color: #ff4500;
-    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.6);
-    z-index: 2;
-    background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9));
-}
-
-.addon:hover .addon-title {
-    color: #ffffff;
-    text-shadow: 0 0 15px rgba(255, 69, 0, 0.8);
-}
-
-.addon:hover .addon-description {
-    color: #ffffff;
-}
-
-.addon:hover .favorite-btn {
-    color: #ff8c00;
-    transform: scale(1.2);
-}
-
-.addon-header {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.addon-title {
-    font-weight: 600;
-    color: #ffcc00;
-    font-size: 14px;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: all 0.3s ease;
-}
-
-.addon-description {
-    color: #ff9966;
-    font-size: 12px;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: all 0.3s ease;
-}
-
-.addon-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    z-index: 1;
-}
-
-/* 🔹 FAVORITE STAR 🔹 */
-.favorite-btn {
-    background: none;
-    border: none;
-    color: #ff9966;
-    cursor: pointer;
-    padding: 4px;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-    z-index: 2;
-}
-
-.favorite-btn:hover {
-    color: #ffcc00;
-    transform: scale(1.3);
-}
-
-.favorite-btn.favorite {
-    color: #ffcc00;
-    text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
-}
-
-/* 🔹 NOWY STYL PRZEŁĄCZNIKA 🔹 */
-.addon-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-    flex-shrink: 0;
-}
-
-.addon-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.addon-switch-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #660000;
-    transition: .3s;
-    border-radius: 24px;
-    border: 1px solid #990000;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.addon-switch-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    transition: .3s;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-}
-
-.addon-switch input:checked + .addon-switch-slider {
-    background-color: #330000;
-    border-color: #ff3300;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 51, 0, 0.3);
-}
-
-.addon-switch input:checked + .addon-switch-slider:before {
-    transform: translateX(26px);
-    background: linear-gradient(135deg, #ffcc00, #ff9900);
-    box-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
-}
-
-/* 🔹 LICENSE SYSTEM 🔹 */
-.license-container {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.license-header {
-    color: #ffcc00;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #ff3300;
-    padding-bottom: 10px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.license-status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    font-size: 13px;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 51, 0, 0.3);
-}
-
-.license-status-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.license-status-label {
-    color: #ff9966;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.license-status-value {
-    font-weight: 600;
-    text-align: right;
-    color: #ffcc00;
-    max-width: 200px;
-    word-break: break-all;
-    font-size: 13px;
-}
-
-.license-status-valid {
-    color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-}
-
-.license-status-invalid {
-    color: #ff3300 !important;
-    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-}
-
-.license-status-connected {
-    color: #00ff00 !important;
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-}
-
-.license-status-disconnected {
-    color: #ff3300 !important;
-    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-}
-
-/* 🔹 SETTINGS TAB 🔹 */
-.settings-item {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.settings-item:hover {
-    border-color: #ff3300;
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
-}
-
-.settings-label {
-    display: block;
-    color: #ffcc00;
-    font-size: 13px;
-    margin-bottom: 10px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-/* 🔹 ROZMIAR CZCIONKI 🔹 */
-.font-size-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.font-size-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    background: #660000;
-    border-radius: 4px;
-    outline: none;
-    margin: 0 15px;
-}
-
-.font-size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.font-size-slider::-webkit-slider-thumb:hover {
-    background: linear-gradient(135deg, #ff9900, #ff6600);
-    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.font-size-value {
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-/* 🔹 PRZEŹROCZYSTOŚĆ PANELU - SUWAK 🔹 */
-.opacity-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.opacity-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    background: linear-gradient(to right, rgba(255, 51, 0, 0.3), rgba(255, 51, 0, 0.9));
-    border-radius: 4px;
-    outline: none;
-    margin: 0 15px;
-}
-
-.opacity-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.opacity-slider::-webkit-slider-thumb:hover {
-    background: linear-gradient(135deg, #ff9900, #ff6600);
-    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.opacity-value {
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-/* 🔹 SKRÓT KLAWISZOWY 🔹 */
-.shortcut-input-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding: 0 10px;
-}
-
-.shortcut-input-label {
-    color: #ffcc00;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.shortcut-input {
-    flex: 1;
-    padding: 10px 15px;
-    background: rgba(51, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ffcc00;
-    font-size: 13px;
-    text-align: center;
-    width: 120px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.shortcut-input:focus {
-    outline: none;
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-.shortcut-set-btn {
-    padding: 10px 20px;
-    background: linear-gradient(to right, #660000, #990000);
-    border: 1px solid #ff3300;
-    color: #ffcc00;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.shortcut-set-btn:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-}
-
-/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
-.reset-settings-container {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid #660000;
-}
-
-.reset-settings-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ff3300;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover {
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
-    border-color: #ff3300;
-    color: #ffcc00;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
-}
-
-.reset-settings-button:active {
-    transform: translateY(0);
-}
-
-.reset-settings-icon {
-    color: #ff3300;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover .reset-settings-icon {
-    transform: rotate(180deg);
-    color: #ffcc00;
-}
-
-/* 🔹 INFO TAB 🔹 */
-.info-container {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 8px;
-    padding: 25px;
-}
-
-.info-header {
-    color: #ffcc00;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #ff3300;
-    padding-bottom: 10px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.info-patch-notes {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.info-patch-notes li {
-    color: #ff9966;
-    font-size: 13px;
-    margin-bottom: 10px;
-    padding-left: 0;
-    position: relative;
-    line-height: 1.5;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-}
-
-.info-patch-notes li:before {
-    content: "•";
-    color: #ff3300;
-    font-size: 18px;
-    font-weight: bold;
-    margin-right: 10px;
-    flex-shrink: 0;
-    margin-top: 0;
-    display: inline-block;
-    line-height: 1.5;
-}
-
-.info-footer {
-    color: #ff9966;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #660000;
-    font-style: italic;
-}
-
-/* 🔹 LICENSE MESSAGE 🔹 */
-.license-message {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    text-align: center;
-    border: 1px solid;
-}
-
-.license-success {
-    background: rgba(0, 100, 0, 0.2);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.license-error {
-    background: rgba(100, 0, 0, 0.2);
-    color: #ff3300;
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
-}
-
-.license-info {
-    background: rgba(0, 50, 100, 0.2);
-    color: #00aaff;
-    border-color: #00aaff;
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
-}
-
-/* 🔹 SEARCH BAR 🔹 */
-.search-container {
-    margin-bottom: 15px;
-    position: relative;
-}
-
-.search-input {
-    width: 100%;
-    padding: 10px 15px;
-    background: rgba(51, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ffcc00;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    text-align: center;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #ff3300;
-    box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-.search-input::placeholder {
-    color: #ff9966;
-    font-size: 12px;
-    text-align: center;
-}
-
-/* 🔹 CATEGORY FILTERS 🔹 */
-.category-filters {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 15px;
-    background: rgba(38, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 6px;
-    padding: 12px;
-}
-
-.category-filter-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding: 6px 12px;
-    background: rgba(51, 0, 0, 0.6);
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    gap: 8px;
-}
-
-.category-filter-item:hover {
-    background: rgba(102, 0, 0, 0.8);
-}
-
-.category-filter-label {
-    display: flex;
-    align-items: center;
-    color: #ffcc00;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.category-switch {
-    position: relative;
-    display: inline-block;
-    width: 32px;
-    height: 16px;
-    flex-shrink: 0;
-}
-
-.category-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.category-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #660000;
-    transition: .3s;
-    border-radius: 16px;
-    border: 1px solid #990000;
-}
-
-.category-slider:before {
-    position: absolute;
-    content: "";
-    height: 12px;
-    width: 12px;
-    left: 2px;
-    bottom: 2px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    transition: .3s;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(255, 51, 0, 0.5);
-}
-
-.category-switch input:checked + .category-slider {
-    background-color: #330000;
-    border-color: #ff3300;
-}
-
-.category-switch input:checked + .category-slider:before {
-    transform: translateX(16px);
-    background: linear-gradient(135deg, #ffcc00, #ff9900);
-    box-shadow: 0 0 6px rgba(255, 204, 0, 0.8);
-}
-
-/* 🔹 ADDON LIST CONTAINER - NAPRAWIONE! 🔹 */
-.addon-list {
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 15px;
-    padding-right: 5px;
-}
-
-.addon-list {
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.8);
-}
-
-.addon-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.addon-list::-webkit-scrollbar-track {
-    background: rgba(51, 0, 0, 0.8);
-    border-radius: 3px;
-}
-
-.addon-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff3300, #ff6600);
-    border-radius: 3px;
-}
-
-.addon-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #ff6600, #ff9900);
-}
-
-.addon-list-empty {
-    text-align: center;
-    color: #ff9966;
-    font-size: 13px;
-    padding: 30px 10px;
-    font-style: italic;
-    background: rgba(51, 0, 0, 0.5);
-    border-radius: 6px;
-    margin: 10px 0;
-}
-
-/* 🔹 REFRESH BUTTON - ZAWSZE WIDOCZNY! 🔹 */
-.refresh-button-container {
-    flex-shrink: 0;
-    text-align: center;
-    margin-top: auto;
-    padding: 10px;
-    border-top: 1px solid #660000;
-    background: rgba(26, 0, 0, 0.9);
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-}
-
-.refresh-button {
-    padding: 10px 30px;
-    background: linear-gradient(to right, #660000, #990000);
-    color: #ffcc00;
-    border: 1px solid #ff3300;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    min-width: 150px;
-}
-
-.refresh-button:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(255, 51, 0, 0.3);
-}
-
-/* 🔹 ZABLOKOWANE DODATKI 🔹 */
-.addon.locked {
-    opacity: 0.6;
-    background: linear-gradient(135deg, rgba(30, 0, 0, 0.8), rgba(50, 0, 0, 0.8)) !important;
-    border: 1px solid #330000 !important;
-}
-
-.addon.locked:hover {
-    transform: none !important;
-    box-shadow: none !important;
-    border: 1px solid #330000 !important;
-    cursor: not-allowed !important;
-}
-
-.addon.locked .addon-title {
-    color: #666 !important;
-    text-shadow: none !important;
-}
-
-.addon.locked .addon-description {
-    color: #666 !important;
-}
-
-.premium-badge {
-    background: linear-gradient(135deg, #ff3300, #ff6600);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-#swLicenseDaysLeft {
-    font-weight: bold;
-    margin-left: 5px;
-}
-
-/* 🔹 LICENSE INFO CONTAINER 🔹 */
-.license-info-container {
-    text-align: center;
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(255,51,0,0.1);
-    border-radius: 6px;
-    border: 1px solid rgba(255,51,0,0.3);
-}
-
-.license-info-container strong {
-    color: #ffcc00;
-    font-size: 13px;
-}
-
-.license-info-container p {
-    color: #ff9966;
-    font-size: 12px;
-    margin: 5px 0;
-    line-height: 1.4;
-}
-
-/* 🔹 ADMIN SECTION - NIE WIDOCZNE DLA NORMALNYCH UŻYTKOWNIKÓW 🔹 */
-.admin-tab {
-    display: none !important;
-}
-
-.admin-visible .admin-tab {
-    display: flex !important;
-}
-
-.admin-panel {
-    background: linear-gradient(135deg, rgba(0, 51, 0, 0.8), rgba(0, 102, 0, 0.8)) !important;
-    border: 1px solid #00cc00 !important;
-}
-
-.admin-header {
-    color: #00ff00 !important;
-    border-bottom: 1px solid #00cc00 !important;
-}
-
-.admin-button {
-    background: linear-gradient(to right, #006600, #008800) !important;
-    border: 1px solid #00cc00 !important;
-    color: #ffffff !important;
-}
-
-.admin-button:hover {
-    background: linear-gradient(to right, #008800, #00aa00) !important;
-    border-color: #00ff00 !important;
-}
-
-.admin-input {
-    background: rgba(0, 40, 0, 0.8) !important;
-    border: 1px solid #008800 !important;
-    color: #00ff00 !important;
-}
-
-.admin-input:focus {
-    border-color: #00ff00 !important;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
-}
-
-/* 🔹 PANEL RESIZE HANDLE 🔹 */
-#swAddonsPanel::after {
-    content: '';
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 15px;
-    height: 15px;
-    background: linear-gradient(135deg, transparent 50%, #ff3300 50%);
-    cursor: nwse-resize;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-}
-
-#swAddonsPanel:hover::after {
-    opacity: 1;
-}
-
-/* 🔹 RESPONSYWNOŚĆ 🔹 */
-@media (max-width: 700px) {
-    #swAddonsPanel {
-        width: 500px;
-        min-width: 500px;
-        left: 10px;
-    }
-    
-    .category-filters {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .category-filter-item {
-        width: 100%;
-    }
-    
-    .tablink {
-        padding: 10px 3px;
-        font-size: 11px;
-    }
-}
-        `;
-        document.head.appendChild(style);
-        console.log('✅ CSS injected with fixes');
-    }
-
-    // 🔹 Tworzenie przycisku przełączania
-    function createToggleButton() {
-        const oldToggle = document.getElementById('swPanelToggle');
-        if (oldToggle) oldToggle.remove();
+    function renderAddons() {
+        const listContainer = document.getElementById('addon-list');
+        if (!listContainer) return;
         
-        const toggleBtn = document.createElement("div");
-        toggleBtn.id = "swPanelToggle";
-        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+        listContainer.innerHTML = '';
         
-        toggleBtn.innerHTML = `
-            <img src="https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg" 
-                 alt="SW" 
-                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-        `;
+        const sortedAddons = [...currentAddons].sort((a, b) => {
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            if (a.enabled && !b.enabled) return -1;
+            if (!a.enabled && b.enabled) return 1;
+            return a.name.localeCompare(b.name);
+        });
         
-        document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created');
-        
-        return toggleBtn;
-    }
-
-    // 🔹 Tworzenie głównego panelu
-    function createMainPanel() {
-        const oldPanel = document.getElementById('swAddonsPanel');
-        if (oldPanel) oldPanel.remove();
-        
-        const panel = document.createElement("div");
-        panel.id = "swAddonsPanel";
-        
-        // Admin tab będzie dodany dynamicznie jeśli jesteś adminem
-        panel.innerHTML = `
-            <div id="swPanelHeader">
-                <strong>SYNERGY v${VERSION_INFO.version}</strong>
-                ${isAdmin ? ' <span style="color:#00ff00; font-size:12px;">(ADMIN)</span>' : ''}
-            </div>
+        const filteredAddons = sortedAddons.filter(addon => {
+            const showEnabled = activeCategories.enabled && addon.enabled;
+            const showDisabled = activeCategories.disabled && !addon.enabled;
+            const showFavorites = activeCategories.favorites && addon.favorite;
             
-            <div class="tab-container">
-                <button class="tablink active" data-tab="addons">Dodatki</button>
-                <button class="tablink" data-tab="license">Licencja</button>
-                <button class="tablink" data-tab="activate">Aktywuj</button>
-                <button class="tablink" data-tab="settings">Ustawienia</button>
-                <button class="tablink" data-tab="info">Info</button>
-            </div>
-
-            <div id="addons" class="tabcontent active">
-                <div class="sw-tab-content">
-                    <div class="search-container">
-                        <input type="text" class="search-input" id="searchAddons" placeholder="Wyszukaj dodatki...">
+            const categoryMatch = showEnabled || showDisabled || showFavorites;
+            
+            const searchMatch = searchQuery === '' || 
+                addon.name.toLowerCase().includes(searchQuery) || 
+                addon.description.toLowerCase().includes(searchQuery);
+            
+            return categoryMatch && searchMatch;
+        });
+        
+        if (filteredAddons.length > 0) {
+            filteredAddons.forEach(addon => {
+                const div = document.createElement('div');
+                div.className = 'addon';
+                div.dataset.id = addon.id;
+                
+                if (addon.locked) {
+                    div.classList.add('locked');
+                }
+                
+                div.innerHTML = `
+                    <div class="addon-header">
+                        <div class="addon-title">
+                            ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
+                            ${addon.name}
+                            ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
+                        </div>
+                        <div class="addon-description">${addon.description}</div>
                     </div>
-                    
-                    <div class="category-filters">
-                        <div class="category-filter-item">
-                            <div class="category-filter-label">
-                                <span>Włączone</span>
-                            </div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-enabled" checked>
-                                <span class="category-slider"></span>
+                    <div class="addon-controls">
+                        ${!addon.locked ? `
+                            <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}" title="${addon.favorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}">
+                                ★
+                            </button>
+                            <label class="addon-switch">
+                                <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
+                                <span class="addon-switch-slider"></span>
                             </label>
-                        </div>
-                        <div class="category-filter-item">
-                            <div class="category-filter-label">
-                                <span>Wyłączone</span>
-                            </div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-disabled" checked>
-                                <span class="category-slider"></span>
+                        ` : `
+                            <button class="favorite-btn" style="color:#666; cursor:default;" title="Wymaga aktywnej licencji">
+                                ★
+                            </button>
+                            <label class="addon-switch">
+                                <input type="checkbox" disabled>
+                                <span class="addon-switch-slider" style="background-color:#333;"></span>
                             </label>
-                        </div>
-                        <div class="category-filter-item">
-                            <div class="category-filter-label">
-                                <span>Ulubione</span>
-                            </div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-favorites" checked>
-                                <span class="category-slider"></span>
-                            </label>
-                        </div>
+                        `}
                     </div>
-                    
-                    <div class="addon-list" id="addon-list">
-                        <!-- Lista dodatków zostanie dodana dynamicznie -->
-                    </div>
-                    
-                    <div class="refresh-button-container">
-                        <button class="refresh-button" id="swRefreshButton">
-                            Odśwież Panel
-                        </button>
-                    </div>
-                    
-                    <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
-                </div>
-            </div>
+                `;
+                
+                listContainer.appendChild(div);
+            });
+        } else {
+            listContainer.innerHTML = '<div class="addon-list-empty">Brak dodatków spełniających kryteria wyszukiwania</div>';
+        }
+    }
 
-            <div id="license" class="tabcontent">
-                <div class="sw-tab-content">
-                    <div class="license-container">
-                        <div class="license-header">Status Licencji</div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">ID Konta:</span>
-                            <span id="swAccountId" class="license-status-value">Szukam ID konta...</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Status Licencji:</span>
-                            <span id="swLicenseStatus" class="license-status-invalid">Nieaktywna</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Ważna do:</span>
-                            <span id="swLicenseExpiry" class="license-status-value">-</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Pozostało dni:</span>
-                            <span id="swLicenseDaysLeft" class="license-status-value">-</span>
-                        </div>
-                        <div class="license-status-item">
-                            <span class="license-status-label">Połączenie:</span>
-                            <span id="swServerStatus" class="license-status-connected">Aktywne</span>
-                        </div>
-                    </div>
-                    
-                    <div class="license-info-container">
-                        <strong>ℹ️ Informacja:</strong>
-                        <p>
-                            Premium dodatki pojawią się automatycznie po uzyskaniu licencji.<br>
-                            System automatycznie sprawdza status co 5 minut.
-                        </p>
-                    </div>
-                    
-                    <div id="swLicenseMessage" class="license-message"></div>
-                </div>
-            </div>
+    function setupToggleDrag(toggleBtn) {
+        let isDragging = false;
+        let startX, startY;
+        let initialLeft, initialTop;
+        let clickCount = 0;
+        let clickTimer = null;
+        
+        let currentX = parseInt(toggleBtn.style.left) || 70;
+        let currentY = parseInt(toggleBtn.style.top) || 70;
+        
+        toggleBtn.style.left = currentX + 'px';
+        toggleBtn.style.top = currentY + 'px';
 
-            <div id="activate" class="tabcontent">
-                <div class="sw-tab-content">
-                    <div class="license-container">
-                        <div class="license-header">Aktywacja Licencji
+        toggleBtn.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = currentX;
+            initialTop = currentY;
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) {
+                isDragging = true;
+                toggleBtn.style.cursor = 'grabbing';
+                toggleBtn.classList.add('dragging');
+            }
+            
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            const newLeft = initialLeft + deltaX;
+            const newTop = initialTop + deltaY;
+            
+            const maxX = window.innerWidth - toggleBtn.offsetWidth;
+            const maxY = window.innerHeight - toggleBtn.offsetHeight;
+            
+            currentX = Math.max(0, Math.min(newLeft, maxX));
+            currentY = Math.max(0, Math.min(newTop, maxY));
+            
+            toggleBtn.style.left = currentX + 'px';
+            toggleBtn.style.top = currentY + 'px';
+        }
+
+        function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            if (isDragging) {
+                isDragging = false;
+                toggleBtn.style.cursor = 'grab';
+                toggleBtn.classList.remove('dragging');
+                toggleBtn.classList.add('saved');
+                
+                SW.GM_setValue(CONFIG.TOGGLE_BTN_POSITION, {
+                    left: currentX + 'px',
+                    top: currentY + 'px'
+                });
+                
+                setTimeout(() => {
+                    toggleBtn.classList.remove('saved');
+                }, 1500);
+            } else {
+                handleClick();
+            }
+        }
+
+        function handleClick() {
+            clickCount++;
+            
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 300);
+            } else if (clickCount === 2) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                togglePanel();
+            }
+        }
+
+        toggleBtn.addEventListener('click', handleClick);
+    }
+
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tablink');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const tabName = this.getAttribute('data-tab');
+                showTab(tabName);
+            });
+        });
+    }
+
+    function setupDrag() {
+        const header = document.getElementById('swPanelHeader');
+        const panel = document.getElementById('swAddonsPanel');
+        
+        if (!header || !panel) return;
+        
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        header.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            const rect = panel.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            panel.style.opacity = '0.9';
+            document.addEventListener('mousemove', onPanelDrag);
+            document.addEventListener('mouseup', stopPanelDrag);
+        });
+
+        function onPanelDrag(e) {
+            if (!isDragging) return;
+            panel.style.left = (e.clientX - offsetX) + 'px';
+            panel.style.top = (e.clientY - offsetY) + 'px';
+        }
+
+        function stopPanelDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            panel.style.opacity = '1';
+            
+            SW.GM_setValue(CONFIG.PANEL_POSITION, {
+                left: panel.style.left,
+                top: panel.style.top
+            });
+            
+            document.removeEventListener('mousemove', onPanelDrag);
+            document.removeEventListener('mouseup', stopPanelDrag);
+        }
+    }
+
+    function setupKeyboardShortcut() {
+        document.removeEventListener('keydown', handleKeyboardShortcut);
+        document.addEventListener('keydown', handleKeyboardShortcut);
+    }
+
+    function handleKeyboardShortcut(e) {
+        if (isShortcutInputFocused) return;
+        
+        const shortcutParts = customShortcut.split('+');
+        const hasCtrl = shortcutParts.includes('Ctrl');
+        const key = shortcutParts[shortcutParts.length - 1].toUpperCase();
+        
+        const ctrlMatch = hasCtrl ? e.ctrlKey : true;
+        const keyMatch = e.key.toUpperCase() === key;
+        
+        if (ctrlMatch && keyMatch) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const toggleBtn = document.getElementById('swPanelToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+                toggleBtn.click();
+            }
+        }
+    }
+
+    function setupShortcutInput() {
+        const shortcutInput = document.getElementById('shortcutInput');
+        const shortcutSetBtn = document.getElementById('shortcutSetBtn');
+        
+        if (!shortcutInput || !shortcutSetBtn) return;
+        
+        const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
+        customShortcut = savedShortcut;
+        shortcutInput.value = customShortcut;
+        
+        shortcutSetBtn.addEventListener('click', function() {
+            isShortcutInputFocused = true;
+            shortcutInput.style.borderColor = '#ff3300';
+            shortcutInput.style.boxShadow = '0 0 10px rgba(255, 51, 0, 0.5)';
+            shortcutInput.value = 'Wciśnij kombinację klawiszy...';
+            shortcutKeys = [];
+            
+            const keyDownHandler = function(e) {
+                if (e.repeat) return;
+                const key = e.key.toUpperCase();
+                
+                if (e.ctrlKey && !shortcutKeys.includes('Ctrl')) {
+                    shortcutKeys.push('Ctrl');
+                }
+                
+                if (key.length === 1 && /[A-Z0-9]/.test(key) && !shortcutKeys.includes(key)) {
+                    shortcutKeys.push(key);
+                }
+                
+                if (shortcutKeys.length > 0) {
+                    shortcutInput.value = shortcutKeys.join('+');
+                }
+            };
+            
+            const keyUpHandler = function(e) {
+                const key = e.key.toUpperCase();
+                
+                if (key.length === 1 && /[A-Z0-9]/.test(key)) {
+                    if (shortcutKeys.includes('Ctrl') && shortcutKeys.length >= 2) {
+                        customShortcut = shortcutKeys.join('+');
+                        shortcutInput.value = customShortcut;
+                        SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, customShortcut);
+                        setupKeyboardShortcut();
+                        
+                        document.removeEventListener('keydown', keyDownHandler);
+                        document.removeEventListener('keyup', keyUpHandler);
+                        isShortcutInputFocused = false;
+                        shortcutInput.style.borderColor = '#660000';
+                        shortcutInput.style.boxShadow = 'none';
+                        
+                        const messageEl = document.getElementById('swResetMessage');
+                        if (messageEl) {
+                            messageEl.textContent = `Skrót ustawiony na: ${customShortcut}`;
+                            messageEl.style.background = 'rgba(255, 51, 0, 0.1)';
+                            messageEl.style.color = '#ff3300';
+                            messageEl.style.border = '1px solid #ff3300';
+                            messageEl.style.display = 'block';
+                            
+                            setTimeout(() => {
+                                messageEl.style.display = 'none';
+                            }, 3000);
+                        }
+                    } else {
+                        shortcutInput.value = 'Musi zawierać Ctrl + klawisz';
+                        setTimeout(() => {
+                            shortcutInput.value = customShortcut;
+                            document.removeEventListener('keydown', keyDownHandler);
+                            document.removeEventListener('keyup', keyUpHandler);
+                            isShortcutInputFocused = false;
+                            shortcutInput.style.borderColor = '#660000';
+                            shortcutInput.style.boxShadow = 'none';
+                        }, 1500);
+                    }
+                }
+                
+                if (e.key === 'Escape') {
+                    shortcutInput.value = customShortcut;
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
+                    isShortcutInputFocused = false;
+                    shortcutInput.style.borderColor = '#660000';
+                    shortcutInput.style.boxShadow = 'none';
+                }
+            };
+            
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
+            
+            setTimeout(() => {
+                if (isShortcutInputFocused) {
+                    document.removeEventListener('keydown', keyDownHandler);
+                    document.removeEventListener('keyup', keyUpHandler);
+                    isShortcutInputFocused = false;
+                    shortcutInput.value = customShortcut;
+                    shortcutInput.style.borderColor = '#660000';
+                    shortcutInput.style.boxShadow = 'none';
+                }
+            }, 10000);
+        });
+    }
+
+    function setupEventListeners() {
+        // Rozmiar czcionki
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider && fontSizeValue) {
+            const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+            fontSizeSlider.value = savedSize;
+            fontSizeValue.textContent = savedSize + 'px';
+            
+            fontSizeSlider.addEventListener('input', function() {
+                const size = this.value;
+                fontSizeValue.textContent = size + 'px';
+                updatePanelFontSize(size);
+                SW.GM_setValue(CONFIG.FONT_SIZE, size);
+            });
+        }
+
+        // Przeźroczystość panelu
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            const savedOpacity = SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, '90');
+            opacitySlider.value = savedOpacity;
+            opacityValue.textContent = savedOpacity + '%';
+            
+            opacitySlider.addEventListener('input', function() {
+                const opacity = this.value;
+                opacityValue.textContent = opacity + '%';
+                updatePanelOpacity(opacity);
+                SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, opacity);
+            });
+        }
+
+        // Skrót klawiszowy
+        setupShortcutInput();
+
+        // Przycisk odśwież
+        const refreshBtn = document.getElementById('swRefreshButton');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                if (confirm('Czy na pewno chcesz odświeżyć stronę? Wszystkie niezapisane zmiany zostaną utracone.')) {
+                    location.reload();
+                }
+            });
+        }
+
+        // Resetowanie ustawień
+        const resetBtn = document.getElementById('swResetButton');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    resetAllSettings();
+                }
+            });
+        }
+
+        // Filtry kategorii
+        const filterEnabled = document.getElementById('filter-enabled');
+        const filterDisabled = document.getElementById('filter-disabled');
+        const filterFavorites = document.getElementById('filter-favorites');
+        
+        if (filterEnabled) {
+            filterEnabled.addEventListener('change', function() {
+                activeCategories.enabled = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+        
+        if (filterDisabled) {
+            filterDisabled.addEventListener('change', function() {
+                activeCategories.disabled = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+        
+        if (filterFavorites) {
+            filterFavorites.addEventListener('change', function() {
+                activeCategories.favorites = this.checked;
+                saveCategoriesState();
+                renderAddons();
+            });
+        }
+
+        // Wyszukiwarka
+        const searchInput = document.getElementById('searchAddons');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.toLowerCase();
+                renderAddons();
+            });
+        }
+
+        // Delegowane nasłuchiwanie dla dodatków
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('favorite-btn') || e.target.closest('.favorite-btn')) {
+                const btn = e.target.classList.contains('favorite-btn') ? e.target : e.target.closest('.favorite-btn');
+                const addonId = btn.dataset.id;
+                if (addonId) {
+                    toggleFavorite(addonId);
+                }
+            }
+            
+            if (e.target.type === 'checkbox' && e.target.closest('.addon-switch')) {
+                const checkbox = e.target;
+                const addonId = checkbox.dataset.id;
+                const isEnabled = checkbox.checked;
+                if (addonId) {
+                    toggleAddon(addonId, isEnabled);
+                }
+            }
+        });
+    }
+
+    function togglePanel() {
+        const panel = document.getElementById('swAddonsPanel');
+        if (panel) {
+            const isVisible = panel.style.display === 'block';
+            panel.style.display = isVisible ? 'none' : 'block';
+            SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+        }
+    }
+
+    function updatePanelFontSize(size) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        panel.style.cssText = panel.style.cssText.replace(/font-size:[^;]+;/g, '');
+        panel.style.setProperty('font-size', size + 'px', 'important');
+        
+        const allElements = panel.querySelectorAll('*');
+        allElements.forEach(element => {
+            element.style.cssText = element.style.cssText.replace(/font-size:[^;]+;/g, '');
+            element.style.setProperty('font-size', size + 'px', 'important');
+        });
+    }
+
+    function updatePanelOpacity(opacity) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        const opacityValue = opacity / 100;
+        panel.style.opacity = opacityValue;
+    }
+
+    function toggleFavorite(addonId) {
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        if (addonIndex === -1) return;
+        
+        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
+        
+        const favoriteIds = currentAddons
+            .filter(a => a.favorite)
+            .map(a => a.id);
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, favoriteIds);
+        
+        renderAddons();
+    }
+
+    function toggleAddon(addonId, isEnabled) {
+        const addon = currentAddons.find(a => a.id === addonId);
+        
+        if (!addon) return;
+        
+        if (addon.locked && isEnabled) {
+            const messageEl = document.getElementById('swAddonsMessage');
+            if (messageEl) {
+                messageEl.textContent = 'Ten dodatek wymaga aktywnej licencji premium!';
+                messageEl.className = 'license-message license-error';
+                messageEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
+            }
+            
+            const checkbox = document.querySelector(`[data-id="${addonId}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            
+            showLicenseMessage('Ten dodatek wymaga aktywnej licencji premium!', 'error');
+            return;
+        }
+        
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        currentAddons[addonIndex].enabled = isEnabled;
+        
+        saveAddonsState();
+        
+        if (addonId === 'kcs-icons') {
+            SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+            
+            const message = isEnabled ? 
+                'KCS Icons włączony. Odśwież grę, aby zmiana została zastosowana.' : 
+                'KCS Icons wyłączony. Odśwież grę, aby zmiana została zastosowana.';
+            
+            const messageEl = document.getElementById('swAddonsMessage');
+            if (messageEl) {
+                messageEl.textContent = message;
+                messageEl.className = 'license-message license-info';
+                messageEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        renderAddons();
+    }
+
+    function saveAddonsState() {
+        const addonsToSave = currentAddons.map(addon => ({
+            id: addon.id,
+            enabled: addon.enabled,
+            favorite: addon.favorite
+        }));
+        
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
+    }
+
+    function resetAllSettings() {
+        SW.GM_deleteValue(CONFIG.PANEL_POSITION);
+        SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
+        SW.GM_deleteValue(CONFIG.TOGGLE_BTN_POSITION);
+        SW.GM_deleteValue(CONFIG.FONT_SIZE);
+        SW.GM_deleteValue(CONFIG.BACKGROUND_OPACITY);
+        SW.GM_deleteValue(CONFIG.KCS_ICONS_ENABLED);
+        SW.GM_deleteValue(CONFIG.FAVORITE_ADDONS);
+        SW.GM_deleteValue(CONFIG.ACTIVE_CATEGORIES);
+        SW.GM_deleteValue(CONFIG.CUSTOM_SHORTCUT);
+        SW.GM_deleteValue(CONFIG.ACCOUNT_ID);
+        SW.GM_deleteValue(CONFIG.LICENSE_ACTIVE);
+        SW.GM_deleteValue(CONFIG.LICENSE_EXPIRY);
+        SW.GM_deleteValue(CONFIG.LICENSE_DATA);
+        SW.GM_deleteValue(CONFIG.ADMIN_ACCESS);
+        SW.GM_deleteValue(CONFIG.LICENSE_KEY);
+        
+        currentAddons = ADDONS.filter(addon => addon.type === 'free').map(addon => ({
+            ...addon,
+            enabled: false,
+            favorite: false,
+            locked: false
+        }));
+        
+        activeCategories = {
+            enabled: true,
+            disabled: true,
+            favorites: true
+        };
+        
+        customShortcut = 'Ctrl+A';
+        searchQuery = '';
+        userAccountId = null;
+        isLicenseVerified = false;
+        licenseData = null;
+        licenseExpiry = null;
+        isAdmin = false;
+        
+        const resetMessage = document.getElementById('swResetMessage');
+        if (resetMessage) {
+            resetMessage.textContent = 'Ustawienia zresetowane! Licencja usunięta.';
+            resetMessage.style.background = 'rgba(255, 102, 0, 0.1)';
+            resetMessage.style.color = '#ff6600';
+            resetMessage.style.border = '1px solid #ff6600';
+            resetMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                resetMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        loadSavedState();
+        updateFilterSwitches();
+        renderAddons();
+        updateAccountDisplay('Nie znaleziono');
+        updateLicenseDisplay();
+        
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider && fontSizeValue) {
+            fontSizeSlider.value = '12';
+            fontSizeValue.textContent = '12px';
+            updatePanelFontSize('12');
+        }
+        
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.value = '90';
+            opacityValue.textContent = '90%';
+            updatePanelOpacity('90');
+        }
+        
+        const shortcutInput = document.getElementById('shortcutInput');
+        if (shortcutInput) {
+            shortcutInput.value = 'Ctrl+A';
+        }
+        
+        const searchInput = document.getElementById('searchAddons');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        setupKeyboardShortcut();
+        setupShortcutInput();
+        
+        if (userAccountId) {
+            setTimeout(() => checkAndUpdateLicense(userAccountId), 1000);
+        }
+    }
+
+    function loadSavedState() {
+        if (!SW || !SW.GM_getValue) return;
+        
+        const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
+        const toggleBtn = document.getElementById('swPanelToggle');
+        if (toggleBtn && savedBtnPosition) {
+            toggleBtn.style.left = savedBtnPosition.left;
+            toggleBtn.style.top = savedBtnPosition.top;
+        } else if (toggleBtn) {
+            toggleBtn.style.left = '70px';
+            toggleBtn.style.top = '70px';
+        }
+        
+        const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
+        const panel = document.getElementById('swAddonsPanel');
+        if (panel && savedPosition) {
+            panel.style.left = savedPosition.left;
+            panel.style.top = savedPosition.top;
+        } else if (panel) {
+            panel.style.left = '70px';
+            panel.style.top = '140px';
+        }
+        
+        const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
+        if (panel) {
+            panel.style.display = isVisible ? 'block' : 'none';
+        }
+        
+        const savedSize = SW.GM_getValue(CONFIG.FONT_SIZE, '12');
+        updatePanelFontSize(savedSize);
+        
+        const savedOpacity = SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, '90');
+        updatePanelOpacity(savedOpacity);
+    }
+
+    function loadAddonsState() {
+        const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
+        const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, false);
+        
+        currentAddons = currentAddons.map(addon => ({
+            ...addon,
+            enabled: addon.id === 'kcs-icons' ? kcsEnabled : false,
+            favorite: favoriteIds.includes(addon.id)
+        });
+    }
+
+    function loadCategoriesState() {
+        const savedCategories = SW.GM_getValue(CONFIG.ACTIVE_CATEGORIES, {
+            enabled: true,
+            disabled: true,
+            favorites: true
+        });
+        
+        activeCategories = { ...savedCategories };
+    }
+
+    function saveCategoriesState() {
+        SW.GM_setValue(CONFIG.ACTIVE_CATEGORIES, activeCategories);
+    }
+
+    function updateFilterSwitches() {
+        const enabledFilter = document.getElementById('filter-enabled');
+        const disabledFilter = document.getElementById('filter-disabled');
+        const favoritesFilter = document.getElementById('filter-favorites');
+        
+        if (enabledFilter) enabledFilter.checked = activeCategories.enabled;
+        if (disabledFilter) disabledFilter.checked = activeCategories.disabled;
+        if (favoritesFilter) favoritesFilter.checked = activeCategories.favorites;
+    }
+
+    function loadSettings() {
+        customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
+    }
+
+    async function initPanel() {
+        console.log('✅ Initializing panel v3.0...');
+        
+        injectCSS();
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        loadCategoriesState();
+        loadSettings();
+        
+        createToggleButton();
+        createMainPanel();
+        
+        loadSavedState();
+        
+        const toggleBtn = document.getElementById('swPanelToggle');
+        if (toggleBtn) {
+            setupToggleDrag(toggleBtn);
+        }
+        
+        setupEventListeners();
+        setupTabs();
+        setupDrag();
+        setupKeyboardShortcut();
+        
+        panelInitialized = true;
+        
+        setTimeout(async () => {
+            await initAccountAndLicense();
+            
+            setInterval(() => {
+                if (userAccountId) {
+                    checkAndUpdateLicense(userAccountId);
+                }
+            }, 5 * 60 * 1000);
+        }, 1000);
+    }
+
+    // 🔹 Start panelu
+    console.log('🎯 Starting Synergy Panel v3.0...');
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded, initializing panel...');
+            initPanel();
+            console.log('✅ Synergy panel ready!');
+        });
+    } else {
+        console.log('✅ DOM already loaded, initializing panel...');
+        initPanel();
+        console.log('✅ Synergy panel ready!');
+    }
+})();
