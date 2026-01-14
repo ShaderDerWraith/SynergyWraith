@@ -1,4 +1,4 @@
-// synergy.js - Główny kod panelu Synergy (v3.0)
+// synergy.js - Główny kod panelu Synergy (v3.0 - Final)
 (function() {
     'use strict';
 
@@ -24,7 +24,7 @@
         LICENSE_KEY: "sw_license_key"
     };
 
-    // 🔹 Lista dostępnych dodatków (premium ukryte na start)
+    // 🔹 Lista dostępnych dodatków
     let ADDONS = [
         {
             id: 'kcs-icons',
@@ -99,22 +99,21 @@
         version: "3.0",
         releaseDate: "2024-01-18",
         patchNotes: [
-            "Premium dodatki ukryte od początku (brak migania)",
-            "Przycisk odśwież zawsze widoczny",
+            "Premium dodatki ukryte od początku",
             "Panel admina tylko dla wybranych ID",
             "Nowy system licencji z Cloudflare",
-            "Automatyczne sprawdzanie ważności",
-            "System aktywacji przez klucze"
+            "System aktywacji przez klucze",
+            "Automatyczne sprawdzanie ważności"
         ]
     };
 
     // 🔹 Backend URL - Cloudflare Worker
     const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
 
-    // ⭐⭐⭐ ZMIEŃ TUTAJ: wpisz swoje ID konta z gry (może być tablica wielu ID)
-    const ADMIN_ACCOUNT_IDS = ['TWÓJ_ID_KONTA'];
+    // ⭐⭐⭐ ZMIEŃ TUTAJ: wpisz swoje ID konta z gry
+    const ADMIN_ACCOUNT_IDS = ['TWÓJ_NUMER_ID_Z_GRY'];
 
-    // ⭐⭐⭐ ZMIEŃ TUTAJ: jeśli w Cloudflare Worker zmieniłeś ADMIN_TOKEN, to wpisz ten sam tutaj
+    // ⭐⭐⭐ ZMIEŃ TUTAJ: jeśli w Cloudflare zmieniłeś ADMIN_TOKEN
     const ADMIN_TOKEN = 'SYNERGY_ADMIN_2024_SECRET';
 
     // 🔹 Safe fallback
@@ -596,7 +595,7 @@
     animation: savePulse 1.5s ease-in-out;
 }
 
-/* 🔹 MAIN PANEL - OGNISTY STYL 🔹 */
+/* 🔹 MAIN PANEL 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
@@ -680,7 +679,7 @@
     flex-direction: column;
 }
 
-/* 🔹 TABS STYLES 🔹 */
+/* 🔹 TABS 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #330000, #1a0000);
@@ -1016,6 +1015,312 @@
     text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
+/* 🔹 SETTINGS TAB 🔹 */
+.settings-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.settings-item:hover {
+    border-color: #ff3300;
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+}
+
+.settings-label {
+    display: block;
+    color: #ffcc00;
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+/* 🔹 ROZMIAR CZCIONKI 🔹 */
+.font-size-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.font-size-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    background: #660000;
+    border-radius: 4px;
+    outline: none;
+    margin: 0 15px;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.font-size-value {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+/* 🔹 PRZEŹROCZYSTOŚĆ PANELU 🔹 */
+.opacity-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.opacity-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 8px;
+    background: linear-gradient(to right, rgba(255, 51, 0, 0.3), rgba(255, 51, 0, 0.9));
+    border-radius: 4px;
+    outline: none;
+    margin: 0 15px;
+}
+
+.opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #ff6600, #ff3300);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.opacity-slider::-webkit-slider-thumb:hover {
+    background: linear-gradient(135deg, #ff9900, #ff6600);
+    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.opacity-value {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+/* 🔹 SKRÓT KLAWISZOWY 🔹 */
+.shortcut-input-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.shortcut-input-label {
+    color: #ffcc00;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.shortcut-input {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(51, 0, 0, 0.8);
+    border: 1px solid #660000;
+    border-radius: 6px;
+    color: #ffcc00;
+    font-size: 13px;
+    text-align: center;
+    width: 120px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.shortcut-input:focus {
+    outline: none;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
+}
+
+.shortcut-set-btn {
+    padding: 10px 20px;
+    background: linear-gradient(to right, #660000, #990000);
+    border: 1px solid #ff3300;
+    color: #ffcc00;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.shortcut-set-btn:hover {
+    background: linear-gradient(to right, #990000, #cc0000);
+    color: #ffffff;
+}
+
+/* 🔹 PRZYCISK RESETUJ USTAWIENIA 🔹 */
+.reset-settings-container {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #660000;
+}
+
+.reset-settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 6px;
+    color: #ff3300;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover {
+    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+    border-color: #ff3300;
+    color: #ffcc00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
+}
+
+.reset-settings-button:active {
+    transform: translateY(0);
+}
+
+.reset-settings-icon {
+    color: #ff3300;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.reset-settings-button:hover .reset-settings-icon {
+    transform: rotate(180deg);
+    color: #ffcc00;
+}
+
+/* 🔹 INFO TAB 🔹 */
+.info-container {
+    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+    border: 1px solid #660000;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.info-header {
+    color: #ffcc00;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ff3300;
+    padding-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+}
+
+.info-patch-notes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-patch-notes li {
+    color: #ff9966;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-left: 0;
+    position: relative;
+    line-height: 1.5;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+}
+
+.info-patch-notes li:before {
+    content: "•";
+    color: #ff3300;
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0;
+    margin-top: 0;
+    display: inline-block;
+    line-height: 1.5;
+}
+
+.info-footer {
+    color: #ff9966;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #660000;
+    font-style: italic;
+}
+
+/* 🔹 LICENSE MESSAGE 🔹 */
+.license-message {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid;
+}
+
+.license-success {
+    background: rgba(0, 100, 0, 0.2);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.license-error {
+    background: rgba(100, 0, 0, 0.2);
+    color: #ff3300;
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
+}
+
+.license-info {
+    background: rgba(0, 50, 100, 0.2);
+    color: #00aaff;
+    border-color: #00aaff;
+    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+}
+
 /* 🔹 SEARCH BAR 🔹 */
 .search-container {
     margin-bottom: 15px;
@@ -1142,9 +1447,6 @@
     overflow-y: auto;
     margin-bottom: 15px;
     padding-right: 5px;
-}
-
-.addon-list {
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.8);
@@ -1248,6 +1550,12 @@
     vertical-align: middle;
 }
 
+#swLicenseDaysLeft {
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* 🔹 LICENSE INFO CONTAINER 🔹 */
 .license-info-container {
     text-align: center;
     margin: 15px 0;
@@ -1269,38 +1577,7 @@
     line-height: 1.4;
 }
 
-/* 🔹 LICENSE MESSAGE 🔹 */
-.license-message {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    text-align: center;
-    border: 1px solid;
-}
-
-.license-success {
-    background: rgba(0, 100, 0, 0.2);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.license-error {
-    background: rgba(100, 0, 0, 0.2);
-    color: #ff3300;
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
-}
-
-.license-info {
-    background: rgba(0, 50, 100, 0.2);
-    color: #00aaff;
-    border-color: #00aaff;
-    box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
-}
-
-/* 🔹 ADMIN SECTION 🔹 */
+/* 🔹 ADMIN SECTION - NIE WIDOCZNE DLA NORMALNYCH UŻYTKOWNIKÓW 🔹 */
 .admin-tab {
     display: none !important;
 }
@@ -1309,275 +1586,36 @@
     display: flex !important;
 }
 
-/* 🔹 SETTINGS STYLES 🔹 */
-.settings-item {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    transition: all 0.3s ease;
+.admin-panel {
+    background: linear-gradient(135deg, rgba(0, 51, 0, 0.8), rgba(0, 102, 0, 0.8)) !important;
+    border: 1px solid #00cc00 !important;
 }
 
-.settings-item:hover {
-    border-color: #ff3300;
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
+.admin-header {
+    color: #00ff00 !important;
+    border-bottom: 1px solid #00cc00 !important;
 }
 
-.settings-label {
-    display: block;
-    color: #ffcc00;
-    font-size: 13px;
-    margin-bottom: 10px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+.admin-button {
+    background: linear-gradient(to right, #006600, #008800) !important;
+    border: 1px solid #00cc00 !important;
+    color: #ffffff !important;
 }
 
-.font-size-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+.admin-button:hover {
+    background: linear-gradient(to right, #008800, #00aa00) !important;
+    border-color: #00ff00 !important;
 }
 
-.font-size-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    background: #660000;
-    border-radius: 4px;
-    outline: none;
-    margin: 0 15px;
+.admin-input {
+    background: rgba(0, 40, 0, 0.8) !important;
+    border: 1px solid #008800 !important;
+    color: #00ff00 !important;
 }
 
-.font-size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.font-size-slider::-webkit-slider-thumb:hover {
-    background: linear-gradient(135deg, #ff9900, #ff6600);
-    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.font-size-value {
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.opacity-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.opacity-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 8px;
-    background: linear-gradient(to right, rgba(255, 51, 0, 0.3), rgba(255, 51, 0, 0.9));
-    border-radius: 4px;
-    outline: none;
-    margin: 0 15px;
-}
-
-.opacity-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #ff6600, #ff3300);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
-    transition: all 0.3s ease;
-}
-
-.opacity-slider::-webkit-slider-thumb:hover {
-    background: linear-gradient(135deg, #ff9900, #ff6600);
-    box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-    transform: scale(1.1);
-}
-
-.opacity-value {
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.shortcut-input-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    padding: 0 10px;
-}
-
-.shortcut-input-label {
-    color: #ffcc00;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.shortcut-input {
-    flex: 1;
-    padding: 10px 15px;
-    background: rgba(51, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ffcc00;
-    font-size: 13px;
-    text-align: center;
-    width: 120px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.shortcut-input:focus {
-    outline: none;
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-.shortcut-set-btn {
-    padding: 10px 20px;
-    background: linear-gradient(to right, #660000, #990000);
-    border: 1px solid #ff3300;
-    color: #ffcc00;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.shortcut-set-btn:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-}
-
-.reset-settings-container {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid #660000;
-}
-
-.reset-settings-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    color: #ff3300;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover {
-    background: linear-gradient(135deg, rgba(102, 0, 0, 0.9), rgba(153, 0, 0, 0.9));
-    border-color: #ff3300;
-    color: #ffcc00;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
-}
-
-.reset-settings-button:active {
-    transform: translateY(0);
-}
-
-.reset-settings-icon {
-    color: #ff3300;
-    font-size: 16px;
-    transition: all 0.3s ease;
-}
-
-.reset-settings-button:hover .reset-settings-icon {
-    transform: rotate(180deg);
-    color: #ffcc00;
-}
-
-/* 🔹 INFO TAB 🔹 */
-.info-container {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 8px;
-    padding: 25px;
-}
-
-.info-header {
-    color: #ffcc00;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #ff3300;
-    padding-bottom: 10px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.info-patch-notes {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.info-patch-notes li {
-    color: #ff9966;
-    font-size: 13px;
-    margin-bottom: 10px;
-    padding-left: 0;
-    position: relative;
-    line-height: 1.5;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-}
-
-.info-patch-notes li:before {
-    content: "•";
-    color: #ff3300;
-    font-size: 18px;
-    font-weight: bold;
-    margin-right: 10px;
-    flex-shrink: 0;
-    margin-top: 0;
-    display: inline-block;
-    line-height: 1.5;
-}
-
-.info-footer {
-    color: #ff9966;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #660000;
-    font-style: italic;
+.admin-input:focus {
+    border-color: #00ff00 !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
 }
 
 /* 🔹 PANEL RESIZE HANDLE 🔹 */
@@ -1597,15 +1635,35 @@
 #swAddonsPanel:hover::after {
     opacity: 1;
 }
+
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
+@media (max-width: 700px) {
+    #swAddonsPanel {
+        width: 500px;
+        min-width: 500px;
+        left: 10px;
+    }
+    
+    .category-filters {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .category-filter-item {
+        width: 100%;
+    }
+    
+    .tablink {
+        padding: 10px 3px;
+        font-size: 11px;
+    }
+}
         `;
         document.head.appendChild(style);
         console.log('✅ CSS injected');
     }
 
-    // =========================================================================
-    // 🔹 TWORZENIE PANELU
-    // =========================================================================
-
+    // 🔹 Tworzenie przycisku przełączania
     function createToggleButton() {
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
@@ -1625,7 +1683,7 @@
         
         return toggleBtn;
     }
-
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1633,6 +1691,7 @@
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
         
+        // HTML panelu
         panel.innerHTML = `
             <div id="swPanelHeader">
                 <strong>SYNERGY v${VERSION_INFO.version}</strong>
@@ -1684,7 +1743,7 @@
                     </div>
                     
                     <div class="addon-list" id="addon-list">
-                        <!-- Lista dodatków zostanie dodana dynamicznie -->
+                        <!-- Lista dodatków będzie dodana dynamicznie -->
                     </div>
                     
                     <div class="refresh-button-container">
@@ -1955,10 +2014,7 @@
         console.log('✅ Admin tab added (visible only to you)');
     }
 
-    // =========================================================================
-    // 🔹 OBSŁUGA AKTYWACJI LICENCJI
-    // =========================================================================
-
+    // 🔹 Obsługa aktywacji licencji
     async function handleLicenseActivation() {
         const licenseKeyInput = document.getElementById('licenseKeyInput');
         const activateBtn = document.getElementById('activateLicenseBtn');
@@ -1977,6 +2033,7 @@
             return;
         }
         
+        // Zmień tekst przycisku
         activateBtn.textContent = 'Aktywuję...';
         activateBtn.disabled = true;
         activateBtn.style.opacity = '0.7';
@@ -1994,11 +2051,13 @@
                 resultDiv.style.color = '#00ff00';
                 resultDiv.style.border = '1px solid #00ff00';
                 
+                // Zapisz klucz
                 SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
                 
+                // Odśwież panel
                 setTimeout(() => {
                     checkAndUpdateLicense(userAccountId);
-                    showTab('addons');
+                    showTab('addons'); // Przełącz na zakładkę dodatków
                 }, 2000);
                 
             } else {
@@ -2021,10 +2080,7 @@
         }
     }
 
-    // =========================================================================
-    // 🔹 FUNKCJE ADMINA
-    // =========================================================================
-
+    // 🔹 Setup event listenerów dla admina
     function setupAdminEvents() {
         if (!isAdmin) return;
         
@@ -2200,10 +2256,6 @@
         }
     }
 
-    // =========================================================================
-    // 🔹 PODSTAWOWE FUNKCJE PANELU
-    // =========================================================================
-
     function showTab(tabName) {
         const tabs = document.querySelectorAll('.tablink');
         const tabContents = document.querySelectorAll('.tabcontent');
@@ -2222,6 +2274,7 @@
         }
     }
 
+    // 🔹 Renderowanie dodatków
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2297,6 +2350,7 @@
         }
     }
 
+    // 🔹 Obsługa przeciągania przycisku
     function setupToggleDrag(toggleBtn) {
         let isDragging = false;
         let startX, startY;
@@ -2387,6 +2441,7 @@
         toggleBtn.addEventListener('click', handleClick);
     }
 
+    // 🔹 Setup zakładek
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
         
@@ -2401,6 +2456,7 @@
         });
     }
 
+    // 🔹 Setup przeciągania panelu
     function setupDrag() {
         const header = document.getElementById('swPanelHeader');
         const panel = document.getElementById('swAddonsPanel');
@@ -2441,6 +2497,7 @@
         }
     }
 
+    // 🔹 Setup skrótu klawiszowego
     function setupKeyboardShortcut() {
         document.removeEventListener('keydown', handleKeyboardShortcut);
         document.addEventListener('keydown', handleKeyboardShortcut);
@@ -2468,6 +2525,7 @@
         }
     }
 
+    // 🔹 Ustawianie nowego skrótu klawiszowego
     function setupShortcutInput() {
         const shortcutInput = document.getElementById('shortcutInput');
         const shortcutSetBtn = document.getElementById('shortcutSetBtn');
@@ -2569,6 +2627,7 @@
         });
     }
 
+    // 🔹 Setup event listenerów
     function setupEventListeners() {
         // Rozmiar czcionki
         const fontSizeSlider = document.getElementById('fontSizeSlider');
@@ -2684,6 +2743,7 @@
         });
     }
 
+    // 🔹 Toggle panelu
     function togglePanel() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -2693,6 +2753,7 @@
         }
     }
 
+    // 🔹 Aktualizacja rozmiaru czcionki
     function updatePanelFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -2707,6 +2768,7 @@
         });
     }
 
+    // 🔹 Aktualizacja przeźroczystości panelu
     function updatePanelOpacity(opacity) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -2715,6 +2777,7 @@
         panel.style.opacity = opacityValue;
     }
 
+    // 🔹 Toggle ulubionych
     function toggleFavorite(addonId) {
         const addonIndex = currentAddons.findIndex(a => a.id === addonId);
         if (addonIndex === -1) return;
@@ -2729,6 +2792,7 @@
         renderAddons();
     }
 
+    // 🔹 Toggle dodatków
     function toggleAddon(addonId, isEnabled) {
         const addon = currentAddons.find(a => a.id === addonId);
         
@@ -2782,6 +2846,7 @@
         renderAddons();
     }
 
+    // 🔹 Zapisz stan dodatków
     function saveAddonsState() {
         const addonsToSave = currentAddons.map(addon => ({
             id: addon.id,
@@ -2792,6 +2857,7 @@
         SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
     }
 
+    // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         SW.GM_deleteValue(CONFIG.PANEL_POSITION);
         SW.GM_deleteValue(CONFIG.PANEL_VISIBLE);
@@ -2883,6 +2949,7 @@
         }
     }
 
+    // 🔹 Ładowanie zapisanego stanu
     function loadSavedState() {
         if (!SW || !SW.GM_getValue) return;
         
@@ -2918,17 +2985,25 @@
         updatePanelOpacity(savedOpacity);
     }
 
+    // 🔹 Ładowanie stanu dodatków
     function loadAddonsState() {
         const favoriteIds = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
         const kcsEnabled = SW.GM_getValue(CONFIG.KCS_ICONS_ENABLED, false);
         
-        currentAddons = currentAddons.map(addon => ({
-            ...addon,
-            enabled: addon.id === 'kcs-icons' ? kcsEnabled : false,
-            favorite: favoriteIds.includes(addon.id)
+        currentAddons = currentAddons.map(addon => {
+            const savedAddon = favoriteIds.find(a => a.id === addon.id);
+            if (savedAddon && !addon.locked) {
+                return {
+                    ...addon,
+                    enabled: savedAddon.enabled || false,
+                    favorite: savedAddon.favorite || false
+                };
+            }
+            return addon;
         });
     }
 
+    // 🔹 Ładowanie kategorii
     function loadCategoriesState() {
         const savedCategories = SW.GM_getValue(CONFIG.ACTIVE_CATEGORIES, {
             enabled: true,
@@ -2939,10 +3014,12 @@
         activeCategories = { ...savedCategories };
     }
 
+    // 🔹 Zapisywanie kategorii
     function saveCategoriesState() {
         SW.GM_setValue(CONFIG.ACTIVE_CATEGORIES, activeCategories);
     }
 
+    // 🔹 Update przełączników filtrów
     function updateFilterSwitches() {
         const enabledFilter = document.getElementById('filter-enabled');
         const disabledFilter = document.getElementById('filter-disabled');
@@ -2953,10 +3030,12 @@
         if (favoritesFilter) favoritesFilter.checked = activeCategories.favorites;
     }
 
+    // 🔹 Ładowanie ustawień
     function loadSettings() {
         customShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
     }
 
+    // 🔹 Główne funkcje panelu
     async function initPanel() {
         console.log('✅ Initializing panel v3.0...');
         
@@ -2984,9 +3063,11 @@
         
         panelInitialized = true;
         
+        // Inicjalizuj konto i licencję
         setTimeout(async () => {
             await initAccountAndLicense();
             
+            // Automatyczne odświeżanie statusu licencji co 5 minut
             setInterval(() => {
                 if (userAccountId) {
                     checkAndUpdateLicense(userAccountId);
