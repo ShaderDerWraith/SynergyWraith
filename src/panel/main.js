@@ -111,7 +111,7 @@
     const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
 
     // ⭐⭐⭐ ZMIEŃ TUTAJ: wpisz swoje ID konta z gry
-    const ADMIN_ACCOUNT_IDS = ['TWÓJ_NUMER_ID_Z_GRY'];
+    const ADMIN_ACCOUNT_IDS = ['7411461'];
 
     // ⭐⭐⭐ ZMIEŃ TUTAJ: jeśli w Cloudflare zmieniłeś ADMIN_TOKEN
     const ADMIN_TOKEN = 'SYNERGY_ADMIN_2024_SECRET';
