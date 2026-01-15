@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v3.1 - Complete Edition)
+// synergy.js - Główny kod panelu Synergy (v3.1.1 - Fixed Admin Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v3.1 (Complete Edition)');
+    console.log('🚀 Synergy Panel loaded - v3.1.1 (Fixed Admin Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -103,14 +103,14 @@
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "3.1",
+        version: "3.1.1",
         releaseDate: "2024-01-20",
         patchNotes: [
-            "Dodano zakładkę Skróty klawiszowe",
-            "Poprawiony panel administratora",
-            "Dodano ikonę widżetu",
-            "Naprawiono chwytak zmiany rozmiaru",
-            "Możliwość ustawiania własnych skrótów"
+            "NAPRAWIONE: Przyciski w zakładce dodatków",
+            "NAPRAWIONE: Panel administratora",
+            "Dodano datę ważności zamiast dni",
+            "Uproszczone zarządzanie kluczami",
+            "Dodano scroll w sekcji admin"
         ]
     };
 
@@ -414,7 +414,6 @@
             renderAddons();
         }
         
-        // Załaduj skróty dodatków
         loadAddonShortcuts();
     }
 
@@ -436,7 +435,6 @@
     function loadAddonShortcuts() {
         addonShortcuts = SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {});
         
-        // Domyślne skróty jeśli nie ma zapisanych
         ADDONS.forEach(addon => {
             if (addon.shortcut && !addonShortcuts[addon.id]) {
                 addonShortcuts[addon.id] = addon.shortcut;
@@ -498,7 +496,7 @@
     }
 
     // =========================================================================
-    // 🔹 CSS - PEŁNE STYLE Z CHWYTAKIEM I IKONĄ
+    // 🔹 CSS - Z POPRAWIONYMI PRZYCISKAMI I SCROLLEM
     // =========================================================================
 
     function injectCSS() {
@@ -584,7 +582,6 @@
                 resize: both;
             }
 
-            /* CHWYTAK DO ZMIANY ROZMIARU */
             #swAddonsPanel::after {
                 content: '';
                 position: absolute;
@@ -685,7 +682,7 @@
                 flex-direction: column;
             }
 
-            /* 🔹 ADDONS LIST 🔹 */
+            /* 🔹 ADDONS LIST - POPRAWIONE 🔹 */
             .addon {
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
@@ -743,6 +740,97 @@
                 align-items: center;
                 gap: 12px;
                 flex-shrink: 0;
+            }
+
+            /* 🔹 PRZYCISK ULUBIONYCH - POPRAWIONY 🔹 */
+            .favorite-btn {
+                background: transparent;
+                border: none;
+                font-size: 24px;
+                color: #666666;
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+                transition: all 0.3s ease;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+            }
+
+            .favorite-btn:hover {
+                color: #ff9900;
+                background: rgba(255, 153, 0, 0.1);
+            }
+
+            .favorite-btn.favorite {
+                color: #ffcc00;
+                text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+            }
+
+            .favorite-btn.favorite:hover {
+                color: #ff9900;
+            }
+
+            /* 🔹 PRZEŁĄCZNIK - POPRAWIONY 🔹 */
+            .addon-switch {
+                position: relative;
+                display: inline-block;
+                width: 50px;
+                height: 26px;
+            }
+
+            .addon-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .addon-switch-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #330000;
+                border: 1px solid #660000;
+                transition: .4s;
+                border-radius: 34px;
+            }
+
+            .addon-switch-slider:before {
+                position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 3px;
+                bottom: 2px;
+                background-color: #ff3300;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+            .addon-switch input:checked + .addon-switch-slider {
+                background-color: #006600;
+                border-color: #00cc00;
+            }
+
+            .addon-switch input:checked + .addon-switch-slider:before {
+                transform: translateX(23px);
+                background-color: #00ff00;
+            }
+
+            .addon-switch input:disabled + .addon-switch-slider {
+                background-color: #333333;
+                border-color: #666666;
+                cursor: not-allowed;
+            }
+
+            .addon-switch input:disabled + .addon-switch-slider:before {
+                background-color: #666666;
             }
 
             /* 🔹 SHORTCUTS TAB 🔹 */
@@ -968,7 +1056,7 @@
                 color: #ffffff;
             }
 
-            /* 🔹 INFO TAB - WYCZYSZCZONY 🔹 */
+            /* 🔹 INFO TAB 🔹 */
             .info-container {
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
@@ -1004,6 +1092,12 @@
                 opacity: 0.7;
             }
 
+            /* 🔹 ADMIN PANEL Z SCROLLEM 🔹 */
+            #admin .sw-tab-content {
+                height: calc(100% - 120px);
+                overflow-y: auto;
+            }
+
             /* 🔹 SCROLLBAR 🔹 */
             .sw-tab-content::-webkit-scrollbar {
                 width: 8px;
@@ -1022,9 +1116,74 @@
             .sw-tab-content::-webkit-scrollbar-thumb:hover {
                 background: linear-gradient(to bottom, #ff6600, #ff9900);
             }
+
+            /* 🔹 BADGE 🔹 */
+            .premium-badge {
+                display: inline-block;
+                background: linear-gradient(to right, #ff9900, #ffcc00);
+                color: #330000;
+                font-size: 10px;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-right: 6px;
+                text-shadow: none;
+            }
+
+            /* 🔹 MESSAGES 🔹 */
+            .license-message {
+                padding: 10px 15px;
+                border-radius: 6px;
+                margin: 10px 0;
+                font-size: 12px;
+                display: none;
+            }
+
+            .license-success {
+                background: rgba(0, 255, 0, 0.1);
+                border: 1px solid #00ff00;
+                color: #00ff00;
+            }
+
+            .license-error {
+                background: rgba(255, 51, 0, 0.1);
+                border: 1px solid #ff3300;
+                color: #ff3300;
+            }
+
+            .license-info {
+                background: rgba(255, 153, 0, 0.1);
+                border: 1px solid #ff9900;
+                color: #ff9900;
+            }
+
+            /* 🔹 BUTTONS 🔹 */
+            .refresh-button-container {
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #660000;
+            }
+
+            .refresh-button {
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, #660000, #990000);
+                border: 1px solid #ff3300;
+                border-radius: 6px;
+                color: #ffcc00;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 13px;
+                transition: all 0.3s ease;
+            }
+
+            .refresh-button:hover {
+                background: linear-gradient(135deg, #990000, #cc0000);
+                color: #ffffff;
+            }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected with resize handle and icon');
+        console.log('✅ CSS injected with all fixes');
     }
 
     // 🔹 Tworzenie przycisku przełączania Z IKONĄ
@@ -1036,7 +1195,6 @@
         toggleBtn.id = "swPanelToggle";
         toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
         
-        // Użyj ikony z GitHub
         const iconUrl = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg';
         toggleBtn.innerHTML = `<img src="${iconUrl}" alt="Synergy" onerror="this.style.display='none'; this.parentNode.innerHTML='S';" />`;
         
@@ -1054,7 +1212,6 @@
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
         
-        // HTML panelu z WSZYSTKIMI zakładkami
         panel.innerHTML = `
             <div id="swPanelHeader">
                 <strong>SYNERGY v${VERSION_INFO.version}</strong>
@@ -1075,31 +1232,9 @@
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div class="search-container">
-                        <input type="text" class="search-input" id="searchAddons" placeholder="Wyszukaj dodatki...">
-                    </div>
-                    
-                    <div class="category-filters">
-                        <div class="category-filter-item">
-                            <div class="category-filter-label"><span>Włączone</span></div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-enabled" checked>
-                                <span class="category-slider"></span>
-                            </label>
-                        </div>
-                        <div class="category-filter-item">
-                            <div class="category-filter-label"><span>Wyłączone</span></div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-disabled" checked>
-                                <span class="category-slider"></span>
-                            </label>
-                        </div>
-                        <div class="category-filter-item">
-                            <div class="category-filter-label"><span>Ulubione</span></div>
-                            <label class="category-switch">
-                                <input type="checkbox" id="filter-favorites" checked>
-                                <span class="category-slider"></span>
-                            </label>
-                        </div>
+                        <input type="text" class="search-input" id="searchAddons" placeholder="Wyszukaj dodatki..." 
+                               style="width:100%; padding:10px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
+                                      border-radius:6px; color:#ffcc00; margin-bottom:15px;">
                     </div>
                     
                     <div class="addon-list" id="addon-list">
@@ -1242,22 +1377,26 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA INFO - WYCZYSZCZONA -->
+            <!-- ZAKŁADKA INFO -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="info-container">
                         <div class="info-header">Informacje o panelu</div>
                         <div class="info-content">
-                            <div class="info-placeholder">
-                                Tutaj pojawią się informacje o aktualizacjach i ważne komunikaty.<br>
-                                Wersja panelu: ${VERSION_INFO.version}
+                            <div style="text-align: left;">
+                                <h3 style="color:#ffcc00; margin-top:0;">Wersja ${VERSION_INFO.version}</h3>
+                                <p style="color:#ff9966;">Data wydania: ${VERSION_INFO.releaseDate}</p>
+                                <h4 style="color:#ffcc00;">Co nowego:</h4>
+                                <ul style="color:#ff9966; padding-left:20px;">
+                                    ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ZAKŁADKA ADMIN -->
+            <!-- ZAKŁADKA ADMIN - POPRAWIONA -->
             <div id="admin" class="tabcontent">
                 <div class="sw-tab-content">
                     <div style="background:linear-gradient(135deg, rgba(0,51,0,0.8), rgba(0,102,0,0.8)); border:1px solid #00cc00; border-radius:8px; padding:20px; margin-bottom:20px;">
@@ -1273,24 +1412,22 @@
                         <h3 style="color:#00ff00; margin-top:0; margin-bottom:15px;">➕ Stwórz Nową Licencję</h3>
                         
                         <div style="margin-bottom:15px;">
-                            <label style="display:block; color:#00cc00; font-size:12px; margin-bottom:5px;">Typ licencji:</label>
-                            <select id="adminLicenseType" style="width:100%; padding:8px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;">
-                                <option value="premium">Premium (30 dni)</option>
-                                <option value="trial">Trial (7 dni)</option>
-                                <option value="lifetime">Lifetime</option>
-                            </select>
+                            <label style="display:block; color:#00cc00; font-size:12px; margin-bottom:5px;">Data ważności:</label>
+                            <input type="date" id="adminLicenseExpiry" 
+                                   style="width:100%; padding:10px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;">
                         </div>
                         
                         <div style="margin-bottom:15px;">
-                            <label style="display:block; color:#00cc00; font-size:12px; margin-bottom:5px;">Czas trwania (dni):</label>
-                            <input type="number" id="adminLicenseDays" value="30" min="1" max="365" 
-                                   style="width:100%; padding:8px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;">
+                            <label style="display:block; color:#00cc00; font-size:12px; margin-bottom:5px;">Dodatki premium (oddzielone przecinkiem):</label>
+                            <input type="text" id="adminLicenseAddons" placeholder="auto-looter, quest-helper, combat-log"
+                                   style="width:100%; padding:10px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;"
+                                   value="all">
                         </div>
                         
                         <div style="margin-bottom:20px;">
                             <label style="display:block; color:#00cc00; font-size:12px; margin-bottom:5px;">Notatka (opcjonalnie):</label>
                             <input type="text" id="adminLicenseNote" placeholder="np. Dla gracza XYZ"
-                                   style="width:100%; padding:8px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;">
+                                   style="width:100%; padding:10px; background:rgba(0,40,0,0.8); border:1px solid #008800; color:#00ff00; border-radius:4px;">
                         </div>
                         
                         <button id="adminCreateLicenseBtn" 
@@ -1301,7 +1438,6 @@
                         </button>
                     </div>
                     
-                    <!-- WYGENEROWANY KLUCZ (BĘDZIE WIDOCZNY) -->
                     <div id="adminCreatedLicense" style="display:none; padding:20px; background:rgba(0,60,0,0.5); 
                                                           border-radius:8px; border:2px solid #00ff00; margin-bottom:20px;">
                         <div style="color:#00ff00; font-size:14px; font-weight:bold; margin-bottom:10px; text-align:center;">
@@ -1315,37 +1451,38 @@
                         </div>
                     </div>
                     
-                    <!-- PRZYCISKI ZARZĄDZANIA -->
-                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="margin-bottom:15px;">
                         <button id="adminListLicensesBtn" 
-                                style="flex:1; padding:10px; background:linear-gradient(to right, #006600, #008800); 
-                                       border:1px solid #00cc00; border-radius:6px; color:#ffffff; cursor:pointer;">
-                            📋 Pokaż Wszystkie Klucze
-                        </button>
-                        <button id="adminListActiveBtn" 
-                                style="flex:1; padding:10px; background:linear-gradient(to right, #006666, #008888); 
-                                       border:1px solid #00cccc; border-radius:6px; color:#ffffff; cursor:pointer;">
-                            👤 Pokaż Aktywne Licencje
+                                style="width:100%; padding:12px; background:linear-gradient(to right, #006666, #008888); 
+                                       border:1px solid #00cccc; border-radius:6px; color:#ffffff; cursor:pointer;
+                                       font-weight:bold; font-size:14px;">
+                            📋 Pokaż Wszystkie Klucze Licencji
                         </button>
                     </div>
                     
-                    <!-- KONTENER NA LICENCJE -->
-                    <div id="adminLicensesContainer" style="max-height:300px; overflow-y:auto; 
+                    <div id="adminLicensesContainer" style="max-height:350px; overflow-y:auto; 
                                                              background:rgba(0,30,0,0.5); border-radius:5px; padding:10px; 
                                                              font-size:11px; display:none; border:1px solid #00aa00;">
                         <!-- Lista licencji pojawi się tutaj -->
                     </div>
                     
-                    <div id="adminMessage" class="license-message" style="display:none;"></div>
+                    <div id="adminMessage" class="license-message" style="display:none; margin-top:15px;"></div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created with all features');
+        console.log('✅ Panel created with fixed admin section');
         
-        // Inicjalizuj event listenery
         initializeEventListeners();
+        
+        // Ustaw domyślną datę na 30 dni do przodu
+        const expiryInput = document.getElementById('adminLicenseExpiry');
+        if (expiryInput) {
+            const defaultExpiry = new Date();
+            defaultExpiry.setDate(defaultExpiry.getDate() + 30);
+            expiryInput.value = defaultExpiry.toISOString().split('T')[0];
+        }
     }
 
     // 🔹 Renderowanie listy skrótów
@@ -1355,7 +1492,6 @@
         
         container.innerHTML = '';
         
-        // Filtruj dodatki które mają skróty lub mogą mieć
         const addonsWithShortcuts = currentAddons.filter(addon => 
             addon.shortcut || addon.id in addonShortcuts || !addon.locked
         );
@@ -1398,7 +1534,6 @@
             container.appendChild(item);
         });
         
-        // Dodaj event listenery
         document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
@@ -1432,19 +1567,16 @@
             e.preventDefault();
             e.stopPropagation();
             
-            // Zbierz klawisze
             const keyParts = [];
             if (e.ctrlKey) keyParts.push('Ctrl');
             if (e.shiftKey) keyParts.push('Shift');
             if (e.altKey) keyParts.push('Alt');
             
-            // Dodaj główny klawisz (pomijamy modyfikatory)
             const mainKey = e.key.toUpperCase();
             if (!['CONTROL', 'SHIFT', 'ALT', 'META'].includes(mainKey)) {
                 keyParts.push(mainKey);
             }
             
-            // Aktualizuj display
             const shortcut = keyParts.join('+');
             display.textContent = shortcut;
             keys = keyParts;
@@ -1453,13 +1585,11 @@
         const keyUpHandler = (e) => {
             if (!isSetting) return;
             
-            // Zakończ po puszczeniu klawiszy
-            if (keys.length >= 2) { // Minimum 2 klawisze (np. Ctrl+A)
+            if (keys.length >= 2) {
                 isSetting = false;
                 document.removeEventListener('keydown', keyDownHandler);
                 document.removeEventListener('keyup', keyUpHandler);
                 
-                // Zapisz skrót
                 const shortcut = keys.join('+');
                 addonShortcuts[addonId] = shortcut;
                 saveAddonShortcuts();
@@ -1468,10 +1598,8 @@
                 display.style.color = '#00ff00';
                 display.style.borderColor = '#00cc00';
                 
-                // Pokaż komunikat
                 showShortcutMessage(`Skrót ustawiony: ${shortcut}`, 'success');
                 
-                // Przywróć kolory po 2 sekundach
                 setTimeout(() => {
                     display.style.color = '#ffcc00';
                     display.style.borderColor = '#660000';
@@ -1479,7 +1607,6 @@
             }
         };
         
-        // Esc anuluje
         const escapeHandler = (e) => {
             if (e.key === 'Escape') {
                 isSetting = false;
@@ -1498,7 +1625,6 @@
         document.addEventListener('keyup', keyUpHandler);
         document.addEventListener('keydown', escapeHandler);
         
-        // Timeout po 10 sekundach
         setTimeout(() => {
             if (isSetting) {
                 isSetting = false;
@@ -1547,7 +1673,6 @@
         
         if (!input || !setBtn) return;
         
-        // Załaduj zapisany skrót
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         panelShortcut = savedShortcut;
         input.value = panelShortcut;
@@ -1596,7 +1721,6 @@
                     input.style.borderColor = '#00cc00';
                     input.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.3)';
                     
-                    // Pokaż komunikat
                     const messageEl = document.getElementById('swResetMessage');
                     if (messageEl) {
                         messageEl.textContent = `Skrót panelu ustawiony: ${panelShortcut}`;
@@ -1607,7 +1731,6 @@
                         setTimeout(() => messageEl.style.display = 'none', 3000);
                     }
                     
-                    // Przywróć styl
                     setTimeout(() => {
                         input.style.borderColor = '#660000';
                         input.style.boxShadow = 'none';
@@ -1632,7 +1755,6 @@
             document.addEventListener('keyup', keyUpHandler);
             document.addEventListener('keydown', escapeHandler);
             
-            // Timeout
             setTimeout(() => {
                 if (isSetting) {
                     isSetting = false;
@@ -1651,7 +1773,6 @@
     // 🔹 Obsługa skrótów klawiszowych
     function setupGlobalShortcuts() {
         document.addEventListener('keydown', (e) => {
-            // Skrót do panelu
             const panelShortcutParts = panelShortcut.split('+');
             const hasCtrl = panelShortcutParts.includes('Ctrl');
             const hasShift = panelShortcutParts.includes('Shift');
@@ -1669,7 +1790,6 @@
                 return;
             }
             
-            // Skróty do dodatków
             Object.keys(addonShortcuts).forEach(addonId => {
                 const shortcut = addonShortcuts[addonId];
                 if (!shortcut) return;
@@ -1699,13 +1819,11 @@
 
     // 🔹 Inicjalizacja event listenerów
     function initializeEventListeners() {
-        // Aktywacja licencji
         const activateBtn = document.getElementById('activateLicenseBtn');
         if (activateBtn) {
             activateBtn.addEventListener('click', handleLicenseActivation);
         }
         
-        // Przycisk odśwież
         const refreshBtn = document.getElementById('swRefreshButton');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', () => {
@@ -1713,7 +1831,6 @@
             });
         }
         
-        // Reset ustawień
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
@@ -1721,19 +1838,10 @@
             });
         }
         
-        // Skrót panelu
         setupPanelShortcutInput();
-        
-        // Admin events
         setupAdminEvents();
-        
-        // Setup zakładek
         setupTabs();
-        
-        // Setup przeciągania
         setupDrag();
-        
-        // Globalne skróty
         setupGlobalShortcuts();
     }
 
@@ -1746,7 +1854,6 @@
                 const tabName = this.getAttribute('data-tab');
                 showTab(tabName);
                 
-                // Jeśli to zakładka skrótów, odśwież listę
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
                 }
@@ -1837,7 +1944,7 @@
         }
     }
 
-    // 🔹 Setup event listenerów dla admina
+    // 🔹 Setup event listenerów dla admina - POPRAWIONY
     function setupAdminEvents() {
         if (!isAdmin) return;
         
@@ -1845,9 +1952,14 @@
         const createBtn = document.getElementById('adminCreateLicenseBtn');
         if (createBtn) {
             createBtn.addEventListener('click', async function() {
-                const type = document.getElementById('adminLicenseType').value;
-                const days = parseInt(document.getElementById('adminLicenseDays').value) || 30;
+                const expiry = document.getElementById('adminLicenseExpiry').value;
+                const addons = document.getElementById('adminLicenseAddons').value.trim();
                 const note = document.getElementById('adminLicenseNote').value.trim();
+                
+                if (!expiry) {
+                    showAdminMessage('Wybierz datę ważności!', 'error');
+                    return;
+                }
                 
                 const btn = this;
                 const originalText = btn.textContent;
@@ -1861,27 +1973,42 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${ADMIN_TOKEN}`
                         },
-                        body: JSON.stringify({ type: type, days: days, note: note })
+                        body: JSON.stringify({ 
+                            expiry: expiry, 
+                            addons: addons.split(',').map(a => a.trim()).filter(a => a),
+                            note: note || 'Brak notatki'
+                        })
                     });
                     
                     const result = await response.json();
                     
-                    if (result.success) {
+                    if (result.success && result.license) {
                         const displayDiv = document.getElementById('adminCreatedLicense');
                         const keyDisplay = document.getElementById('adminLicenseKeyDisplay');
                         
                         keyDisplay.textContent = result.license.key;
                         displayDiv.style.display = 'block';
                         
-                        // Przewiń do wygenerowanego klucza
                         displayDiv.scrollIntoView({ behavior: 'smooth' });
                         
-                        showAdminMessage(`✅ Klucz wygenerowany!`, 'success');
+                        showAdminMessage(`✅ Klucz wygenerowany pomyślnie! Ważny do: ${new Date(expiry).toLocaleDateString('pl-PL')}`, 'success');
+                        
+                        // Czyść pola
+                        document.getElementById('adminLicenseNote').value = '';
+                        
+                        // Automatycznie odśwież listę kluczy po 1 sekundzie
+                        setTimeout(() => {
+                            if (document.getElementById('adminLicensesContainer').style.display === 'block') {
+                                adminListLicensesBtn.click();
+                            }
+                        }, 1000);
+                        
                     } else {
-                        showAdminMessage(`❌ Błąd: ${result.message}`, 'error');
+                        showAdminMessage(`❌ Błąd: ${result.message || 'Nieznany błąd'}`, 'error');
                     }
                 } catch (error) {
-                    showAdminMessage(`❌ Błąd: ${error.message}`, 'error');
+                    console.error('Admin create error:', error);
+                    showAdminMessage(`❌ Błąd serwera: ${error.message}`, 'error');
                 } finally {
                     btn.textContent = originalText;
                     btn.disabled = false;
@@ -1889,12 +2016,12 @@
             });
         }
         
-        // Pokaż wszystkie klucze
-        const listBtn = document.getElementById('adminListLicensesBtn');
-        if (listBtn) {
-            listBtn.addEventListener('click', async function() {
+        // Pokaż wszystkie klucze licencji
+        const adminListLicensesBtn = document.getElementById('adminListLicensesBtn');
+        if (adminListLicensesBtn) {
+            adminListLicensesBtn.addEventListener('click', async function() {
                 const container = document.getElementById('adminLicensesContainer');
-                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:20px;">Ładowanie...</div>';
+                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:20px;">Ładowanie kluczy...</div>';
                 container.style.display = 'block';
                 
                 try {
@@ -1907,99 +2034,54 @@
                     
                     const result = await response.json();
                     
-                    if (result.success) {
+                    if (result.success && result.licenses) {
                         let html = `
                             <div style="color:#00ff00; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #00aa00; padding-bottom:5px;">
-                                Klucze licencji (${result.totalKeys}):
+                                Wszystkie klucze licencji (${result.licenses.length}):
                             </div>
                         `;
                         
-                        if (result.licenses && result.licenses.length > 0) {
+                        if (result.licenses.length > 0) {
+                            // Sortuj po dacie ważności (najpóźniejsze najpierw)
+                            result.licenses.sort((a, b) => new Date(b.expiry) - new Date(a.expiry));
+                            
                             result.licenses.forEach(license => {
                                 const expiry = new Date(license.expiry);
                                 const now = new Date();
-                                const isActive = !license.used && expiry > now;
+                                const isExpired = expiry < now;
+                                const isUsed = license.used || false;
+                                const isActive = !isExpired && !isUsed;
                                 
                                 html += `
-                                    <div style="padding:10px; margin-bottom:8px; background:rgba(0,40,0,0.3); border-radius:4px; border:1px solid ${isActive ? '#00aa00' : '#666666'};">
+                                    <div style="padding:10px; margin-bottom:8px; background:rgba(0,40,0,0.3); border-radius:4px; border:1px solid ${isActive ? '#00aa00' : (isUsed ? '#ffaa00' : '#aa0000')};">
                                         <div><strong style="color:#00ff00;">Klucz:</strong> ${license.key}</div>
-                                        <div><strong style="color:#00ccff;">Typ:</strong> ${license.type} | <strong>Dni:</strong> ${Math.ceil((expiry - now) / (1000*60*60*24))}</div>
+                                        <div><strong style="color:#00ccff;">Ważny do:</strong> ${expiry.toLocaleDateString('pl-PL')} ${isExpired ? '<span style="color:#ff3300;">(WYGASŁ)</span>' : ''}</div>
                                         <div><strong style="color:#00cc99;">Status:</strong> 
-                                            <span style="color:${isActive ? '#00ff00' : '#ff6666'}">
-                                                ${isActive ? 'AKTYWNY' : (license.used ? 'UŻYTY' : 'WYGASŁY')}
+                                            <span style="color:${isActive ? '#00ff00' : (isUsed ? '#ff9900' : '#ff3300')}">
+                                                ${isActive ? 'AKTYWNY' : (isUsed ? 'UŻYTY' : 'WYGASŁY')}
                                             </span>
                                         </div>
+                                        <div><strong>Dodatki:</strong> ${license.addons?.join(', ') || 'all'}</div>
                                         ${license.note ? `<div><strong>Notatka:</strong> ${license.note}</div>` : ''}
                                         ${license.usedBy ? `<div><strong>Użyty przez:</strong> ${license.usedBy}</div>` : ''}
+                                        ${license.activatedAt ? `<div><strong>Aktywowano:</strong> ${new Date(license.activatedAt).toLocaleDateString('pl-PL')}</div>` : ''}
                                     </div>
                                 `;
                             });
                         } else {
-                            html += '<div style="color:#00aa99; text-align:center; padding:20px;">Brak kluczy</div>';
+                            html += '<div style="color:#00aa99; text-align:center; padding:20px;">Brak kluczy w bazie danych</div>';
                         }
                         
                         container.innerHTML = html;
-                        showAdminMessage(`Załadowano ${result.totalKeys} kluczy`, 'success');
+                        showAdminMessage(`Załadowano ${result.licenses.length} kluczy`, 'success');
                     } else {
-                        container.innerHTML = '<div style="color:#ff6666; text-align:center; padding:20px;">Błąd ładowania</div>';
+                        container.innerHTML = '<div style="color:#ff6666; text-align:center; padding:20px;">Błąd ładowania kluczy</div>';
+                        showAdminMessage('Błąd podczas ładowania kluczy', 'error');
                     }
                 } catch (error) {
+                    console.error('Admin list error:', error);
                     container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">Błąd: ${error.message}</div>`;
-                }
-            });
-        }
-        
-        // Pokaż aktywne licencje
-        const activeBtn = document.getElementById('adminListActiveBtn');
-        if (activeBtn) {
-            activeBtn.addEventListener('click', async function() {
-                const container = document.getElementById('adminLicensesContainer');
-                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:20px;">Ładowanie...</div>';
-                container.style.display = 'block';
-                
-                try {
-                    const response = await fetch(`${BACKEND_URL}/api/admin/licenses`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${ADMIN_TOKEN}`
-                        }
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        let html = `
-                            <div style="color:#00ff00; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #00aa00; padding-bottom:5px;">
-                                Aktywne licencje (${result.totalActive}):
-                            </div>
-                        `;
-                        
-                        if (result.activeLicenses && result.activeLicenses.length > 0) {
-                            result.activeLicenses.forEach(license => {
-                                const expiry = new Date(license.expiry);
-                                const now = new Date();
-                                const daysLeft = Math.ceil((expiry - now) / (1000*60*60*24));
-                                
-                                html += `
-                                    <div style="padding:10px; margin-bottom:8px; background:rgba(0,40,0,0.3); border-radius:4px; border:1px solid #00aa00;">
-                                        <div><strong style="color:#00ff00;">Konto:</strong> ${license.accountId}</div>
-                                        <div><strong style="color:#00ccff;">Ważna do:</strong> ${expiry.toLocaleDateString('pl-PL')} (${daysLeft} dni)</div>
-                                        <div><strong style="color:#00cc99;">Dodatki:</strong> ${license.addons.join(', ')}</div>
-                                        <div><strong>Aktywowana:</strong> ${new Date(license.activatedAt).toLocaleDateString('pl-PL')}</div>
-                                    </div>
-                                `;
-                            });
-                        } else {
-                            html += '<div style="color:#00aa99; text-align:center; padding:20px;">Brak aktywnych licencji</div>';
-                        }
-                        
-                        container.innerHTML = html;
-                        showAdminMessage(`Załadowano ${result.totalActive} aktywnych licencji`, 'success');
-                    } else {
-                        container.innerHTML = '<div style="color:#ff6666; text-align:center; padding:20px;">Błąd ładowania</div>';
-                    }
-                } catch (error) {
-                    container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">Błąd: ${error.message}</div>`;
+                    showAdminMessage(`Błąd połączenia: ${error.message}`, 'error');
                 }
             });
         }
@@ -2015,7 +2097,7 @@
         }
     }
 
-    // 🔹 Renderowanie dodatków
+    // 🔹 Renderowanie dodatków - POPRAWIONE
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2023,13 +2105,13 @@
         listContainer.innerHTML = '';
         
         if (currentAddons.length === 0) {
-            listContainer.innerHTML = '<div class="addon-list-empty">Brak dostępnych dodatków</div>';
+            listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#ff9966; font-style:italic;">Brak dostępnych dodatków</div>';
             return;
         }
         
         currentAddons.forEach(addon => {
             const div = document.createElement('div');
-            div.className = 'addon' + (addon.locked ? ' locked' : '');
+            div.className = 'addon';
             div.dataset.id = addon.id;
             
             div.innerHTML = `
@@ -2040,36 +2122,38 @@
                         ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
                     </div>
                     <div class="addon-description">${addon.description}</div>
+                    <div style="color:#ff9966; font-size:10px; margin-top:3px;">
+                        Autor: ${addon.author} | Wersja: ${addon.version}
+                    </div>
                 </div>
                 <div class="addon-controls">
-                    ${!addon.locked ? `
-                        <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" data-id="${addon.id}">
-                            ★
-                        </button>
-                        <label class="addon-switch">
-                            <input type="checkbox" ${addon.enabled ? 'checked' : ''} data-id="${addon.id}">
-                            <span class="addon-switch-slider"></span>
-                        </label>
-                    ` : `
-                        <button class="favorite-btn" style="color:#666; cursor:default;">★</button>
-                        <label class="addon-switch">
-                            <input type="checkbox" disabled>
-                            <span class="addon-switch-slider" style="background-color:#333;"></span>
-                        </label>
-                    `}
+                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
+                            data-id="${addon.id}"
+                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}">
+                        ★
+                    </button>
+                    <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
+                        <input type="checkbox" 
+                               ${addon.enabled ? 'checked' : ''} 
+                               ${addon.locked ? 'disabled' : ''}
+                               data-id="${addon.id}">
+                        <span class="addon-switch-slider"></span>
+                    </label>
                 </div>
             `;
             
             listContainer.appendChild(div);
         });
         
-        // Event listenery
+        // Event listenery dla przycisków
         document.querySelectorAll('.favorite-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const addonId = this.dataset.id;
-                if (addonId) toggleFavorite(addonId);
-            });
+            if (!btn.disabled) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const addonId = this.dataset.id;
+                    if (addonId) toggleFavorite(addonId);
+                });
+            }
         });
         
         document.querySelectorAll('.addon-switch input').forEach(checkbox => {
@@ -2100,6 +2184,15 @@
         
         if (addonId === 'kcs-icons') {
             SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+        }
+        
+        // Pokaż komunikat
+        const messageEl = document.getElementById('swAddonsMessage');
+        if (messageEl) {
+            messageEl.textContent = `${addon.name} ${isEnabled ? 'włączony' : 'wyłączony'}`;
+            messageEl.className = 'license-message license-success';
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
         }
     }
 
@@ -2248,12 +2341,12 @@
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
-            resetMessage.textContent = 'Wszystkie ustawienia zresetowane!';
+            resetMessage.textContent = 'Wszystkie ustawienia zresetowane! Strona zostanie odświeżona...';
             resetMessage.style.background = 'rgba(255, 102, 0, 0.1)';
             resetMessage.style.color = '#ff6600';
             resetMessage.style.border = '1px solid #ff6600';
             resetMessage.style.display = 'block';
-            setTimeout(() => resetMessage.style.display = 'none', 5000);
+            setTimeout(() => location.reload(), 2000);
         }
         
         loadSavedState();
@@ -2262,7 +2355,6 @@
         updateAccountDisplay('Nie znaleziono');
         updateLicenseDisplay();
         
-        // Reset inputów
         const panelInput = document.getElementById('panelShortcutInput');
         if (panelInput) panelInput.value = 'Ctrl+A';
     }
@@ -2288,7 +2380,6 @@
             panel.style.display = isVisible ? 'block' : 'none';
         }
         
-        // Załaduj skrót panelu
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         panelShortcut = savedShortcut;
         const panelInput = document.getElementById('panelShortcutInput');
@@ -2297,7 +2388,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v3.1...');
+        console.log('✅ Initializing panel v3.1.1...');
         
         injectCSS();
         
@@ -2316,7 +2407,6 @@
         
         panelInitialized = true;
         
-        // Inicjalizuj konto i licencję
         setTimeout(async () => {
             await initAccountAndLicense();
             
@@ -2324,7 +2414,7 @@
                 toggleAdminTab(true);
             }
             
-            // Renderuj skróty
+            renderAddons();
             renderShortcuts();
             
             // Automatyczne odświeżanie statusu licencji
@@ -2335,7 +2425,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v3.1...');
+    console.log('🎯 Starting Synergy Panel v3.1.1...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
