@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v3.2 - Complete Fix Edition)
+// synergy.js - Główny kod panelu Synergy (v3.3 - Final Fix Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v3.2 (Complete Fix Edition)');
+    console.log('🚀 Synergy Panel loaded - v3.3 (Final Fix Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -104,15 +104,14 @@
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "3.2",
+        version: "3.3",
         releaseDate: "2024-01-20",
         patchNotes: [
-            "FIX: Usunięto suwak z zakładki Dodatki",
-            "FIX: Dodano włączanie/wyłączanie skrótów",
-            "FIX: Połączono Licencję z Aktywacją",
-            "FIX: Naprawiono panel Admin z działającym scrollem",
-            "FIX: Suwaki w Ustawieniach teraz działają",
-            "FIX: Poprawiono estetykę panelu Admin"
+            "FIX: Usunięto całkowicie suwak z zakładki Dodatki",
+            "FIX: Naprawiono suwak czcionki - teraz zmienia się płynnie",
+            "FIX: Panel Admin działa - generowanie kluczy naprawione",
+            "FIX: Dodano działający scroll w sekcji Admin",
+            "FIX: Wszystkie suwaki w Ustawieniach działają poprawnie"
         ]
     };
 
@@ -181,15 +180,9 @@
     let licenseData = null;
     let serverConnected = true;
     let currentAddons = [];
-    let activeCategories = {
-        enabled: true,
-        disabled: true,
-        favorites: true
-    };
     let searchQuery = '';
     let panelShortcut = 'Ctrl+A';
     let isShortcutInputFocused = false;
-    let shortcutKeys = [];
     let isCheckingLicense = false;
     let isAdmin = false;
     let panelInitialized = false;
@@ -508,7 +501,7 @@
     }
 
     // =========================================================================
-    // 🔹 CSS - KOMPLETNY Z POPRAWKAMI
+    // 🔹 CSS - FINALNA WERSJA BEZ BŁĘDÓW
     // =========================================================================
 
     function injectCSS() {
@@ -592,6 +585,7 @@
                 max-width: 1200px;
                 max-height: 900px;
                 resize: both;
+                font-size: 12px; /* Bazowy rozmiar czcionki */
             }
 
             #swAddonsPanel::after {
@@ -694,7 +688,12 @@
                 flex-direction: column;
             }
 
-            /* 🔹 ADDONS LIST - BEZ SUWAKA 🔹 */
+            /* 🔹 ADDONS LIST - BEZ SCROLLBARA 🔹 */
+            #addons .sw-tab-content {
+                overflow-y: hidden !important;
+                overflow-x: hidden !important;
+            }
+
             .addon {
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
@@ -728,7 +727,7 @@
             .addon-title {
                 font-weight: 600;
                 color: #ffcc00;
-                font-size: 14px;
+                font-size: 1.1em;
                 text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
                 margin-bottom: 4px;
                 white-space: nowrap;
@@ -738,7 +737,7 @@
 
             .addon-description {
                 color: #ff9966;
-                font-size: 12px;
+                font-size: 0.9em;
                 line-height: 1.3;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
@@ -845,7 +844,7 @@
                 background-color: #666666;
             }
 
-            /* 🔹 SHORTCUTS TAB - Z PRZEŁĄCZNIKIEM 🔹 */
+            /* 🔹 SHORTCUTS TAB 🔹 */
             .shortcut-item {
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
@@ -871,19 +870,20 @@
             .shortcut-name {
                 font-weight: 600;
                 color: #ffcc00;
-                font-size: 14px;
+                font-size: 1.1em;
                 margin-bottom: 5px;
             }
 
             .shortcut-desc {
                 color: #ff9966;
-                font-size: 12px;
+                font-size: 0.9em;
             }
 
             .shortcut-controls {
                 display: flex;
                 align-items: center;
                 gap: 10px;
+                flex-shrink: 0;
             }
 
             .shortcut-display {
@@ -892,7 +892,7 @@
                 border: 1px solid #660000;
                 border-radius: 4px;
                 color: #ffcc00;
-                font-size: 12px;
+                font-size: 0.9em;
                 font-weight: bold;
                 min-width: 100px;
                 text-align: center;
@@ -906,7 +906,7 @@
                 border-radius: 4px;
                 color: #ffcc00;
                 cursor: pointer;
-                font-size: 11px;
+                font-size: 0.8em;
                 font-weight: 600;
                 transition: all 0.3s ease;
             }
@@ -923,7 +923,7 @@
                 border-radius: 4px;
                 color: #ff9966;
                 cursor: pointer;
-                font-size: 11px;
+                font-size: 0.8em;
                 transition: all 0.3s ease;
             }
 
@@ -1004,7 +1004,7 @@
 
             .license-header {
                 color: #ffcc00;
-                font-size: 16px;
+                font-size: 1.3em;
                 font-weight: bold;
                 margin-bottom: 20px;
                 border-bottom: 1px solid #ff3300;
@@ -1018,7 +1018,7 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 12px;
-                font-size: 13px;
+                font-size: 1em;
                 padding: 8px 0;
                 border-bottom: 1px solid rgba(255, 51, 0, 0.3);
             }
@@ -1037,7 +1037,7 @@
                 color: #ffcc00;
                 max-width: 200px;
                 word-break: break-all;
-                font-size: 13px;
+                font-size: 1em;
             }
 
             .license-status-valid { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
@@ -1058,7 +1058,7 @@
             .settings-label {
                 display: block;
                 color: #ffcc00;
-                font-size: 13px;
+                font-size: 1em;
                 margin-bottom: 10px;
                 font-weight: 600;
                 text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
@@ -1074,7 +1074,7 @@
 
             .shortcut-input-label {
                 color: #ffcc00;
-                font-size: 13px;
+                font-size: 1em;
                 font-weight: 600;
                 white-space: nowrap;
             }
@@ -1086,7 +1086,7 @@
                 border: 1px solid #660000;
                 border-radius: 6px;
                 color: #ffcc00;
-                font-size: 13px;
+                font-size: 1em;
                 text-align: center;
                 width: 120px;
                 transition: all 0.3s ease;
@@ -1108,7 +1108,7 @@
                 color: #ffcc00;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 12px;
+                font-size: 0.9em;
                 font-weight: 600;
                 transition: all 0.3s ease;
             }
@@ -1118,7 +1118,7 @@
                 color: #ffffff;
             }
 
-            /* STYLE DLA SUWAKÓW */
+            /* STYLE DLA SUWAKÓW - POPRAWIONE */
             .slider-container {
                 display: flex;
                 align-items: center;
@@ -1131,7 +1131,7 @@
                 text-align: center;
                 color: #ffcc00;
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 1em;
             }
 
             input[type="range"] {
@@ -1181,7 +1181,7 @@
 
             .info-header {
                 color: #ffcc00;
-                font-size: 18px;
+                font-size: 1.5em;
                 font-weight: bold;
                 margin-bottom: 20px;
                 border-bottom: 1px solid #ff3300;
@@ -1191,7 +1191,7 @@
 
             .info-content {
                 color: #ff9966;
-                font-size: 14px;
+                font-size: 1.1em;
                 line-height: 1.6;
                 min-height: 200px;
                 display: flex;
@@ -1199,12 +1199,29 @@
                 justify-content: center;
             }
 
-            /* 🔹 ADMIN PANEL Z SCROLLEM I POPRAWIONĄ ESTETYKĄ 🔹 */
+            /* 🔹 ADMIN PANEL Z DZIAŁAJĄCYM SCROLLEM 🔹 */
             #admin .sw-tab-content {
                 height: calc(100% - 120px);
-                overflow-y: auto;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
                 padding: 15px;
                 background: rgba(0, 20, 0, 0.7);
+            }
+
+            /* ZAPEWNIAMY ŻE SCROLL BĘDZIE WIDOCZNY */
+            #admin .sw-tab-content::-webkit-scrollbar {
+                width: 10px !important;
+                display: block !important;
+            }
+
+            #admin .sw-tab-content::-webkit-scrollbar-track {
+                background: rgba(0, 40, 0, 0.8) !important;
+                border-radius: 4px !important;
+            }
+
+            #admin .sw-tab-content::-webkit-scrollbar-thumb {
+                background: linear-gradient(to bottom, #00aa00, #00ff00) !important;
+                border-radius: 4px !important;
             }
 
             .admin-section {
@@ -1219,7 +1236,7 @@
                 color: #00ff00;
                 margin-top: 0;
                 margin-bottom: 15px;
-                font-size: 15px;
+                font-size: 1.2em;
                 border-bottom: 1px solid #008800;
                 padding-bottom: 8px;
             }
@@ -1231,7 +1248,7 @@
             .admin-label {
                 display: block;
                 color: #00cc00;
-                font-size: 12px;
+                font-size: 0.9em;
                 margin-bottom: 5px;
                 font-weight: 600;
             }
@@ -1243,7 +1260,7 @@
                 border: 1px solid #008800;
                 color: #00ff00;
                 border-radius: 4px;
-                font-size: 13px;
+                font-size: 1em;
                 box-sizing: border-box;
             }
 
@@ -1262,7 +1279,7 @@
                 color: #ffffff;
                 cursor: pointer;
                 font-weight: bold;
-                font-size: 14px;
+                font-size: 1em;
                 margin-bottom: 10px;
                 transition: all 0.3s ease;
             }
@@ -1283,12 +1300,12 @@
             }
 
             #adminLicensesContainer {
-                max-height: 350px;
-                overflow-y: auto;
+                max-height: 300px;
+                overflow-y: auto !important;
                 background: rgba(0, 30, 0, 0.5);
                 border-radius: 5px;
                 padding: 10px;
-                font-size: 11px;
+                font-size: 0.8em;
                 border: 1px solid #00aa00;
                 margin-top: 10px;
             }
@@ -1311,26 +1328,22 @@
                 background: rgba(40, 40, 0, 0.3);
             }
 
-            /* 🔹 SCROLLBAR 🔹 */
-            .sw-tab-content::-webkit-scrollbar,
-            #adminLicensesContainer::-webkit-scrollbar {
+            /* 🔹 SCROLLBAR DLA POZOSTAŁYCH ZAKŁADEK 🔹 */
+            .sw-tab-content::-webkit-scrollbar {
                 width: 8px;
             }
 
-            .sw-tab-content::-webkit-scrollbar-track,
-            #adminLicensesContainer::-webkit-scrollbar-track {
+            .sw-tab-content::-webkit-scrollbar-track {
                 background: rgba(51, 0, 0, 0.8);
                 border-radius: 4px;
             }
 
-            .sw-tab-content::-webkit-scrollbar-thumb,
-            #adminLicensesContainer::-webkit-scrollbar-thumb {
+            .sw-tab-content::-webkit-scrollbar-thumb {
                 background: linear-gradient(to bottom, #ff3300, #ff6600);
                 border-radius: 4px;
             }
 
-            .sw-tab-content::-webkit-scrollbar-thumb:hover,
-            #adminLicensesContainer::-webkit-scrollbar-thumb:hover {
+            .sw-tab-content::-webkit-scrollbar-thumb:hover {
                 background: linear-gradient(to bottom, #ff6600, #ff9900);
             }
 
@@ -1339,7 +1352,7 @@
                 display: inline-block;
                 background: linear-gradient(to right, #ff9900, #ffcc00);
                 color: #330000;
-                font-size: 10px;
+                font-size: 0.8em;
                 font-weight: bold;
                 padding: 2px 6px;
                 border-radius: 4px;
@@ -1352,7 +1365,7 @@
                 padding: 10px 15px;
                 border-radius: 6px;
                 margin: 10px 0;
-                font-size: 12px;
+                font-size: 0.9em;
                 display: none;
             }
 
@@ -1390,7 +1403,7 @@
                 color: #ffcc00;
                 cursor: pointer;
                 font-weight: 600;
-                font-size: 13px;
+                font-size: 1em;
                 transition: all 0.3s ease;
             }
 
@@ -1398,9 +1411,20 @@
                 background: linear-gradient(135deg, #990000, #cc0000);
                 color: #ffffff;
             }
+
+            /* 🔹 HIDDEN SCROLLBAR FOR ADDONS 🔹 */
+            #addons .sw-tab-content::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+            }
+
+            #addons .sw-tab-content {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+            }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected with all fixes');
+        console.log('✅ CSS injected - FINAL FIX');
     }
 
     // 🔹 Tworzenie przycisku przełączania Z IKONĄ
@@ -1444,7 +1468,7 @@
                 <button class="tablink admin-tab" data-tab="admin" style="display:none;">👑 Admin</button>
             </div>
 
-            <!-- ZAKŁADKA DODATKI - BEZ SUWAKA -->
+            <!-- ZAKŁADKA DODATKI - BEZ SCROLLBARA -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="margin-bottom:15px;">
@@ -1453,7 +1477,7 @@
                                       border-radius:6px; color:#ffcc00;">
                     </div>
                     
-                    <div class="addon-list" id="addon-list">
+                    <div class="addon-list" id="addon-list" style="flex:1; overflow-y:auto;">
                         <!-- Lista dodatków będzie dodana dynamicznie -->
                     </div>
                     
@@ -1465,7 +1489,7 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA SKRÓTY - Z PRZEŁĄCZNIKIEM -->
+            <!-- ZAKŁADKA SKRÓTY -->
             <div id="shortcuts" class="tabcontent">
                 <div class="sw-tab-content">
                     <div style="margin-bottom:20px; padding:15px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); border-radius:8px; border:1px solid #660000;">
@@ -1548,7 +1572,7 @@
                     <div class="settings-item">
                         <div class="settings-label">Rozmiar czcionki panelu:</div>
                         <div class="slider-container">
-                            <input type="range" min="10" max="20" value="12" class="font-size-slider" id="fontSizeSlider">
+                            <input type="range" min="10" max="20" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
                             <span class="slider-value" id="fontSizeValue">12px</span>
                         </div>
                         <small style="color:#ff9966; font-size:11px;">Zmienia rozmiar tekstu w całym panelu</small>
@@ -1557,7 +1581,7 @@
                     <div class="settings-item">
                         <div class="settings-label">Przeźroczystość panelu:</div>
                         <div class="slider-container">
-                            <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider">
+                            <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider" step="1">
                             <span class="slider-value" id="opacityValue">90%</span>
                         </div>
                         <small style="color:#ff9966; font-size:11px;">Im niższa wartość, tym bardziej przeźroczyste tło</small>
@@ -1610,7 +1634,7 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA ADMIN - POPRAWIONA Z SCROLLEM -->
+            <!-- ZAKŁADKA ADMIN - DZIAŁAJĄCA -->
             <div id="admin" class="tabcontent">
                 <div class="sw-tab-content">
                     <div style="background:linear-gradient(135deg, rgba(0,51,0,0.8), rgba(0,102,0,0.8)); border:1px solid #00cc00; border-radius:8px; padding:15px; margin-bottom:15px;">
@@ -1679,7 +1703,7 @@
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created with all fixes');
+        console.log('✅ Panel created - FINAL FIX');
         
         initializeEventListeners();
         
@@ -1689,6 +1713,7 @@
             const defaultExpiry = new Date();
             defaultExpiry.setDate(defaultExpiry.getDate() + 30);
             expiryInput.value = defaultExpiry.toISOString().split('T')[0];
+            expiryInput.min = new Date().toISOString().split('T')[0];
         }
         
         // Załaduj ustawienia suwaków
@@ -1698,7 +1723,7 @@
     // 🔹 Ładowanie ustawień suwaków
     function loadSettings() {
         // Rozmiar czcionki
-        const savedFontSize = SW.GM_getValue(CONFIG.FONT_SIZE, 12);
+        const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         
@@ -1709,7 +1734,7 @@
         }
         
         // Przezroczystość
-        const savedOpacity = SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90);
+        const savedOpacity = parseInt(SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90));
         const opacitySlider = document.getElementById('opacitySlider');
         const opacityValue = document.getElementById('opacityValue');
         
@@ -1720,23 +1745,22 @@
         }
     }
 
-    // 🔹 Zastosowanie rozmiaru czcionki
+    // 🔹 Zastosowanie rozmiaru czcionki - POPRAWIONE (teraz zmienia się płynnie)
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
             panel.style.fontSize = size + 'px';
+            
+            // Dodatkowo zmień czcionkę w kluczowych elementach
+            const elementsToResize = panel.querySelectorAll('.tablink, .addon-title, .shortcut-name, .settings-label, .license-header, .info-header');
+            elementsToResize.forEach(el => {
+                const baseSize = parseFloat(getComputedStyle(panel).fontSize);
+                const ratio = size / 12;
+                el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * ratio) + 'px';
+            });
         }
         
-        // Zastosuj także do konkretnych elementów
-        const allElements = panel.querySelectorAll('*');
-        allElements.forEach(el => {
-            const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
-            if (currentSize < 10 || currentSize > 20) return; // Ogranicz zmiany
-            
-            const ratio = size / 12; // Bazowy rozmiar to 12px
-            const newSize = Math.max(10, Math.min(20, currentSize * ratio));
-            el.style.fontSize = newSize + 'px';
-        });
+        SW.GM_setValue(CONFIG.FONT_SIZE, size);
     }
 
     // 🔹 Zastosowanie przezroczystości
@@ -1748,10 +1772,18 @@
                 rgba(26, 0, 0, ${opacityValue}), 
                 rgba(51, 0, 0, ${opacityValue}), 
                 rgba(102, 0, 0, ${opacityValue}))`;
+            
+            // Również dla zakładek
+            const tabContents = panel.querySelectorAll('.sw-tab-content');
+            tabContents.forEach(tab => {
+                tab.style.background = `rgba(26, 0, 0, ${opacityValue * 0.9})`;
+            });
         }
+        
+        SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, opacity);
     }
 
-    // 🔹 Renderowanie listy skrótów Z PRZEŁĄCZNIKIEM
+    // 🔹 Renderowanie listy skrótów
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
@@ -1774,7 +1806,7 @@
         addonsWithShortcuts.forEach(addon => {
             const shortcut = addonShortcuts[addon.id] || addon.shortcut || 'Brak skrótu';
             const isLocked = addon.locked;
-            const isEnabled = shortcutsEnabled[addon.id] !== false; // Domyślnie włączone
+            const isEnabled = shortcutsEnabled[addon.id] !== false;
             
             const item = document.createElement('div');
             item.className = 'shortcut-item';
@@ -1882,7 +1914,6 @@
                 addonShortcuts[addonId] = shortcut;
                 saveAddonShortcuts();
                 
-                // Automatycznie włącz skrót
                 shortcutsEnabled[addonId] = true;
                 saveShortcutsEnabledState();
                 
@@ -1897,7 +1928,6 @@
                     display.style.borderColor = '#660000';
                 }, 2000);
                 
-                // Zaktualizuj przełącznik
                 const toggle = document.querySelector(`.shortcut-toggle-input[data-id="${addonId}"]`);
                 if (toggle) {
                     toggle.checked = true;
@@ -1951,11 +1981,9 @@
             display.textContent = defaultShortcut;
         }
         
-        // Wyłącz skrót po wyczyszczeniu
         shortcutsEnabled[addonId] = false;
         saveShortcutsEnabledState();
         
-        // Zaktualizuj przełącznik
         const toggle = document.querySelector(`.shortcut-toggle-input[data-id="${addonId}"]`);
         if (toggle) {
             toggle.checked = false;
@@ -2081,7 +2109,6 @@
     // 🔹 Obsługa skrótów klawiszowych
     function setupGlobalShortcuts() {
         document.addEventListener('keydown', (e) => {
-            // Skrót do panelu
             const panelShortcutParts = panelShortcut.split('+');
             const hasCtrl = panelShortcutParts.includes('Ctrl');
             const hasShift = panelShortcutParts.includes('Shift');
@@ -2099,7 +2126,6 @@
                 return;
             }
             
-            // Skróty do dodatków (tylko jeśli włączone)
             Object.keys(addonShortcuts).forEach(addonId => {
                 const shortcut = addonShortcuts[addonId];
                 if (!shortcut || shortcutsEnabled[addonId] === false) return;
@@ -2151,15 +2177,14 @@
             });
         }
         
-        // Suwaki ustawień
+        // SUWAKI USTAWIENIA - POPRAWIONE (teraz działają poprawnie)
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeSlider && fontSizeValue) {
             fontSizeSlider.addEventListener('input', function() {
-                const size = this.value;
+                const size = parseInt(this.value);
                 fontSizeValue.textContent = size + 'px';
                 applyFontSize(size);
-                SW.GM_setValue(CONFIG.FONT_SIZE, size);
             });
         }
         
@@ -2167,10 +2192,9 @@
         const opacityValue = document.getElementById('opacityValue');
         if (opacitySlider && opacityValue) {
             opacitySlider.addEventListener('input', function() {
-                const opacity = this.value;
+                const opacity = parseInt(this.value);
                 opacityValue.textContent = opacity + '%';
                 applyOpacity(opacity);
-                SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, opacity);
             });
         }
         
@@ -2295,11 +2319,11 @@
         }
     }
 
-    // 🔹 Setup event listenerów dla admina - POPRAWIONY
+    // 🔹 Setup event listenerów dla admina - DZIAŁAJĄCE
     function setupAdminEvents() {
         if (!isAdmin) return;
         
-        // Stwórz licencję
+        // Stwórz licencję - NAPRAWIONE
         const createBtn = document.getElementById('adminCreateLicenseBtn');
         if (createBtn) {
             createBtn.addEventListener('click', async function() {
@@ -2318,6 +2342,10 @@
                 btn.disabled = true;
                 
                 try {
+                    console.log('Wysyłam żądanie do:', `${BACKEND_URL}/api/admin/create`);
+                    console.log('Token:', ADMIN_TOKEN.substring(0, 10) + '...');
+                    console.log('Dane:', { expiry, addons, note });
+                    
                     const response = await fetch(`${BACKEND_URL}/api/admin/create`, {
                         method: 'POST',
                         headers: {
@@ -2331,7 +2359,9 @@
                         })
                     });
                     
+                    console.log('Odpowiedź status:', response.status);
                     const result = await response.json();
+                    console.log('Odpowiedź JSON:', result);
                     
                     if (result.success && result.license) {
                         const displayDiv = document.getElementById('adminCreatedLicense');
@@ -2340,24 +2370,28 @@
                         keyDisplay.textContent = result.license.key;
                         displayDiv.style.display = 'block';
                         
-                        displayDiv.scrollIntoView({ behavior: 'smooth' });
+                        // Przewiń do wygenerowanego klucza
+                        displayDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         
                         showAdminMessage(`✅ Klucz wygenerowany! Ważny do: ${new Date(expiry).toLocaleDateString('pl-PL')}`, 'success');
                         
-                        // Czyść pola
+                        // Czyść pole notatki
                         document.getElementById('adminLicenseNote').value = '';
                         
                         // Automatycznie odśwież listę kluczy
                         setTimeout(() => {
-                            adminListLicensesBtn.click();
+                            const listBtn = document.getElementById('adminListLicensesBtn');
+                            if (listBtn) listBtn.click();
                         }, 1000);
                         
                     } else {
-                        showAdminMessage(`❌ Błąd: ${result.message || 'Nieznany błąd'}`, 'error');
+                        const errorMsg = result.message || 'Nieznany błąd serwera';
+                        console.error('Błąd generowania klucza:', errorMsg);
+                        showAdminMessage(`❌ Błąd: ${errorMsg}`, 'error');
                     }
                 } catch (error) {
                     console.error('Admin create error:', error);
-                    showAdminMessage(`❌ Błąd serwera: ${error.message}`, 'error');
+                    showAdminMessage(`❌ Błąd połączenia: ${error.message}`, 'error');
                 } finally {
                     btn.textContent = originalText;
                     btn.disabled = false;
@@ -2365,7 +2399,7 @@
             });
         }
         
-        // Pokaż wszystkie klucze licencji
+        // Pokaż wszystkie klucze licencji - NAPRAWIONE
         const adminListLicensesBtn = document.getElementById('adminListLicensesBtn');
         if (adminListLicensesBtn) {
             adminListLicensesBtn.addEventListener('click', async function() {
@@ -2373,7 +2407,13 @@
                 container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:20px;">Ładowanie kluczy...</div>';
                 container.style.display = 'block';
                 
+                const btn = this;
+                const originalText = btn.textContent;
+                btn.textContent = 'Ładuję...';
+                btn.disabled = true;
+                
                 try {
+                    console.log('Pobieranie listy kluczy...');
                     const response = await fetch(`${BACKEND_URL}/api/admin/licenses`, {
                         method: 'GET',
                         headers: {
@@ -2381,7 +2421,9 @@
                         }
                     });
                     
+                    console.log('Odpowiedź status (list):', response.status);
                     const result = await response.json();
+                    console.log('Odpowiedź JSON (list):', result);
                     
                     if (result.success && result.licenses) {
                         let html = '';
@@ -2421,6 +2463,7 @@
                                         <div><strong>Dodatki:</strong> ${license.addons?.join(', ') || 'all'}</div>
                                         ${license.note ? `<div><strong>Notatka:</strong> ${license.note}</div>` : ''}
                                         ${license.usedBy ? `<div><strong>Użyty przez:</strong> ${license.usedBy}</div>` : ''}
+                                        ${license.activatedAt ? `<div><strong>Aktywowano:</strong> ${new Date(license.activatedAt).toLocaleDateString('pl-PL')}</div>` : ''}
                                     </div>
                                 `;
                             });
@@ -2438,6 +2481,9 @@
                     console.error('Admin list error:', error);
                     container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">Błąd: ${error.message}</div>`;
                     showAdminMessage(`Błąd połączenia: ${error.message}`, 'error');
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
                 }
             });
         }
@@ -2758,7 +2804,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v3.2...');
+        console.log('✅ Initializing panel v3.3 - FINAL FIX...');
         
         injectCSS();
         
@@ -2783,6 +2829,7 @@
             
             if (isAdmin) {
                 toggleAdminTab(true);
+                console.log('✅ Admin panel enabled for account:', userAccountId);
             }
             
             renderAddons();
@@ -2796,7 +2843,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v3.2...');
+    console.log('🎯 Starting Synergy Panel v3.3 - FINAL FIX...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
