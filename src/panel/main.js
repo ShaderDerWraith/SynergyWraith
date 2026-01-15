@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v3.4 - Ultimate Fix Edition)
+// synergy.js - Główny kod panelu Synergy (v3.3 - Final Fix Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v3.4 (Ultimate Fix Edition)');
+    console.log('🚀 Synergy Panel loaded - v3.3 (Final Fix Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -104,14 +104,14 @@
 
     // 🔹 Informacje o wersji
     const VERSION_INFO = {
-        version: "3.4",
+        version: "3.3",
         releaseDate: "2024-01-20",
         patchNotes: [
-            "FIX: Przycisk 'Zapisz i odśwież grę' zawsze widoczny",
-            "FIX: Kompaktowy layout zakładki Licencja",
-            "FIX: Suwak czcionki działa poprawnie - bez gigantycznych czcionek",
-            "FIX: Panel Admin DZIAŁA - generowanie i wyświetlanie kluczy",
-            "FIX: Kompaktowy layout zakładki Admin"
+            "FIX: Usunięto całkowicie suwak z zakładki Dodatki",
+            "FIX: Naprawiono suwak czcionki - teraz zmienia się płynnie",
+            "FIX: Panel Admin działa - generowanie kluczy naprawione",
+            "FIX: Dodano działający scroll w sekcji Admin",
+            "FIX: Wszystkie suwaki w Ustawieniach działają poprawnie"
         ]
     };
 
@@ -188,7 +188,6 @@
     let panelInitialized = false;
     let addonShortcuts = {};
     let shortcutsEnabled = {};
-    let currentFontSize = 12; // Domyślny rozmiar czcionki
 
     // =========================================================================
     // 🔹 FUNKCJE ADMINISTRACYJNE
@@ -502,7 +501,7 @@
     }
 
     // =========================================================================
-    // 🔹 CSS - ULTIMATE FIX
+    // 🔹 CSS - FINALNA WERSJA BEZ BŁĘDÓW
     // =========================================================================
 
     function injectCSS() {
@@ -687,14 +686,12 @@
                 overflow-y: auto;
                 display: flex;
                 flex-direction: column;
-                position: relative; /* Dla przycisku na dole */
             }
 
-            /* 🔹 ADDONS LIST - Z STAŁYM PRZYCISKIEM 🔹 */
+            /* 🔹 ADDONS LIST - BEZ SCROLLBARA 🔹 */
             #addons .sw-tab-content {
-                overflow-y: auto !important;
+                overflow-y: hidden !important;
                 overflow-x: hidden !important;
-                padding-bottom: 80px; /* Miejsce na stały przycisk */
             }
 
             .addon {
@@ -754,37 +751,6 @@
                 align-items: center;
                 gap: 12px;
                 flex-shrink: 0;
-            }
-
-            /* 🔹 STAŁY PRZYCISK W DODATKACH 🔹 */
-            .save-refresh-button-container {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(to top, #330000, transparent);
-                padding: 15px;
-                border-top: 1px solid #660000;
-                z-index: 10;
-            }
-
-            .save-refresh-button {
-                width: 100%;
-                padding: 12px;
-                background: linear-gradient(135deg, #006600, #008800);
-                border: 1px solid #00cc00;
-                border-radius: 6px;
-                color: #ffffff;
-                cursor: pointer;
-                font-weight: 600;
-                font-size: 1em;
-                transition: all 0.3s ease;
-            }
-
-            .save-refresh-button:hover {
-                background: linear-gradient(135deg, #008800, #00aa00);
-                color: #ffffff;
-                transform: translateY(-2px);
             }
 
             /* 🔹 PRZYCISK ULUBIONYCH 🔹 */
@@ -878,61 +844,211 @@
                 background-color: #666666;
             }
 
-            /* 🔹 LICENCJA - KOMPAKTOWY LAYOUT 🔹 */
-            .license-container-compact {
+            /* 🔹 SHORTCUTS TAB 🔹 */
+            .shortcut-item {
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
                 border-radius: 8px;
                 padding: 15px;
-                margin-bottom: 15px;
+                margin-bottom: 10px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                transition: all 0.3s ease;
             }
 
-            .license-header-compact {
+            .shortcut-item:hover {
+                border-color: #ff4500;
+                background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9));
+            }
+
+            .shortcut-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .shortcut-name {
+                font-weight: 600;
                 color: #ffcc00;
                 font-size: 1.1em;
+                margin-bottom: 5px;
+            }
+
+            .shortcut-desc {
+                color: #ff9966;
+                font-size: 0.9em;
+            }
+
+            .shortcut-controls {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-shrink: 0;
+            }
+
+            .shortcut-display {
+                padding: 8px 12px;
+                background: rgba(30, 0, 0, 0.8);
+                border: 1px solid #660000;
+                border-radius: 4px;
+                color: #ffcc00;
+                font-size: 0.9em;
                 font-weight: bold;
-                margin-bottom: 15px;
+                min-width: 100px;
+                text-align: center;
+                letter-spacing: 1px;
+            }
+
+            .shortcut-set-btn {
+                padding: 8px 15px;
+                background: linear-gradient(to right, #660000, #990000);
+                border: 1px solid #ff3300;
+                border-radius: 4px;
+                color: #ffcc00;
+                cursor: pointer;
+                font-size: 0.8em;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+
+            .shortcut-set-btn:hover {
+                background: linear-gradient(to right, #990000, #cc0000);
+                color: #ffffff;
+            }
+
+            .shortcut-clear-btn {
+                padding: 8px 12px;
+                background: linear-gradient(to right, #660000, #990000);
+                border: 1px solid #ff3300;
+                border-radius: 4px;
+                color: #ff9966;
+                cursor: pointer;
+                font-size: 0.8em;
+                transition: all 0.3s ease;
+            }
+
+            .shortcut-clear-btn:hover {
+                background: linear-gradient(to right, #990000, #cc0000);
+                color: #ffffff;
+            }
+
+            /* PRZEŁĄCZNIK DLA SKRÓTU */
+            .shortcut-toggle {
+                position: relative;
+                display: inline-block;
+                width: 40px;
+                height: 20px;
+                margin-left: 10px;
+            }
+
+            .shortcut-toggle input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .shortcut-toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #330000;
+                border: 1px solid #660000;
+                transition: .4s;
+                border-radius: 34px;
+            }
+
+            .shortcut-toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 16px;
+                width: 16px;
+                left: 2px;
+                bottom: 1px;
+                background-color: #666666;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+            .shortcut-toggle input:checked + .shortcut-toggle-slider {
+                background-color: #006600;
+                border-color: #00cc00;
+            }
+
+            .shortcut-toggle input:checked + .shortcut-toggle-slider:before {
+                transform: translateX(19px);
+                background-color: #00ff00;
+            }
+
+            /* 🔹 ADMIN SECTION 🔹 */
+            .admin-tab {
+                display: none !important;
+                color: #00ff00 !important;
+                font-weight: bold !important;
+            }
+
+            .admin-visible .admin-tab {
+                display: flex !important;
+            }
+
+            /* 🔹 LICENSE SYSTEM - Z AKTYWACJĄ 🔹 */
+            .license-container {
+                background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+                border: 1px solid #660000;
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .license-header {
+                color: #ffcc00;
+                font-size: 1.3em;
+                font-weight: bold;
+                margin-bottom: 20px;
                 border-bottom: 1px solid #ff3300;
-                padding-bottom: 8px;
+                padding-bottom: 10px;
                 text-align: center;
                 text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
             }
 
-            .license-status-item-compact {
+            .license-status-item {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 8px;
-                font-size: 0.9em;
-                padding: 6px 0;
-                border-bottom: 1px solid rgba(255, 51, 0, 0.2);
+                margin-bottom: 12px;
+                font-size: 1em;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 51, 0, 0.3);
             }
 
-            .license-status-item-compact:last-child { 
-                border-bottom: none; 
-                margin-bottom: 0; 
-            }
+            .license-status-item:last-child { border-bottom: none; margin-bottom: 0; }
 
-            .license-status-label-compact {
+            .license-status-label {
                 color: #ff9966;
                 font-weight: 600;
                 white-space: nowrap;
-                font-size: 0.85em;
             }
 
-            .license-status-value-compact {
+            .license-status-value {
                 font-weight: 600;
                 text-align: right;
                 color: #ffcc00;
-                max-width: 180px;
+                max-width: 200px;
                 word-break: break-all;
-                font-size: 0.85em;
+                font-size: 1em;
             }
 
-            /* 🔹 SETTINGS TAB - POPRAWIONY SUWAK CZCIONKI 🔹 */
+            .license-status-valid { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+            .license-status-invalid { color: #ff3300 !important; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
+            .license-status-connected { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+            .license-status-disconnected { color: #ff3300 !important; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
+
+            /* 🔹 SETTINGS TAB - DZIAŁAJĄCE SUWAKI 🔹 */
             .settings-item {
-                margin-bottom: 15px;
-                padding: 12px;
+                margin-bottom: 20px;
+                padding: 15px;
                 background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
                 border: 1px solid #660000;
                 border-radius: 6px;
@@ -942,42 +1058,96 @@
             .settings-label {
                 display: block;
                 color: #ffcc00;
-                font-size: 0.9em;
-                margin-bottom: 8px;
+                font-size: 1em;
+                margin-bottom: 10px;
                 font-weight: 600;
                 text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+            }
+
+            .shortcut-input-container {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 15px;
+                padding: 0 10px;
+            }
+
+            .shortcut-input-label {
+                color: #ffcc00;
+                font-size: 1em;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+            .shortcut-input {
+                flex: 1;
+                padding: 10px 15px;
+                background: rgba(51, 0, 0, 0.8);
+                border: 1px solid #660000;
+                border-radius: 6px;
+                color: #ffcc00;
+                font-size: 1em;
+                text-align: center;
+                width: 120px;
+                transition: all 0.3s ease;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+
+            .shortcut-input:focus {
+                outline: none;
+                border-color: #ff3300;
+                box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+                background: rgba(102, 0, 0, 0.9);
+            }
+
+            .shortcut-set-btn-panel {
+                padding: 10px 20px;
+                background: linear-gradient(to right, #660000, #990000);
+                border: 1px solid #ff3300;
+                color: #ffcc00;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.9em;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+
+            .shortcut-set-btn-panel:hover {
+                background: linear-gradient(to right, #990000, #cc0000);
+                color: #ffffff;
             }
 
             /* STYLE DLA SUWAKÓW - POPRAWIONE */
             .slider-container {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                margin-bottom: 8px;
+                gap: 15px;
+                margin-bottom: 10px;
             }
 
             .slider-value {
-                min-width: 35px;
+                min-width: 40px;
                 text-align: center;
                 color: #ffcc00;
                 font-weight: bold;
-                font-size: 0.9em;
+                font-size: 1em;
             }
 
             input[type="range"] {
                 flex: 1;
                 -webkit-appearance: none;
-                height: 6px;
+                height: 8px;
                 background: linear-gradient(to right, #330000, #660000);
-                border-radius: 3px;
+                border-radius: 4px;
                 border: 1px solid #660000;
                 outline: none;
             }
 
             input[type="range"]::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                width: 16px;
-                height: 16px;
+                width: 20px;
+                height: 20px;
                 border-radius: 50%;
                 background: #ff3300;
                 cursor: pointer;
@@ -991,8 +1161,8 @@
             }
 
             input[type="range"]::-moz-range-thumb {
-                width: 16px;
-                height: 16px;
+                width: 20px;
+                height: 20px;
                 border-radius: 50%;
                 background: #ff3300;
                 cursor: pointer;
@@ -1000,133 +1170,177 @@
                 box-shadow: 0 0 5px rgba(255, 51, 0, 0.8);
             }
 
-            /* 🔹 ADMIN PANEL - KOMPAKTOWY I DZIAŁAJĄCY 🔹 */
+            /* 🔹 INFO TAB 🔹 */
+            .info-container {
+                background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
+                border: 1px solid #660000;
+                border-radius: 8px;
+                padding: 25px;
+                text-align: center;
+            }
+
+            .info-header {
+                color: #ffcc00;
+                font-size: 1.5em;
+                font-weight: bold;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #ff3300;
+                padding-bottom: 10px;
+                text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+            }
+
+            .info-content {
+                color: #ff9966;
+                font-size: 1.1em;
+                line-height: 1.6;
+                min-height: 200px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* 🔹 ADMIN PANEL Z DZIAŁAJĄCYM SCROLLEM 🔹 */
             #admin .sw-tab-content {
                 height: calc(100% - 120px);
                 overflow-y: auto !important;
                 overflow-x: hidden !important;
-                padding: 12px;
+                padding: 15px;
                 background: rgba(0, 20, 0, 0.7);
             }
 
-            .admin-section-compact {
-                margin-bottom: 15px;
-                padding: 15px;
+            /* ZAPEWNIAMY ŻE SCROLL BĘDZIE WIDOCZNY */
+            #admin .sw-tab-content::-webkit-scrollbar {
+                width: 10px !important;
+                display: block !important;
+            }
+
+            #admin .sw-tab-content::-webkit-scrollbar-track {
+                background: rgba(0, 40, 0, 0.8) !important;
+                border-radius: 4px !important;
+            }
+
+            #admin .sw-tab-content::-webkit-scrollbar-thumb {
+                background: linear-gradient(to bottom, #00aa00, #00ff00) !important;
+                border-radius: 4px !important;
+            }
+
+            .admin-section {
+                margin-bottom: 20px;
+                padding: 20px;
                 background: rgba(0, 50, 0, 0.2);
                 border: 1px solid #00aa00;
-                border-radius: 6px;
+                border-radius: 8px;
             }
 
-            .admin-section-compact h3 {
+            .admin-section h3 {
                 color: #00ff00;
                 margin-top: 0;
-                margin-bottom: 12px;
-                font-size: 1em;
+                margin-bottom: 15px;
+                font-size: 1.2em;
                 border-bottom: 1px solid #008800;
-                padding-bottom: 6px;
+                padding-bottom: 8px;
             }
 
-            .admin-input-group-compact {
-                margin-bottom: 12px;
+            .admin-input-group {
+                margin-bottom: 15px;
             }
 
-            .admin-label-compact {
+            .admin-label {
                 display: block;
                 color: #00cc00;
-                font-size: 0.8em;
-                margin-bottom: 4px;
+                font-size: 0.9em;
+                margin-bottom: 5px;
                 font-weight: 600;
             }
 
-            .admin-input-compact {
+            .admin-input {
                 width: 100%;
-                padding: 8px 10px;
+                padding: 10px 12px;
                 background: rgba(0, 40, 0, 0.8);
                 border: 1px solid #008800;
                 color: #00ff00;
                 border-radius: 4px;
-                font-size: 0.85em;
+                font-size: 1em;
                 box-sizing: border-box;
             }
 
-            .admin-input-compact:focus {
+            .admin-input:focus {
                 outline: none;
                 border-color: #00ff00;
                 box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
             }
 
-            .admin-button-compact {
+            .admin-button {
                 width: 100%;
-                padding: 10px;
+                padding: 12px;
                 background: linear-gradient(to right, #006600, #008800);
                 border: 1px solid #00cc00;
                 border-radius: 6px;
                 color: #ffffff;
                 cursor: pointer;
                 font-weight: bold;
-                font-size: 0.9em;
-                margin-bottom: 8px;
+                font-size: 1em;
+                margin-bottom: 10px;
                 transition: all 0.3s ease;
             }
 
-            .admin-button-compact:hover {
+            .admin-button:hover {
                 background: linear-gradient(to right, #008800, #00aa00);
                 border-color: #00ff00;
             }
 
-            .admin-button-secondary-compact {
+            .admin-button-secondary {
                 background: linear-gradient(to right, #006666, #008888);
                 border: 1px solid #00cccc;
             }
 
-            .admin-button-secondary-compact:hover {
+            .admin-button-secondary:hover {
                 background: linear-gradient(to right, #008888, #00aaaa);
                 border-color: #00ffff;
             }
 
             #adminLicensesContainer {
-                max-height: 250px;
+                max-height: 300px;
                 overflow-y: auto !important;
                 background: rgba(0, 30, 0, 0.5);
                 border-radius: 5px;
-                padding: 8px;
-                font-size: 0.75em;
+                padding: 10px;
+                font-size: 0.8em;
                 border: 1px solid #00aa00;
                 margin-top: 10px;
             }
 
-            .license-key-item-compact {
-                padding: 8px;
-                margin-bottom: 6px;
+            .license-key-item {
+                padding: 10px;
+                margin-bottom: 8px;
                 background: rgba(0, 40, 0, 0.3);
                 border-radius: 4px;
-                border-left: 3px solid #00aa00;
-                font-size: 0.8em;
+                border-left: 4px solid #00aa00;
             }
 
-            .license-key-item-compact.expired {
+            .license-key-item.expired {
                 border-left-color: #aa0000;
                 background: rgba(40, 0, 0, 0.3);
             }
 
-            .license-key-item-compact.used {
+            .license-key-item.used {
                 border-left-color: #ffaa00;
                 background: rgba(40, 40, 0, 0.3);
             }
 
-            /* 🔹 SCROLLBAR 🔹 */
+            /* 🔹 SCROLLBAR DLA POZOSTAŁYCH ZAKŁADEK 🔹 */
             .sw-tab-content::-webkit-scrollbar {
-                width: 6px;
+                width: 8px;
             }
 
             .sw-tab-content::-webkit-scrollbar-track {
                 background: rgba(51, 0, 0, 0.8);
-                border-radius: 3px;
+                border-radius: 4px;
             }
 
             .sw-tab-content::-webkit-scrollbar-thumb {
                 background: linear-gradient(to bottom, #ff3300, #ff6600);
-                border-radius: 3px;
+                border-radius: 4px;
             }
 
             .sw-tab-content::-webkit-scrollbar-thumb:hover {
@@ -1138,20 +1352,20 @@
                 display: inline-block;
                 background: linear-gradient(to right, #ff9900, #ffcc00);
                 color: #330000;
-                font-size: 0.7em;
+                font-size: 0.8em;
                 font-weight: bold;
-                padding: 1px 4px;
-                border-radius: 3px;
-                margin-right: 4px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-right: 6px;
                 text-shadow: none;
             }
 
             /* 🔹 MESSAGES 🔹 */
             .license-message {
-                padding: 8px 12px;
-                border-radius: 5px;
-                margin: 8px 0;
-                font-size: 0.8em;
+                padding: 10px 15px;
+                border-radius: 6px;
+                margin: 10px 0;
+                font-size: 0.9em;
                 display: none;
             }
 
@@ -1172,12 +1386,48 @@
                 border: 1px solid #ff9900;
                 color: #ff9900;
             }
+
+            /* 🔹 BUTTONS 🔹 */
+            .refresh-button-container {
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #660000;
+            }
+
+            .refresh-button {
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, #660000, #990000);
+                border: 1px solid #ff3300;
+                border-radius: 6px;
+                color: #ffcc00;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 1em;
+                transition: all 0.3s ease;
+            }
+
+            .refresh-button:hover {
+                background: linear-gradient(135deg, #990000, #cc0000);
+                color: #ffffff;
+            }
+
+            /* 🔹 HIDDEN SCROLLBAR FOR ADDONS 🔹 */
+            #addons .sw-tab-content::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+            }
+
+            #addons .sw-tab-content {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+            }
         `;
         document.head.appendChild(style);
-        console.log('✅ CSS injected - ULTIMATE FIX');
+        console.log('✅ CSS injected - FINAL FIX');
     }
 
-    // 🔹 Tworzenie przycisku przełączania
+    // 🔹 Tworzenie przycisku przełączania Z IKONĄ
     function createToggleButton() {
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
@@ -1218,24 +1468,21 @@
                 <button class="tablink admin-tab" data-tab="admin" style="display:none;">👑 Admin</button>
             </div>
 
-            <!-- ZAKŁADKA DODATKI - Z STAŁYM PRZYCISKIEM -->
+            <!-- ZAKŁADKA DODATKI - BEZ SCROLLBARA -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div style="margin-bottom:12px;">
+                    <div style="margin-bottom:15px;">
                         <input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." 
-                               style="width:100%; padding:8px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
-                                      border-radius:4px; color:#ffcc00; font-size:0.9em;">
+                               style="width:100%; padding:10px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
+                                      border-radius:6px; color:#ffcc00;">
                     </div>
                     
-                    <div class="addon-list" id="addon-list" style="flex:1; overflow-y:auto; margin-bottom:60px;">
+                    <div class="addon-list" id="addon-list" style="flex:1; overflow-y:auto;">
                         <!-- Lista dodatków będzie dodana dynamicznie -->
                     </div>
                     
-                    <!-- STAŁY PRZYCISK NA DOLE -->
-                    <div class="save-refresh-button-container">
-                        <button class="save-refresh-button" id="swSaveRefreshButton">
-                            💾 Zapisz i odśwież grę
-                        </button>
+                    <div class="refresh-button-container">
+                        <button class="refresh-button" id="swRefreshButton">Odśwież Panel</button>
                     </div>
                     
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
@@ -1245,9 +1492,9 @@
             <!-- ZAKŁADKA SKRÓTY -->
             <div id="shortcuts" class="tabcontent">
                 <div class="sw-tab-content">
-                    <div style="margin-bottom:15px; padding:12px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); border-radius:6px; border:1px solid #660000;">
-                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:8px; font-size:13px;">🎯 Skróty klawiszowe</h3>
-                        <p style="color:#ff9966; font-size:11px; margin:0;">
+                    <div style="margin-bottom:20px; padding:15px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); border-radius:8px; border:1px solid #660000;">
+                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:10px; font-size:14px;">🎯 Skróty klawiszowe</h3>
+                        <p style="color:#ff9966; font-size:12px; margin:0;">
                             Ustaw własne skróty dla dodatków. Możesz włączyć/wyłączyć każdy skrót.
                         </p>
                     </div>
@@ -1256,79 +1503,79 @@
                         <!-- Skróty będą dodane dynamicznie -->
                     </div>
                     
-                    <div id="shortcutsMessage" class="license-message" style="display:none; margin-top:12px;"></div>
+                    <div id="shortcutsMessage" class="license-message" style="display:none; margin-top:15px;"></div>
                 </div>
             </div>
 
-            <!-- ZAKŁADKA LICENCJA - KOMPAKTOWA -->
+            <!-- ZAKŁADKA LICENCJA - Z AKTYWACJĄ -->
             <div id="license" class="tabcontent">
                 <div class="sw-tab-content">
-                    <div class="license-container-compact">
-                        <div class="license-header-compact">Status Licencji</div>
-                        <div class="license-status-item-compact">
-                            <span class="license-status-label-compact">ID Konta:</span>
-                            <span id="swAccountId" class="license-status-value-compact">Ładowanie...</span>
+                    <div class="license-container">
+                        <div class="license-header">Status Licencji</div>
+                        <div class="license-status-item">
+                            <span class="license-status-label">ID Konta:</span>
+                            <span id="swAccountId" class="license-status-value">Ładowanie...</span>
                         </div>
-                        <div class="license-status-item-compact">
-                            <span class="license-status-label-compact">Status Licencji:</span>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Status Licencji:</span>
                             <span id="swLicenseStatus" class="license-status-invalid">Nieaktywna</span>
                         </div>
-                        <div class="license-status-item-compact">
-                            <span class="license-status-label-compact">Ważna do:</span>
-                            <span id="swLicenseExpiry" class="license-status-value-compact">-</span>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Ważna do:</span>
+                            <span id="swLicenseExpiry" class="license-status-value">-</span>
                         </div>
-                        <div class="license-status-item-compact">
-                            <span class="license-status-label-compact">Pozostało dni:</span>
-                            <span id="swLicenseDaysLeft" class="license-status-value-compact">-</span>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Pozostało dni:</span>
+                            <span id="swLicenseDaysLeft" class="license-status-value">-</span>
                         </div>
-                        <div class="license-status-item-compact">
-                            <span class="license-status-label-compact">Połączenie:</span>
+                        <div class="license-status-item">
+                            <span class="license-status-label">Połączenie:</span>
                             <span id="swServerStatus" class="license-status-connected">Aktywne</span>
                         </div>
                     </div>
                     
                     <!-- SEKCJA AKTYWACJI -->
-                    <div class="license-container-compact">
-                        <div class="license-header-compact">Aktywacja Licencji</div>
+                    <div class="license-container">
+                        <div class="license-header">Aktywacja Licencji</div>
                         
-                        <div style="margin:15px 0;">
-                            <label style="display:block; color:#ffcc00; margin-bottom:8px; font-weight:bold; font-size:0.9em;">
+                        <div style="margin:20px 0;">
+                            <label style="display:block; color:#ffcc00; margin-bottom:10px; font-weight:bold;">
                                 Wprowadź klucz licencji:
                             </label>
                             <input type="text" id="licenseKeyInput" 
-                                   style="width:100%; padding:10px; background:rgba(30,0,0,0.8); 
-                                          border:1px solid #ff3300; border-radius:4px; 
-                                          color:#ffffff; font-size:0.9em; text-align:center;"
+                                   style="width:100%; padding:12px; background:rgba(30,0,0,0.8); 
+                                          border:1px solid #ff3300; border-radius:6px; 
+                                          color:#ffffff; font-size:14px; text-align:center;"
                                    placeholder="XXXX-XXXX-XXXX-XXXX">
-                            <small style="color:#ff9966; display:block; margin-top:4px; font-size:0.8em;">
+                            <small style="color:#ff9966; display:block; margin-top:5px;">
                                 Klucz otrzymasz po zakupie premium
                             </small>
                         </div>
                         
                         <button id="activateLicenseBtn" 
-                                style="width:100%; padding:12px; background:linear-gradient(to right, #006600, #008800);
-                                       border:1px solid #00cc00; border-radius:4px; color:#ffffff;
-                                       font-weight:bold; font-size:0.9em; cursor:pointer; margin:12px 0;">
+                                style="width:100%; padding:15px; background:linear-gradient(to right, #006600, #008800);
+                                       border:1px solid #00cc00; border-radius:6px; color:#ffffff;
+                                       font-weight:bold; font-size:14px; cursor:pointer; margin:15px 0;">
                             🔓 Aktywuj Licencję
                         </button>
                         
-                        <div id="activationResult" style="display:none; padding:10px; border-radius:4px; margin-top:12px; text-align:center; font-size:0.8em;"></div>
+                        <div id="activationResult" style="display:none; padding:15px; border-radius:6px; margin-top:15px; text-align:center; font-size:13px;"></div>
                     </div>
                     
                     <div id="swLicenseMessage" class="license-message"></div>
                 </div>
             </div>
 
-            <!-- ZAKŁADKA USTAWIENIA - POPRAWIONY SUWAK -->
+            <!-- ZAKŁADKA USTAWIENIA - DZIAŁAJĄCE SUWAKI -->
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="settings-item">
                         <div class="settings-label">Rozmiar czcionki panelu:</div>
                         <div class="slider-container">
-                            <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
+                            <input type="range" min="10" max="20" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
                             <span class="slider-value" id="fontSizeValue">12px</span>
                         </div>
-                        <small style="color:#ff9966; font-size:0.75em;">10px - mała, 16px - duża</small>
+                        <small style="color:#ff9966; font-size:11px;">Zmienia rozmiar tekstu w całym panelu</small>
                     </div>
                     
                     <div class="settings-item">
@@ -1337,52 +1584,47 @@
                             <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider" step="1">
                             <span class="slider-value" id="opacityValue">90%</span>
                         </div>
-                        <small style="color:#ff9966; font-size:0.75em;">Im niższa wartość, tym bardziej przeźroczyste tło</small>
+                        <small style="color:#ff9966; font-size:11px;">Im niższa wartość, tym bardziej przeźroczyste tło</small>
                     </div>
                     
                     <div class="settings-item">
-                        <div class="shortcut-input-container" style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                            <span style="color:#ffcc00; font-size:0.9em; font-weight:600; white-space:nowrap;">Skrót do otwierania panelu:</span>
-                            <input type="text" class="shortcut-input" id="panelShortcutInput" value="Ctrl+A" readonly 
-                                   style="flex:1; padding:8px 10px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
-                                          border-radius:4px; color:#ffcc00; font-size:0.9em; text-align:center; width:100px;">
-                            <button class="shortcut-set-btn-panel" id="panelShortcutSetBtn" 
-                                    style="padding:8px 12px; background:linear-gradient(to right, #660000, #990000);
-                                           border:1px solid #ff3300; color:#ffcc00; border-radius:4px; cursor:pointer;
-                                           font-size:0.8em; font-weight:600;">Ustaw skrót</button>
+                        <div class="shortcut-input-container">
+                            <span class="shortcut-input-label">Skrót do otwierania panelu:</span>
+                            <input type="text" class="shortcut-input" id="panelShortcutInput" value="Ctrl+A" readonly>
+                            <button class="shortcut-set-btn-panel" id="panelShortcutSetBtn">Ustaw skrót</button>
                         </div>
-                        <small style="color:#ff9966; font-size:0.75em;">Kliknij "Ustaw skrót" i wciśnij kombinację klawiszy</small>
+                        <small style="color:#ff9966; font-size:11px; display:block; margin-top:5px;">Kliknij "Ustaw skrót" i wciśnij kombinację klawiszy</small>
                     </div>
                     
-                    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #660000;">
-                        <button style="width:100%; padding:12px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
-                                border:1px solid #660000; border-radius:6px; color:#ff3300; cursor:pointer; font-weight:600; font-size:0.9em;" 
+                    <div style="margin-top:25px; padding-top:20px; border-top:1px solid #660000;">
+                        <button style="width:100%; padding:14px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
+                                border:1px solid #660000; border-radius:6px; color:#ff3300; cursor:pointer; font-weight:600; font-size:14px;" 
                                 id="swResetButton">
                             ↻ Resetuj wszystkie ustawienia
                         </button>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top:12px; padding:8px; border-radius:4px; display:none;"></div>
+                    <div id="swResetMessage" style="margin-top:15px; padding:12px; border-radius:6px; display:none;"></div>
                 </div>
             </div>
 
             <!-- ZAKŁADKA INFO -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
-                    <div class="license-container-compact">
-                        <div class="license-header-compact">Informacje o panelu</div>
-                        <div style="padding:10px;">
-                            <div style="text-align: left;">
-                                <h3 style="color:#ffcc00; margin-top:0; border-bottom:1px solid #ff3300; padding-bottom:4px; font-size:1em;">
+                    <div class="info-container">
+                        <div class="info-header">Informacje o panelu</div>
+                        <div class="info-content">
+                            <div style="text-align: left; width:100%;">
+                                <h3 style="color:#ffcc00; margin-top:0; border-bottom:1px solid #ff3300; padding-bottom:5px;">
                                     Synergy Panel v${VERSION_INFO.version}
                                 </h3>
-                                <p style="color:#ff9966; font-size:0.85em;"><strong>Data wydania:</strong> ${VERSION_INFO.releaseDate}</p>
-                                <h4 style="color:#ffcc00; margin-top:12px; font-size:0.9em;">Co nowego w tej wersji:</h4>
-                                <ul style="color:#ff9966; padding-left:15px; font-size:0.8em;">
+                                <p style="color:#ff9966;"><strong>Data wydania:</strong> ${VERSION_INFO.releaseDate}</p>
+                                <h4 style="color:#ffcc00; margin-top:15px;">Co nowego w tej wersji:</h4>
+                                <ul style="color:#ff9966; padding-left:20px;">
                                     ${VERSION_INFO.patchNotes.map(note => `<li>${note}</li>`).join('')}
                                 </ul>
-                                <div style="margin-top:15px; padding:8px; background:rgba(255,51,0,0.1); border-radius:4px;">
-                                    <p style="color:#ffcc00; margin:0; font-size:0.75em;">
+                                <div style="margin-top:20px; padding:10px; background:rgba(255,51,0,0.1); border-radius:6px;">
+                                    <p style="color:#ffcc00; margin:0; font-size:12px;">
                                         <strong>ℹ️ Wsparcie:</strong> W razie problemów skontaktuj się z administratorem.
                                     </p>
                                 </div>
@@ -1392,61 +1634,61 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA ADMIN - KOMPAKTOWA I DZIAŁAJĄCA -->
+            <!-- ZAKŁADKA ADMIN - DZIAŁAJĄCA -->
             <div id="admin" class="tabcontent">
                 <div class="sw-tab-content">
-                    <div style="background:linear-gradient(135deg, rgba(0,51,0,0.8), rgba(0,102,0,0.8)); border:1px solid #00cc00; border-radius:6px; padding:12px; margin-bottom:12px;">
-                        <div style="color:#00ff00; font-size:14px; font-weight:bold; margin-bottom:6px; text-align:center;">
+                    <div style="background:linear-gradient(135deg, rgba(0,51,0,0.8), rgba(0,102,0,0.8)); border:1px solid #00cc00; border-radius:8px; padding:15px; margin-bottom:15px;">
+                        <div style="color:#00ff00; font-size:16px; font-weight:bold; margin-bottom:8px; text-align:center;">
                             👑 Panel Administratora
                         </div>
-                        <div style="color:#00cc99; font-size:10px; text-align:center;">
+                        <div style="color:#00cc99; font-size:11px; text-align:center;">
                             Zarządzaj licencjami i generuj klucze dostępu
                         </div>
                     </div>
                     
                     <!-- SEKCJA TWORZENIA LICENCJI -->
-                    <div class="admin-section-compact">
+                    <div class="admin-section">
                         <h3>➕ Stwórz Nową Licencję</h3>
                         
-                        <div class="admin-input-group-compact">
-                            <label class="admin-label-compact">Data ważności:</label>
-                            <input type="date" id="adminLicenseExpiry" class="admin-input-compact">
+                        <div class="admin-input-group">
+                            <label class="admin-label">Data ważności:</label>
+                            <input type="date" id="adminLicenseExpiry" class="admin-input">
                         </div>
                         
-                        <div class="admin-input-group-compact">
-                            <label class="admin-label-compact">Dodatki premium:</label>
-                            <input type="text" id="adminLicenseAddons" class="admin-input-compact" value="all" placeholder="auto-looter, quest-helper">
+                        <div class="admin-input-group">
+                            <label class="admin-label">Dodatki premium (oddzielone przecinkiem):</label>
+                            <input type="text" id="adminLicenseAddons" class="admin-input" value="all" placeholder="auto-looter, quest-helper, combat-log">
                         </div>
                         
-                        <div class="admin-input-group-compact">
-                            <label class="admin-label-compact">Notatka (opcjonalnie):</label>
-                            <input type="text" id="adminLicenseNote" class="admin-input-compact" placeholder="np. Dla gracza XYZ">
+                        <div class="admin-input-group">
+                            <label class="admin-label">Notatka (opcjonalnie):</label>
+                            <input type="text" id="adminLicenseNote" class="admin-input" placeholder="np. Dla gracza XYZ">
                         </div>
                         
-                        <button id="adminCreateLicenseBtn" class="admin-button-compact">
+                        <button id="adminCreateLicenseBtn" class="admin-button">
                             🎫 Wygeneruj Klucz Licencji
                         </button>
                     </div>
                     
                     <!-- WYGENEROWANY KLUCZ -->
-                    <div id="adminCreatedLicense" style="display:none; padding:12px; background:rgba(0,60,0,0.5); 
-                                                          border-radius:6px; border:2px solid #00ff00; margin-bottom:12px;">
-                        <div style="color:#00ff00; font-size:12px; font-weight:bold; margin-bottom:6px; text-align:center;">
+                    <div id="adminCreatedLicense" style="display:none; padding:15px; background:rgba(0,60,0,0.5); 
+                                                          border-radius:8px; border:2px solid #00ff00; margin-bottom:15px;">
+                        <div style="color:#00ff00; font-size:13px; font-weight:bold; margin-bottom:8px; text-align:center;">
                             🎫 Wygenerowany klucz licencji
                         </div>
-                        <div style="padding:10px; background:rgba(0,30,0,0.8); border-radius:4px; margin-bottom:6px;">
-                            <code id="adminLicenseKeyDisplay" style="color:#00ccff; font-size:12px; font-weight:bold; word-break:break-all; display:block; text-align:center;"></code>
+                        <div style="padding:12px; background:rgba(0,30,0,0.8); border-radius:6px; margin-bottom:8px;">
+                            <code id="adminLicenseKeyDisplay" style="color:#00ccff; font-size:14px; font-weight:bold; word-break:break-all; display:block; text-align:center;"></code>
                         </div>
-                        <div style="color:#00cc99; font-size:9px; text-align:center;">
+                        <div style="color:#00cc99; font-size:10px; text-align:center;">
                             Skopiuj i przekaż użytkownikowi. Klucz jest jednorazowy.
                         </div>
                     </div>
                     
                     <!-- SEKCJA LISTY LICENCJI -->
-                    <div class="admin-section-compact">
+                    <div class="admin-section">
                         <h3>📋 Zarządzanie Kluczami</h3>
                         
-                        <button id="adminListLicensesBtn" class="admin-button-compact admin-button-secondary-compact">
+                        <button id="adminListLicensesBtn" class="admin-button admin-button-secondary">
                             🔄 Odśwież Listę Kluczy
                         </button>
                         
@@ -1455,13 +1697,13 @@
                         </div>
                     </div>
                     
-                    <div id="adminMessage" class="license-message" style="display:none; margin-top:8px;"></div>
+                    <div id="adminMessage" class="license-message" style="display:none; margin-top:10px;"></div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - ULTIMATE FIX');
+        console.log('✅ Panel created - FINAL FIX');
         
         initializeEventListeners();
         
@@ -1482,7 +1724,6 @@
     function loadSettings() {
         // Rozmiar czcionki
         const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
-        currentFontSize = savedFontSize;
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         
@@ -1504,21 +1745,22 @@
         }
     }
 
-    // 🔹 Zastosowanie rozmiaru czcionki - POPRAWIONE (bez gigantycznych czcionek)
+    // 🔹 Zastosowanie rozmiaru czcionki - POPRAWIONE (teraz zmienia się płynnie)
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
+        if (panel) {
+            panel.style.fontSize = size + 'px';
+            
+            // Dodatkowo zmień czcionkę w kluczowych elementach
+            const elementsToResize = panel.querySelectorAll('.tablink, .addon-title, .shortcut-name, .settings-label, .license-header, .info-header');
+            elementsToResize.forEach(el => {
+                const baseSize = parseFloat(getComputedStyle(panel).fontSize);
+                const ratio = size / 12;
+                el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * ratio) + 'px';
+            });
+        }
         
-        // ZAPISUJEMY AKTUALNY ROZMIAR
-        currentFontSize = size;
-        
-        // USTAW ROZMIAR NA PANELU (bazowy)
-        panel.style.fontSize = size + 'px';
-        
-        // ZAPISZ W PAMIĘCI
         SW.GM_setValue(CONFIG.FONT_SIZE, size);
-        
-        console.log(`✅ Czcionka ustawiona na: ${size}px`);
     }
 
     // 🔹 Zastosowanie przezroczystości
@@ -1530,455 +1772,237 @@
                 rgba(26, 0, 0, ${opacityValue}), 
                 rgba(51, 0, 0, ${opacityValue}), 
                 rgba(102, 0, 0, ${opacityValue}))`;
+            
+            // Również dla zakładek
+            const tabContents = panel.querySelectorAll('.sw-tab-content');
+            tabContents.forEach(tab => {
+                tab.style.background = `rgba(26, 0, 0, ${opacityValue * 0.9})`;
+            });
         }
         
         SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, opacity);
     }
 
-    // 🔹 Inicjalizacja event listenerów
-    function initializeEventListeners() {
-        // Przycisk Zapisz i odśwież grę
-        const saveRefreshBtn = document.getElementById('swSaveRefreshButton');
-        if (saveRefreshBtn) {
-            saveRefreshBtn.addEventListener('click', function() {
-                // Zapisz stan dodatków
-                saveAddonsState();
-                
-                // Zapisz skróty
-                saveAddonShortcuts();
-                saveShortcutsEnabledState();
-                
-                // Pokaż komunikat
-                const messageEl = document.getElementById('swAddonsMessage');
-                if (messageEl) {
-                    messageEl.textContent = 'Zapisano! Odświeżanie gry...';
-                    messageEl.className = 'license-message license-success';
-                    messageEl.style.display = 'block';
-                    
-                    // Odśwież po 2 sekundach
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
-                }
-            });
-        }
+    // 🔹 Renderowanie listy skrótów
+    function renderShortcuts() {
+        const container = document.getElementById('shortcuts-list');
+        if (!container) return;
         
-        // Aktywacja licencji
-        const activateBtn = document.getElementById('activateLicenseBtn');
-        if (activateBtn) {
-            activateBtn.addEventListener('click', handleLicenseActivation);
-        }
+        container.innerHTML = '';
         
-        // Reset ustawień
-        const resetBtn = document.getElementById('swResetButton');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (confirm('Resetować wszystkie ustawienia?')) resetAllSettings();
-            });
-        }
+        const addonsWithShortcuts = currentAddons.filter(addon => 
+            addon.shortcut || addon.id in addonShortcuts || !addon.locked
+        );
         
-        // SUWAKI USTAWIENIA - POPRAWIONE (bez mnożenia czcionki)
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeSlider && fontSizeValue) {
-            let fontSizeTimeout;
-            fontSizeSlider.addEventListener('input', function() {
-                const size = parseInt(this.value);
-                fontSizeValue.textContent = size + 'px';
-                
-                // Debounce - aktualizuj tylko co 100ms
-                clearTimeout(fontSizeTimeout);
-                fontSizeTimeout = setTimeout(() => {
-                    applyFontSize(size);
-                }, 100);
-            });
-        }
-        
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityValue = document.getElementById('opacityValue');
-        if (opacitySlider && opacityValue) {
-            opacitySlider.addEventListener('input', function() {
-                const opacity = parseInt(this.value);
-                opacityValue.textContent = opacity + '%';
-                applyOpacity(opacity);
-            });
-        }
-        
-        setupPanelShortcutInput();
-        setupAdminEvents();
-        setupTabs();
-        setupDrag();
-        setupGlobalShortcuts();
-        
-        // Wyszukiwanie dodatków
-        const searchInput = document.getElementById('searchAddons');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                searchQuery = this.value.toLowerCase();
-                renderAddons();
-            });
-        }
-    }
-
-    // 🔹 Setup event listenerów dla admina - TERAZ DZIAŁA!
-    function setupAdminEvents() {
-        if (!isAdmin) return;
-        
-        console.log('🛠️ Initializing admin panel...');
-        
-        // Stwórz licencję - TERAZ DZIAŁA!
-        const createBtn = document.getElementById('adminCreateLicenseBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', async function() {
-                const expiry = document.getElementById('adminLicenseExpiry').value;
-                const addons = document.getElementById('adminLicenseAddons').value.trim();
-                const note = document.getElementById('adminLicenseNote').value.trim();
-                
-                if (!expiry) {
-                    showAdminMessage('Wybierz datę ważności!', 'error');
-                    return;
-                }
-                
-                const btn = this;
-                const originalText = btn.textContent;
-                btn.textContent = 'Generuję...';
-                btn.disabled = true;
-                
-                try {
-                    console.log('🛠️ Sending request to backend...');
-                    
-                    const response = await fetch(`${BACKEND_URL}/api/admin/create`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${ADMIN_TOKEN}`
-                        },
-                        body: JSON.stringify({ 
-                            expiry: expiry, 
-                            addons: addons.split(',').map(a => a.trim()).filter(a => a),
-                            note: note || 'Brak notatki'
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    console.log('🛠️ Backend response:', result);
-                    
-                    if (result.success && result.license) {
-                        const displayDiv = document.getElementById('adminCreatedLicense');
-                        const keyDisplay = document.getElementById('adminLicenseKeyDisplay');
-                        
-                        keyDisplay.textContent = result.license.key;
-                        displayDiv.style.display = 'block';
-                        
-                        // Przewiń do wygenerowanego klucza
-                        displayDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        
-                        showAdminMessage(`✅ Klucz wygenerowany! Klucz: ${result.license.key.substring(0, 8)}...`, 'success');
-                        
-                        // Czyść pole notatki
-                        document.getElementById('adminLicenseNote').value = '';
-                        
-                        // Automatycznie odśwież listę kluczy
-                        setTimeout(() => {
-                            const listBtn = document.getElementById('adminListLicensesBtn');
-                            if (listBtn) listBtn.click();
-                        }, 500);
-                        
-                    } else {
-                        const errorMsg = result.message || 'Nieznany błąd serwera';
-                        console.error('❌ Błąd generowania klucza:', errorMsg);
-                        showAdminMessage(`❌ Błąd: ${errorMsg}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('❌ Admin create error:', error);
-                    showAdminMessage(`❌ Błąd połączenia: ${error.message}`, 'error');
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
-        }
-        
-        // Pokaż wszystkie klucze licencji - TERAZ DZIAŁA!
-        const adminListLicensesBtn = document.getElementById('adminListLicensesBtn');
-        if (adminListLicensesBtn) {
-            adminListLicensesBtn.addEventListener('click', async function() {
-                const container = document.getElementById('adminLicensesContainer');
-                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:15px;">Ładowanie kluczy...</div>';
-                container.style.display = 'block';
-                
-                const btn = this;
-                const originalText = btn.textContent;
-                btn.textContent = 'Ładuję...';
-                btn.disabled = true;
-                
-                try {
-                    console.log('🛠️ Fetching licenses list...');
-                    const response = await fetch(`${BACKEND_URL}/api/admin/licenses`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${ADMIN_TOKEN}`
-                        }
-                    });
-                    
-                    const result = await response.json();
-                    console.log('🛠️ Licenses response:', result);
-                    
-                    if (result.success && result.licenses) {
-                        let html = '';
-                        
-                        if (result.licenses.length > 0) {
-                            // Sortuj po dacie ważności (najpóźniejsze najpierw)
-                            result.licenses.sort((a, b) => new Date(b.expiry) - new Date(a.expiry));
-                            
-                            result.licenses.forEach(license => {
-                                const expiry = new Date(license.expiry);
-                                const now = new Date();
-                                const isExpired = expiry < now;
-                                const isUsed = license.used || false;
-                                const isActive = !isExpired && !isUsed;
-                                
-                                let statusColor = '#00ff00';
-                                let statusText = 'AKTYWNY';
-                                let itemClass = 'license-key-item-compact';
-                                
-                                if (isUsed) {
-                                    statusColor = '#ff9900';
-                                    statusText = 'UŻYTY';
-                                    itemClass += ' used';
-                                } else if (isExpired) {
-                                    statusColor = '#ff3300';
-                                    statusText = 'WYGASŁY';
-                                    itemClass += ' expired';
-                                }
-                                
-                                // Formatuj datę
-                                const expiryFormatted = expiry.toLocaleDateString('pl-PL');
-                                
-                                html += `
-                                    <div class="${itemClass}">
-                                        <div><strong style="color:#00ff00;">Klucz:</strong> ${license.key}</div>
-                                        <div><strong style="color:#00ccff;">Ważny do:</strong> ${expiryFormatted}</div>
-                                        <div><strong style="color:#00cc99;">Status:</strong> 
-                                            <span style="color:${statusColor}">${statusText}</span>
-                                        </div>
-                                        <div><strong>Dodatki:</strong> ${license.addons?.join(', ') || 'all'}</div>
-                                        ${license.note ? `<div><strong>Notatka:</strong> ${license.note}</div>` : ''}
-                                        ${license.usedBy ? `<div><strong>Użyty przez:</strong> ${license.usedBy}</div>` : ''}
-                                    </div>
-                                `;
-                            });
-                        } else {
-                            html = '<div style="color:#00aa99; text-align:center; padding:15px;">Brak kluczy w bazie danych</div>';
-                        }
-                        
-                        container.innerHTML = html;
-                        showAdminMessage(`✅ Załadowano ${result.licenses.length} kluczy`, 'success');
-                    } else {
-                        container.innerHTML = '<div style="color:#ff6666; text-align:center; padding:15px;">Błąd ładowania kluczy</div>';
-                        showAdminMessage('❌ Błąd podczas ładowania kluczy', 'error');
-                    }
-                } catch (error) {
-                    console.error('❌ Admin list error:', error);
-                    container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:15px;">Błąd: ${error.message}</div>`;
-                    showAdminMessage(`❌ Błąd połączenia: ${error.message}`, 'error');
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
-        }
-    }
-
-    // 🔹 Pozostałe funkcje (te same co wcześniej, ale skrócone dla czytelności)
-    function showAdminMessage(text, type = 'info') {
-        const messageEl = document.getElementById('adminMessage');
-        if (messageEl) {
-            messageEl.textContent = text;
-            messageEl.className = `license-message license-${type}`;
-            messageEl.style.display = 'block';
-            setTimeout(() => messageEl.style.display = 'none', 5000);
-        }
-    }
-
-    // 🔹 Setup pozostałych funkcji (renderAddons, toggleAddon, saveAddonsState, itp.)
-    // ... (te same funkcje co wcześniej, tylko skrócone dla czytelności)
-
-    // 🔹 Główne funkcje panelu
-    async function initPanel() {
-        console.log('✅ Initializing panel v3.4 - ULTIMATE FIX...');
-        
-        injectCSS();
-        
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        createToggleButton();
-        createMainPanel();
-        
-        loadSavedState();
-        loadAddonShortcuts();
-        loadShortcutsEnabledState();
-        
-        const toggleBtn = document.getElementById('swPanelToggle');
-        if (toggleBtn) {
-            setupToggleDrag(toggleBtn);
-        }
-        
-        panelInitialized = true;
-        
-        setTimeout(async () => {
-            await initAccountAndLicense();
-            
-            if (isAdmin) {
-                toggleAdminTab(true);
-                console.log('✅ Admin panel enabled for account:', userAccountId);
-                
-                // Automatycznie pokaż klucze po załadowaniu admina
-                setTimeout(() => {
-                    const listBtn = document.getElementById('adminListLicensesBtn');
-                    if (listBtn) listBtn.click();
-                }, 1000);
-            }
-            
-            renderAddons();
-            renderShortcuts();
-            
-            // Automatyczne odświeżanie statusu licencji
-            setInterval(() => {
-                if (userAccountId) checkAndUpdateLicense(userAccountId);
-            }, 5 * 60 * 1000);
-        }, 1000);
-    }
-
-    // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v3.4 - ULTIMATE FIX...');
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPanel);
-    } else {
-        initPanel();
-    }
-
-    // =========================================================================
-    // 🔹 POZOSTAŁE FUNKCJE (skrócone dla czytelności)
-    // =========================================================================
-
-    // Renderowanie dodatków
-    function renderAddons() {
-        const listContainer = document.getElementById('addon-list');
-        if (!listContainer) return;
-        
-        listContainer.innerHTML = '';
-        
-        let filteredAddons = currentAddons;
-        if (searchQuery) {
-            filteredAddons = currentAddons.filter(addon => 
-                addon.name.toLowerCase().includes(searchQuery) || 
-                addon.description.toLowerCase().includes(searchQuery)
-            );
-        }
-        
-        if (filteredAddons.length === 0) {
-            listContainer.innerHTML = `
+        if (addonsWithShortcuts.length === 0) {
+            container.innerHTML = `
                 <div style="text-align:center; padding:30px; color:#ff9966; font-style:italic;">
-                    ${searchQuery ? 'Nie znaleziono dodatków pasujących do wyszukiwania' : 'Brak dostępnych dodatków'}
+                    Brak dodatków z możliwością ustawienia skrótów
                 </div>
             `;
             return;
         }
         
-        filteredAddons.forEach(addon => {
-            const div = document.createElement('div');
-            div.className = 'addon';
-            div.dataset.id = addon.id;
+        addonsWithShortcuts.forEach(addon => {
+            const shortcut = addonShortcuts[addon.id] || addon.shortcut || 'Brak skrótu';
+            const isLocked = addon.locked;
+            const isEnabled = shortcutsEnabled[addon.id] !== false;
             
-            div.innerHTML = `
-                <div class="addon-header">
-                    <div class="addon-title">
+            const item = document.createElement('div');
+            item.className = 'shortcut-item';
+            item.innerHTML = `
+                <div class="shortcut-info">
+                    <div class="shortcut-name">
                         ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
                         ${addon.name}
-                        ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
+                        ${isLocked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
                     </div>
-                    <div class="addon-description">${addon.description}</div>
+                    <div class="shortcut-desc">${addon.description}</div>
                 </div>
-                <div class="addon-controls">
-                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
-                            data-id="${addon.id}"
-                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}">
-                        ★
-                    </button>
-                    <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
-                        <input type="checkbox" 
-                               ${addon.enabled ? 'checked' : ''} 
-                               ${addon.locked ? 'disabled' : ''}
-                               data-id="${addon.id}">
-                        <span class="addon-switch-slider"></span>
-                    </label>
+                <div class="shortcut-controls">
+                    <div class="shortcut-display" id="shortcut-display-${addon.id}">
+                        ${isLocked ? 'Zablokowane' : shortcut}
+                    </div>
+                    ${!isLocked ? `
+                        <button class="shortcut-set-btn" data-id="${addon.id}">Ustaw</button>
+                        <button class="shortcut-clear-btn" data-id="${addon.id}">Wyczyść</button>
+                        <label class="shortcut-toggle" title="${isEnabled ? 'Wyłącz skrót' : 'Włącz skrót'}">
+                            <input type="checkbox" ${isEnabled ? 'checked' : ''} data-id="${addon.id}" class="shortcut-toggle-input">
+                            <span class="shortcut-toggle-slider"></span>
+                        </label>
+                    ` : ''}
                 </div>
             `;
             
-            listContainer.appendChild(div);
+            container.appendChild(item);
         });
         
-        document.querySelectorAll('.favorite-btn').forEach(btn => {
-            if (!btn.disabled) {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const addonId = this.dataset.id;
-                    if (addonId) toggleFavorite(addonId);
-                });
-            }
-        });
-        
-        document.querySelectorAll('.addon-switch input').forEach(checkbox => {
-            checkbox.addEventListener('change', function(e) {
-                e.stopPropagation();
+        // Event listenery
+        document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
-                if (addonId) toggleAddon(addonId, this.checked);
+                setAddonShortcut(addonId);
+            });
+        });
+        
+        document.querySelectorAll('.shortcut-clear-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const addonId = this.dataset.id;
+                clearAddonShortcut(addonId);
+            });
+        });
+        
+        document.querySelectorAll('.shortcut-toggle-input').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const addonId = this.dataset.id;
+                toggleShortcutEnabled(addonId, this.checked);
             });
         });
     }
 
-    function toggleFavorite(addonId) {
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        if (addonIndex === -1) return;
+    // 🔹 Włączanie/wyłączanie skrótu
+    function toggleShortcutEnabled(addonId, enabled) {
+        shortcutsEnabled[addonId] = enabled;
+        saveShortcutsEnabledState();
         
-        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
-        saveAddonsState();
-        renderAddons();
+        const message = enabled ? 'Skrót włączony' : 'Skrót wyłączony';
+        showShortcutMessage(message, 'info');
     }
 
-    function toggleAddon(addonId, isEnabled) {
-        const addon = currentAddons.find(a => a.id === addonId);
-        if (!addon || addon.locked) return;
+    // 🔹 Ustawianie skrótu dla dodatku
+    function setAddonShortcut(addonId) {
+        const display = document.getElementById(`shortcut-display-${addonId}`);
+        if (!display) return;
         
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        currentAddons[addonIndex].enabled = isEnabled;
-        saveAddonsState();
+        display.textContent = 'Wciśnij kombinację...';
+        display.style.color = '#ffcc00';
+        display.style.borderColor = '#ff3300';
         
-        if (addonId === 'kcs-icons') {
-            SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+        let keys = [];
+        let isSetting = true;
+        
+        const keyDownHandler = (e) => {
+            if (!isSetting) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const keyParts = [];
+            if (e.ctrlKey) keyParts.push('Ctrl');
+            if (e.shiftKey) keyParts.push('Shift');
+            if (e.altKey) keyParts.push('Alt');
+            
+            const mainKey = e.key.toUpperCase();
+            if (!['CONTROL', 'SHIFT', 'ALT', 'META'].includes(mainKey)) {
+                keyParts.push(mainKey);
+            }
+            
+            const shortcut = keyParts.join('+');
+            display.textContent = shortcut;
+            keys = keyParts;
+        };
+        
+        const keyUpHandler = (e) => {
+            if (!isSetting) return;
+            
+            if (keys.length >= 2) {
+                isSetting = false;
+                document.removeEventListener('keydown', keyDownHandler);
+                document.removeEventListener('keyup', keyUpHandler);
+                
+                const shortcut = keys.join('+');
+                addonShortcuts[addonId] = shortcut;
+                saveAddonShortcuts();
+                
+                shortcutsEnabled[addonId] = true;
+                saveShortcutsEnabledState();
+                
+                display.textContent = shortcut;
+                display.style.color = '#00ff00';
+                display.style.borderColor = '#00cc00';
+                
+                showShortcutMessage(`Skrót ustawiony: ${shortcut}`, 'success');
+                
+                setTimeout(() => {
+                    display.style.color = '#ffcc00';
+                    display.style.borderColor = '#660000';
+                }, 2000);
+                
+                const toggle = document.querySelector(`.shortcut-toggle-input[data-id="${addonId}"]`);
+                if (toggle) {
+                    toggle.checked = true;
+                }
+            }
+        };
+        
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                isSetting = false;
+                document.removeEventListener('keydown', keyDownHandler);
+                document.removeEventListener('keyup', keyUpHandler);
+                document.removeEventListener('keydown', escapeHandler);
+                
+                const oldShortcut = addonShortcuts[addonId] || ADDONS.find(a => a.id === addonId)?.shortcut || 'Brak skrótu';
+                display.textContent = oldShortcut;
+                display.style.color = '#ffcc00';
+                display.style.borderColor = '#660000';
+            }
+        };
+        
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+        document.addEventListener('keydown', escapeHandler);
+        
+        setTimeout(() => {
+            if (isSetting) {
+                isSetting = false;
+                document.removeEventListener('keydown', keyDownHandler);
+                document.removeEventListener('keyup', keyUpHandler);
+                document.removeEventListener('keydown', escapeHandler);
+                
+                const oldShortcut = addonShortcuts[addonId] || ADDONS.find(a => a.id === addonId)?.shortcut || 'Brak skrótu';
+                display.textContent = oldShortcut;
+                display.style.color = '#ffcc00';
+                display.style.borderColor = '#660000';
+                
+                showShortcutMessage('Czas na ustawienie skrótu minął', 'error');
+            }
+        }, 10000);
+    }
+
+    // 🔹 Czyszczenie skrótu
+    function clearAddonShortcut(addonId) {
+        delete addonShortcuts[addonId];
+        saveAddonShortcuts();
+        
+        const display = document.getElementById(`shortcut-display-${addonId}`);
+        if (display) {
+            const defaultShortcut = ADDONS.find(a => a.id === addonId)?.shortcut || 'Brak skrótu';
+            display.textContent = defaultShortcut;
         }
         
-        const messageEl = document.getElementById('swAddonsMessage');
+        shortcutsEnabled[addonId] = false;
+        saveShortcutsEnabledState();
+        
+        const toggle = document.querySelector(`.shortcut-toggle-input[data-id="${addonId}"]`);
+        if (toggle) {
+            toggle.checked = false;
+        }
+        
+        showShortcutMessage('Skrót wyczyszczony i wyłączony', 'info');
+    }
+
+    function showShortcutMessage(message, type) {
+        const messageEl = document.getElementById('shortcutsMessage');
         if (messageEl) {
-            messageEl.textContent = `${addon.name} ${isEnabled ? 'włączony' : 'wyłączony'}`;
-            messageEl.className = 'license-message license-success';
+            messageEl.textContent = message;
+            messageEl.className = `license-message license-${type}`;
             messageEl.style.display = 'block';
             setTimeout(() => messageEl.style.display = 'none', 3000);
         }
     }
 
-    function saveAddonsState() {
-        const addonsToSave = currentAddons.map(addon => ({
-            id: addon.id,
-            enabled: addon.enabled || false,
-            favorite: addon.favorite || false
-        }));
-        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
-    }
-
-    // Setup pozostałych funkcji...
+    // 🔹 Ustawianie skrótu panelu
     function setupPanelShortcutInput() {
         const input = document.getElementById('panelShortcutInput');
         const setBtn = document.getElementById('panelShortcutSetBtn');
@@ -2082,7 +2106,115 @@
         });
     }
 
-    // Setup zakładek
+    // 🔹 Obsługa skrótów klawiszowych
+    function setupGlobalShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            const panelShortcutParts = panelShortcut.split('+');
+            const hasCtrl = panelShortcutParts.includes('Ctrl');
+            const hasShift = panelShortcutParts.includes('Shift');
+            const hasAlt = panelShortcutParts.includes('Alt');
+            const key = panelShortcutParts[panelShortcutParts.length - 1].toUpperCase();
+            
+            const ctrlMatch = hasCtrl ? e.ctrlKey : !e.ctrlKey;
+            const shiftMatch = hasShift ? e.shiftKey : !e.shiftKey;
+            const altMatch = hasAlt ? e.altKey : !e.altKey;
+            const keyMatch = e.key.toUpperCase() === key;
+            
+            if (ctrlMatch && shiftMatch && altMatch && keyMatch && !isShortcutInputFocused) {
+                e.preventDefault();
+                togglePanel();
+                return;
+            }
+            
+            Object.keys(addonShortcuts).forEach(addonId => {
+                const shortcut = addonShortcuts[addonId];
+                if (!shortcut || shortcutsEnabled[addonId] === false) return;
+                
+                const parts = shortcut.split('+');
+                const sHasCtrl = parts.includes('Ctrl');
+                const sHasShift = parts.includes('Shift');
+                const sHasAlt = parts.includes('Alt');
+                const sKey = parts[parts.length - 1].toUpperCase();
+                
+                const sCtrlMatch = sHasCtrl ? e.ctrlKey : !e.ctrlKey;
+                const sShiftMatch = sHasShift ? e.shiftKey : !e.shiftKey;
+                const sAltMatch = sHasAlt ? e.altKey : !e.altKey;
+                const sKeyMatch = e.key.toUpperCase() === sKey;
+                
+                if (sCtrlMatch && sShiftMatch && sAltMatch && sKeyMatch && !isShortcutInputFocused) {
+                    e.preventDefault();
+                    const addon = currentAddons.find(a => a.id === addonId);
+                    if (addon && !addon.locked) {
+                        toggleAddon(addonId, !addon.enabled);
+                        showShortcutMessage(`${addon.name} ${addon.enabled ? 'wyłączony' : 'włączony'} (${shortcut})`, 'info');
+                    }
+                }
+            });
+        });
+    }
+
+    // 🔹 Inicjalizacja event listenerów
+    function initializeEventListeners() {
+        // Aktywacja licencji
+        const activateBtn = document.getElementById('activateLicenseBtn');
+        if (activateBtn) {
+            activateBtn.addEventListener('click', handleLicenseActivation);
+        }
+        
+        // Przycisk odśwież
+        const refreshBtn = document.getElementById('swRefreshButton');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                if (confirm('Odświeżyć stronę?')) location.reload();
+            });
+        }
+        
+        // Reset ustawień
+        const resetBtn = document.getElementById('swResetButton');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Resetować wszystkie ustawienia?')) resetAllSettings();
+            });
+        }
+        
+        // SUWAKI USTAWIENIA - POPRAWIONE (teraz działają poprawnie)
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeSlider && fontSizeValue) {
+            fontSizeSlider.addEventListener('input', function() {
+                const size = parseInt(this.value);
+                fontSizeValue.textContent = size + 'px';
+                applyFontSize(size);
+            });
+        }
+        
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.addEventListener('input', function() {
+                const opacity = parseInt(this.value);
+                opacityValue.textContent = opacity + '%';
+                applyOpacity(opacity);
+            });
+        }
+        
+        setupPanelShortcutInput();
+        setupAdminEvents();
+        setupTabs();
+        setupDrag();
+        setupGlobalShortcuts();
+        
+        // Wyszukiwanie dodatków
+        const searchInput = document.getElementById('searchAddons');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.toLowerCase();
+                renderAddons();
+            });
+        }
+    }
+
+    // 🔹 Setup zakładek
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
         tabs.forEach(tab => {
@@ -2093,6 +2225,12 @@
                 
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
+                } else if (tabName === 'admin') {
+                    // Automatycznie pokaż klucze po przejściu do admina
+                    setTimeout(() => {
+                        const listBtn = document.getElementById('adminListLicensesBtn');
+                        if (listBtn) listBtn.click();
+                    }, 500);
                 }
             });
         });
@@ -2120,7 +2258,7 @@
         }
     }
 
-    // Obsługa aktywacji licencji
+    // 🔹 Obsługa aktywacji licencji
     async function handleLicenseActivation() {
         const licenseKeyInput = document.getElementById('licenseKeyInput');
         const activateBtn = document.getElementById('activateLicenseBtn');
@@ -2181,7 +2319,308 @@
         }
     }
 
-    // Setup przeciągania
+    // 🔹 Setup event listenerów dla admina - DZIAŁAJĄCE
+    function setupAdminEvents() {
+        if (!isAdmin) return;
+        
+        // Stwórz licencję - NAPRAWIONE
+        const createBtn = document.getElementById('adminCreateLicenseBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', async function() {
+                const expiry = document.getElementById('adminLicenseExpiry').value;
+                const addons = document.getElementById('adminLicenseAddons').value.trim();
+                const note = document.getElementById('adminLicenseNote').value.trim();
+                
+                if (!expiry) {
+                    showAdminMessage('Wybierz datę ważności!', 'error');
+                    return;
+                }
+                
+                const btn = this;
+                const originalText = btn.textContent;
+                btn.textContent = 'Generuję...';
+                btn.disabled = true;
+                
+                try {
+                    console.log('Wysyłam żądanie do:', `${BACKEND_URL}/api/admin/create`);
+                    console.log('Token:', ADMIN_TOKEN.substring(0, 10) + '...');
+                    console.log('Dane:', { expiry, addons, note });
+                    
+                    const response = await fetch(`${BACKEND_URL}/api/admin/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${ADMIN_TOKEN}`
+                        },
+                        body: JSON.stringify({ 
+                            expiry: expiry, 
+                            addons: addons.split(',').map(a => a.trim()).filter(a => a),
+                            note: note || 'Brak notatki'
+                        })
+                    });
+                    
+                    console.log('Odpowiedź status:', response.status);
+                    const result = await response.json();
+                    console.log('Odpowiedź JSON:', result);
+                    
+                    if (result.success && result.license) {
+                        const displayDiv = document.getElementById('adminCreatedLicense');
+                        const keyDisplay = document.getElementById('adminLicenseKeyDisplay');
+                        
+                        keyDisplay.textContent = result.license.key;
+                        displayDiv.style.display = 'block';
+                        
+                        // Przewiń do wygenerowanego klucza
+                        displayDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        
+                        showAdminMessage(`✅ Klucz wygenerowany! Ważny do: ${new Date(expiry).toLocaleDateString('pl-PL')}`, 'success');
+                        
+                        // Czyść pole notatki
+                        document.getElementById('adminLicenseNote').value = '';
+                        
+                        // Automatycznie odśwież listę kluczy
+                        setTimeout(() => {
+                            const listBtn = document.getElementById('adminListLicensesBtn');
+                            if (listBtn) listBtn.click();
+                        }, 1000);
+                        
+                    } else {
+                        const errorMsg = result.message || 'Nieznany błąd serwera';
+                        console.error('Błąd generowania klucza:', errorMsg);
+                        showAdminMessage(`❌ Błąd: ${errorMsg}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Admin create error:', error);
+                    showAdminMessage(`❌ Błąd połączenia: ${error.message}`, 'error');
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+        
+        // Pokaż wszystkie klucze licencji - NAPRAWIONE
+        const adminListLicensesBtn = document.getElementById('adminListLicensesBtn');
+        if (adminListLicensesBtn) {
+            adminListLicensesBtn.addEventListener('click', async function() {
+                const container = document.getElementById('adminLicensesContainer');
+                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:20px;">Ładowanie kluczy...</div>';
+                container.style.display = 'block';
+                
+                const btn = this;
+                const originalText = btn.textContent;
+                btn.textContent = 'Ładuję...';
+                btn.disabled = true;
+                
+                try {
+                    console.log('Pobieranie listy kluczy...');
+                    const response = await fetch(`${BACKEND_URL}/api/admin/licenses`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${ADMIN_TOKEN}`
+                        }
+                    });
+                    
+                    console.log('Odpowiedź status (list):', response.status);
+                    const result = await response.json();
+                    console.log('Odpowiedź JSON (list):', result);
+                    
+                    if (result.success && result.licenses) {
+                        let html = '';
+                        
+                        if (result.licenses.length > 0) {
+                            // Sortuj po dacie ważności (najpóźniejsze najpierw)
+                            result.licenses.sort((a, b) => new Date(b.expiry) - new Date(a.expiry));
+                            
+                            result.licenses.forEach(license => {
+                                const expiry = new Date(license.expiry);
+                                const now = new Date();
+                                const isExpired = expiry < now;
+                                const isUsed = license.used || false;
+                                const isActive = !isExpired && !isUsed;
+                                
+                                let statusColor = '#00ff00';
+                                let statusText = 'AKTYWNY';
+                                let itemClass = 'license-key-item';
+                                
+                                if (isUsed) {
+                                    statusColor = '#ff9900';
+                                    statusText = 'UŻYTY';
+                                    itemClass += ' used';
+                                } else if (isExpired) {
+                                    statusColor = '#ff3300';
+                                    statusText = 'WYGASŁY';
+                                    itemClass += ' expired';
+                                }
+                                
+                                html += `
+                                    <div class="${itemClass}">
+                                        <div><strong style="color:#00ff00;">Klucz:</strong> ${license.key}</div>
+                                        <div><strong style="color:#00ccff;">Ważny do:</strong> ${expiry.toLocaleDateString('pl-PL')}</div>
+                                        <div><strong style="color:#00cc99;">Status:</strong> 
+                                            <span style="color:${statusColor}">${statusText}</span>
+                                        </div>
+                                        <div><strong>Dodatki:</strong> ${license.addons?.join(', ') || 'all'}</div>
+                                        ${license.note ? `<div><strong>Notatka:</strong> ${license.note}</div>` : ''}
+                                        ${license.usedBy ? `<div><strong>Użyty przez:</strong> ${license.usedBy}</div>` : ''}
+                                        ${license.activatedAt ? `<div><strong>Aktywowano:</strong> ${new Date(license.activatedAt).toLocaleDateString('pl-PL')}</div>` : ''}
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color:#00aa99; text-align:center; padding:20px;">Brak kluczy w bazie danych</div>';
+                        }
+                        
+                        container.innerHTML = html;
+                        showAdminMessage(`Załadowano ${result.licenses.length} kluczy`, 'success');
+                    } else {
+                        container.innerHTML = '<div style="color:#ff6666; text-align:center; padding:20px;">Błąd ładowania kluczy</div>';
+                        showAdminMessage('Błąd podczas ładowania kluczy', 'error');
+                    }
+                } catch (error) {
+                    console.error('Admin list error:', error);
+                    container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:20px;">Błąd: ${error.message}</div>`;
+                    showAdminMessage(`Błąd połączenia: ${error.message}`, 'error');
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+    }
+
+    function showAdminMessage(text, type = 'info') {
+        const messageEl = document.getElementById('adminMessage');
+        if (messageEl) {
+            messageEl.textContent = text;
+            messageEl.className = `license-message license-${type}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 5000);
+        }
+    }
+
+    // 🔹 Renderowanie dodatków z wyszukiwarką
+    function renderAddons() {
+        const listContainer = document.getElementById('addon-list');
+        if (!listContainer) return;
+        
+        listContainer.innerHTML = '';
+        
+        // Filtruj dodatki według wyszukiwania
+        let filteredAddons = currentAddons;
+        if (searchQuery) {
+            filteredAddons = currentAddons.filter(addon => 
+                addon.name.toLowerCase().includes(searchQuery) || 
+                addon.description.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        if (filteredAddons.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#ff9966; font-style:italic;">
+                    ${searchQuery ? 'Nie znaleziono dodatków pasujących do wyszukiwania' : 'Brak dostępnych dodatków'}
+                </div>
+            `;
+            return;
+        }
+        
+        filteredAddons.forEach(addon => {
+            const div = document.createElement('div');
+            div.className = 'addon';
+            div.dataset.id = addon.id;
+            
+            div.innerHTML = `
+                <div class="addon-header">
+                    <div class="addon-title">
+                        ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
+                        ${addon.name}
+                        ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
+                    </div>
+                    <div class="addon-description">${addon.description}</div>
+                    <div style="color:#ff9966; font-size:10px; margin-top:3px;">
+                        Autor: ${addon.author} | Wersja: ${addon.version}
+                    </div>
+                </div>
+                <div class="addon-controls">
+                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
+                            data-id="${addon.id}"
+                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}">
+                        ★
+                    </button>
+                    <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
+                        <input type="checkbox" 
+                               ${addon.enabled ? 'checked' : ''} 
+                               ${addon.locked ? 'disabled' : ''}
+                               data-id="${addon.id}">
+                        <span class="addon-switch-slider"></span>
+                    </label>
+                </div>
+            `;
+            
+            listContainer.appendChild(div);
+        });
+        
+        // Event listenery dla przycisków
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            if (!btn.disabled) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const addonId = this.dataset.id;
+                    if (addonId) toggleFavorite(addonId);
+                });
+            }
+        });
+        
+        document.querySelectorAll('.addon-switch input').forEach(checkbox => {
+            checkbox.addEventListener('change', function(e) {
+                e.stopPropagation();
+                const addonId = this.dataset.id;
+                if (addonId) toggleAddon(addonId, this.checked);
+            });
+        });
+    }
+
+    function toggleFavorite(addonId) {
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        if (addonIndex === -1) return;
+        
+        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
+        saveAddonsState();
+        renderAddons();
+    }
+
+    function toggleAddon(addonId, isEnabled) {
+        const addon = currentAddons.find(a => a.id === addonId);
+        if (!addon || addon.locked) return;
+        
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        currentAddons[addonIndex].enabled = isEnabled;
+        saveAddonsState();
+        
+        if (addonId === 'kcs-icons') {
+            SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
+        }
+        
+        // Pokaż komunikat
+        const messageEl = document.getElementById('swAddonsMessage');
+        if (messageEl) {
+            messageEl.textContent = `${addon.name} ${isEnabled ? 'włączony' : 'wyłączony'}`;
+            messageEl.className = 'license-message license-success';
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
+    }
+
+    function saveAddonsState() {
+        const addonsToSave = currentAddons.map(addon => ({
+            id: addon.id,
+            enabled: addon.enabled || false,
+            favorite: addon.favorite || false
+        }));
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
+    }
+
+    // 🔹 Setup przeciągania
     function setupDrag() {
         const header = document.getElementById('swPanelHeader');
         const panel = document.getElementById('swAddonsPanel');
@@ -2217,6 +2656,7 @@
         }
     }
 
+    // 🔹 Setup przeciągania przycisku
     function setupToggleDrag(toggleBtn) {
         let isDragging = false;
         let startX, startY;
@@ -2283,6 +2723,7 @@
         }
     }
 
+    // 🔹 Toggle panelu
     function togglePanel() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -2292,6 +2733,7 @@
         }
     }
 
+    // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         Object.keys(CONFIG).forEach(key => {
             SW.GM_deleteValue(CONFIG[key]);
@@ -2325,6 +2767,7 @@
         
         loadSavedState();
         renderAddons();
+        renderShortcuts();
         updateAccountDisplay('Nie znaleziono');
         updateLicenseDisplay();
         
@@ -2332,6 +2775,7 @@
         if (panelInput) panelInput.value = 'Ctrl+A';
     }
 
+    // 🔹 Ładowanie zapisanego stanu
     function loadSavedState() {
         const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         const toggleBtn = document.getElementById('swPanelToggle');
@@ -2356,5 +2800,54 @@
         panelShortcut = savedShortcut;
         const panelInput = document.getElementById('panelShortcutInput');
         if (panelInput) panelInput.value = panelShortcut;
+    }
+
+    // 🔹 Główne funkcje panelu
+    async function initPanel() {
+        console.log('✅ Initializing panel v3.3 - FINAL FIX...');
+        
+        injectCSS();
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        createToggleButton();
+        createMainPanel();
+        
+        loadSavedState();
+        loadAddonShortcuts();
+        loadShortcutsEnabledState();
+        
+        const toggleBtn = document.getElementById('swPanelToggle');
+        if (toggleBtn) {
+            setupToggleDrag(toggleBtn);
+        }
+        
+        panelInitialized = true;
+        
+        setTimeout(async () => {
+            await initAccountAndLicense();
+            
+            if (isAdmin) {
+                toggleAdminTab(true);
+                console.log('✅ Admin panel enabled for account:', userAccountId);
+            }
+            
+            renderAddons();
+            renderShortcuts();
+            
+            // Automatyczne odświeżanie statusu licencji
+            setInterval(() => {
+                if (userAccountId) checkAndUpdateLicense(userAccountId);
+            }, 5 * 60 * 1000);
+        }, 1000);
+    }
+
+    // 🔹 Start panelu
+    console.log('🎯 Starting Synergy Panel v3.3 - FINAL FIX...');
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPanel);
+    } else {
+        initPanel();
     }
 })();
