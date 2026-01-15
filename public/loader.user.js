@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SynergyWraith - Panel Dodatków
-// @version      2.2
-// @description  Zaawansowany panel dodatków do Margonem z pełnym systemem licencji
+// @version      3.5
+// @description  Zaawansowany panel dodatków do Margonem z systemem licencji
 // @author       ShaderDerWraith
 // @license      MIT
 // @updateURL    https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/loader.user.js
@@ -27,21 +27,14 @@
 (function () {
     'use strict';
     
-    console.log('🚀 SynergyWraith loader started - v2.2 (Full License System)');
+    console.log('🚀 SynergyWraith loader started - v3.5');
     
-    // 🔹 UŻYJ RAW GITHUB URL
     const BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/';
     const TIMESTAMP = Date.now();
     
-    // 🔹 Debug info
-    console.log('🔧 DEBUG: Base URL:', BASE_URL);
-    console.log('🔧 DEBUG: JS URL:', BASE_URL + 'panel/main.js?v=' + TIMESTAMP);
-    
-    // 🔹 Globalny obiekt
     const synergyWraith = {};
     window.synergyWraith = synergyWraith;
     
-    // 🔹 Safe storage
     if (typeof GM_setValue !== 'undefined') {
         synergyWraith.GM_getValue = GM_getValue;
         synergyWraith.GM_setValue = GM_setValue;
@@ -51,7 +44,6 @@
     
     synergyWraith.GM_xmlhttpRequest = GM_xmlhttpRequest;
 
-    // 🔹 Ładuj tylko JS - CSS będzie wstrzyknięty przez main.js
     function loadJS() {
         GM_xmlhttpRequest({
             method: 'GET',
@@ -61,7 +53,7 @@
                     const script = document.createElement('script');
                     script.textContent = response.responseText;
                     document.head.appendChild(script);
-                    console.log('✅ JS loaded from RAW GitHub (v2.2 License System)');
+                    console.log('✅ JS loaded from GitHub');
                 } else {
                     console.error('❌ Failed to load JS:', response.status);
                 }
@@ -72,9 +64,24 @@
         });
     }
 
-    // 🔹 Start ładowania
+    function loadCSS() {
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: BASE_URL + 'panel/panel.css?v=' + TIMESTAMP,
+            onload: function(response) {
+                if (response.status === 200) {
+                    const style = document.createElement('style');
+                    style.textContent = response.responseText;
+                    document.head.appendChild(style);
+                    console.log('✅ CSS loaded from GitHub');
+                }
+            }
+        });
+    }
+
     function init() {
-        console.log('🎯 Loading from RAW GitHub');
+        console.log('🎯 Loading from GitHub');
+        loadCSS();
         loadJS();
     }
 
