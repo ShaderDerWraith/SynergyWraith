@@ -116,7 +116,7 @@
     text-align: center;
     border-bottom: 1px solid #ff3300;
     cursor: grab;
-    font-size: 18px;
+    font-size: 18px !important; /* Stały rozmiar dla nagłówka */
     font-weight: bold;
     color: #ffcc00;
     text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
@@ -292,6 +292,7 @@
     box-sizing: border-box;
     outline: none;
     transition: all 0.3s ease;
+    margin-bottom: 10px;
 }
 
 #searchAddons:focus {
@@ -303,6 +304,37 @@
 #searchAddons::placeholder {
     color: #ff9966;
     opacity: 0.7;
+}
+
+/* 🔹 PRZYCISK ZAPISZ I ODŚWIEŻ - POPRAWIONY 🔹 */
+#addons .refresh-button-container {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26, 0, 0, 0.95), rgba(51, 0, 0, 0.95));
+    padding: 8px 10px;
+    margin-top: auto;
+    border-top: 1px solid #660000;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+#addons .refresh-button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #006600, #008800);
+    border: 1px solid #00cc00;
+    border-radius: 5px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+#addons .refresh-button:hover {
+    background: linear-gradient(135deg, #008800, #00aa00);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
 }
 
 /* 🔹 FAVORITE BUTTON 🔹 */
@@ -396,7 +428,7 @@
     background-color: #666666;
 }
 
-/* 🔹 SHORTCUTS TAB 🔹 */
+/* 🔹 SHORTCUTS TAB - POPRAWIONY PRZEŁĄCZNIK 🔹 */
 .shortcut-item {
     background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
     border: 1px solid #660000;
@@ -484,6 +516,55 @@
     color: #ffffff;
 }
 
+/* 🔹 PRZEŁĄCZNIK DLA SKRÓTU - POPRAWIONY (jak w dodatkach) 🔹 */
+.shortcut-toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.shortcut-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shortcut-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #330000;
+    border: 1px solid #660000;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.shortcut-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 2px;
+    background-color: #ff3300;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.shortcut-toggle input:checked + .shortcut-toggle-slider {
+    background-color: #006600;
+    border-color: #00cc00;
+}
+
+.shortcut-toggle input:checked + .shortcut-toggle-slider:before {
+    transform: translateX(21px);
+    background-color: #00ff00;
+}
+
 /* 🔹 LICENSE SYSTEM 🔹 */
 .license-container {
     background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
@@ -530,6 +611,24 @@
     max-width: 150px;
     word-break: break-all;
     font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.copy-icon {
+    cursor: pointer;
+    color: #ffcc00;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.copy-icon:hover {
+    opacity: 1;
+    color: #ffffff;
+    transform: scale(1.1);
 }
 
 .license-status-valid { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
@@ -537,7 +636,7 @@
 .license-status-connected { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
 .license-status-disconnected { color: #ff3300 !important; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
 
-/* 🔹 SETTINGS TAB - FIXED 🔹 */
+/* 🔹 SETTINGS TAB - POPRAWIONY 🔹 */
 .settings-item {
     margin-bottom: 15px;
     padding: 10px;
@@ -556,7 +655,7 @@
     text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
 }
 
-/* FIXED FONT SIZE SLIDER */
+/* POPRAWIONY SUWAK CZCIONKI */
 .slider-container {
     display: flex;
     align-items: center;
@@ -598,7 +697,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
     transform: scale(1.1);
 }
 
-/* 🔹 ADMIN TAB - MODIFIED 🔹 */
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ff3300;
+    cursor: pointer;
+    border: 2px solid #ffcc00;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.8);
+}
+
+/* 🔹 ADMIN TAB 🔹 */
 #admin .sw-tab-content {
     padding: 8px !important;
     font-size: 11px;
@@ -667,6 +776,16 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .admin-button:hover {
     background: linear-gradient(to right, #008800, #00aa00);
     border-color: #00ff00;
+}
+
+.admin-button-secondary {
+    background: linear-gradient(to right, #006666, #008888);
+    border: 1px solid #00cccc;
+}
+
+.admin-button-secondary:hover {
+    background: linear-gradient(to right, #008888, #00aaaa);
+    border-color: #00ffff;
 }
 
 #adminLicensesContainer {
