@@ -5,5 +5,13 @@
     "grantedAt": "2024-01-21T10:30:00.000Z",
     "adminId": "7411461",
     "status": "active"
+  },
+[
+  {
+    "userId": "123456",
+    "expiry": "2024-12-31T23:59:59.999Z",
+    "grantedAt": "2024-01-21T10:30:00.000Z",
+    "adminId": "10056201",
+    "status": "active"
   }
 ]
