@@ -1,13 +1,13 @@
 [
   {
-    "userId": "7411461", //Shader
+    "userId": "7411461",
     "expiry": "2027-12-31T23:59:59.999Z",
     "grantedAt": "2024-01-21T10:30:00.000Z",
     "adminId": "7411461",
     "status": "active"
   },
   {
-    "userId": "10056201", //Luravo
+    "userId": "10056201",
     "expiry": "2027-12-31T23:59:59.999Z",
     "grantedAt": "2024-01-21T10:30:00.000Z",
     "adminId": "7411461",
@@ -21,7 +21,7 @@
     "status": "expired"
   },
   {
-    "userId": "10032106", //Vamos Amos
+    "userId": "10032106",
     "expiry": "2026-02-20T15:00:00.000Z",
     "grantedAt": "2024-01-21T10:30:00.000Z",
     "adminId": "7411461",
