@@ -264,6 +264,7 @@
                 // Porównaj jako stringi, bo w pliku JSON są stringi
                 const userId = l.userId ? l.userId.toString() : '';
                 const searchId = accountId.toString();
+                console.log('Porównanie:', userId, '===', searchId);
                 return userId === searchId;
             });
 
@@ -288,6 +289,7 @@
             const daysLeft = isActive ? Math.ceil((expiry - now) / (1000 * 60 * 60 * 24)) : 0;
 
             console.log('📊 Status licencji:', {
+                userId: license.userId,
                 isActive,
                 isExpired,
                 expiry: expiry.toLocaleDateString(),
@@ -305,7 +307,8 @@
                 addons: ['all'],
                 type: 'premium',
                 accountId: accountId,
-                source: 'github-pages'
+                source: 'github-pages',
+                licenseData: license
             };
 
         } catch (error) {
@@ -671,13 +674,14 @@
             <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div style="margin-bottom:10px;">
+                    <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
                         <input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." 
-                               style="width:100%; padding:8px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
-                                      border-radius:4px; color:#ffcc00; font-size:11px; box-sizing: border-box;">
+                               style="width:100%; padding:10px 15px; background:rgba(51,0,0,0.8); 
+                                      border:1px solid #660000; border-radius:6px; color:#ffcc00; 
+                                      font-size:12px; box-sizing:border-box;">
                     </div>
                     
-                    <div class="addon-list" id="addon-list" style="flex:1; overflow-y:auto;">
+                    <div class="addon-list" id="addon-list">
                         <!-- Lista dodatków będzie dodana dynamicznie -->
                     </div>
                     
@@ -685,25 +689,25 @@
                         <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
                     
-                    <div id="swAddonsMessage" class="license-message" style="display: none; font-size: 10px;"></div>
+                    <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
                 </div>
             </div>
 
             <!-- ZAKŁADKA SKRÓTY -->
             <div id="shortcuts" class="tabcontent">
                 <div class="sw-tab-content scrollable">
-                    <div style="margin-bottom:15px; padding:10px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); border-radius:6px; border:1px solid #660000;">
-                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:5px; font-size:12px;">⌨️ Skróty klawiszowe</h3>
-                        <p style="color:#ff9966; font-size:10px; margin:0;">
+                    <div style="margin-bottom:15px; padding:15px; background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); border-radius:8px; border:1px solid #660000; width:100%; max-width:800px;">
+                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:5px; font-size:14px; text-align:center;">⌨️ Skróty klawiszowe</h3>
+                        <p style="color:#ff9966; font-size:12px; margin:0; text-align:center;">
                             Skróty pokazują się tylko dla włączonych dodatków
                         </p>
                     </div>
                     
-                    <div id="shortcuts-list">
+                    <div id="shortcuts-list" style="width:100%; max-width:800px;">
                         <!-- Skróty będą dodane dynamicznie -->
                     </div>
                     
-                    <div id="shortcutsMessage" class="license-message" style="display:none; margin-top:10px; font-size:10px;"></div>
+                    <div id="shortcutsMessage" class="license-message" style="display:none; margin-top:10px; width:100%; max-width:800px;"></div>
                 </div>
             </div>
 
@@ -732,9 +736,9 @@
                     
                     <div class="license-container" style="margin-top:15px;">
                         <div class="license-header">🎫 Informacje o Premium</div>
-                        <div style="padding:10px; color:#ffcc00; font-size:11px; text-align:center;">
+                        <div style="padding:15px; color:#ffcc00; font-size:12px; text-align:center;">
                             <p>Aby uzyskać dostęp do dodatków premium, skontaktuj się z administratorem.</p>
-                            <p style="color:#ff9966; font-size:10px; margin-top:5px;">
+                            <p style="color:#ff9966; font-size:11px; margin-top:10px;">
                                 Licencje przyznawane są czasowo (np. 30 dni).
                             </p>
                         </div>
@@ -753,7 +757,7 @@
                             <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
                             <span class="slider-value" id="fontSizeValue">12px</span>
                         </div>
-                        <small style="color:#ff9966; font-size:10px;">10-16px</small>
+                        <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">10-16px</small>
                     </div>
                     
                     <div class="settings-item">
@@ -762,74 +766,64 @@
                             <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider" step="1">
                             <span class="slider-value" id="opacityValue">90%</span>
                         </div>
-                        <small style="color:#ff9966; font-size:10px;">30-100%</small>
+                        <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">30-100%</small>
                     </div>
                     
                     <div class="settings-item">
                         <div class="settings-label">⌨️ Skrót do panelu:</div>
-                        <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="display:flex; gap:10px; align-items:center; margin-bottom:5px;">
                             <input type="text" id="panelShortcutInput" 
-                                   style="flex:1; padding:8px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
-                                          border-radius:4px; color:#ffcc00; font-size:11px; text-align:center;" 
+                                   style="flex:1; padding:10px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
+                                          border-radius:5px; color:#ffcc00; font-size:12px; text-align:center;" 
                                    value="Ctrl+A" readonly>
-                            <button id="panelShortcutSetBtn" 
-                                    style="padding:8px 15px; background:linear-gradient(135deg, #660000, #990000); 
-                                           border:1px solid #ff3300; border-radius:4px; color:#ffffff; 
-                                           cursor:pointer; font-size:11px; font-weight:bold;">
-                                Ustaw
-                            </button>
+                            <button id="panelShortcutSetBtn">Ustaw</button>
                         </div>
-                        <small style="color:#ff9966; font-size:10px;">Kliknij "Ustaw" i wciśnij kombinację</small>
+                        <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">Kliknij "Ustaw" i wciśnij kombinację</small>
                     </div>
                     
-                    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #660000;">
-                        <button style="width:100%; padding:12px; background:linear-gradient(135deg, rgba(102,0,0,0.8), rgba(153,0,0,0.8)); 
-                                border:1px solid #ff3300; border-radius:4px; color:#ffffff; cursor:pointer; 
-                                font-weight:600; font-size:12px;" 
-                                id="swResetButton">
-                            🔄 Resetuj ustawienia
-                        </button>
+                    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #660000; width:100%; max-width:600px;">
+                        <button id="swResetButton">🔄 Resetuj ustawienia</button>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top:10px; padding:10px; border-radius:4px; display:none; font-size:11px;"></div>
+                    <div id="swResetMessage" style="margin-top:15px; padding:12px; border-radius:6px; display:none; font-size:12px; width:100%; max-width:600px; text-align:center;"></div>
                 </div>
             </div>
 
             <!-- ZAKŁADKA INFO -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
-                    <div style="text-align:center; padding:20px;">
-                        <h3 style="color:#ffcc00; margin-bottom:15px;">ℹ️ Synergy Panel v4.0</h3>
+                    <div style="text-align:center; padding:20px; width:100%; max-width:800px;">
+                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.0</h3>
                         
-                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
-                                    border:1px solid #660000; border-radius:8px; padding:15px; margin-bottom:15px;">
-                            <h4 style="color:#ff9966; margin-top:0;">🎮 System Dodatków</h4>
-                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
+                                    border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
+                            <h4 style="color:#ff9966; margin-top:0; font-size:16px;">🎮 System Dodatków</h4>
+                            <p style="color:#ffcc00; font-size:12px; margin:8px 0;">
                                 • Darmowe dodatki: dostępne dla każdego
                             </p>
-                            <p style="color:#00ff00; font-size:11px; margin:5px 0;">
+                            <p style="color:#00ff00; font-size:12px; margin:8px 0;">
                                 • Premium dodatki: wymagają aktywnej licencji
                             </p>
                         </div>
                         
-                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
-                                    border:1px solid #660000; border-radius:8px; padding:15px; margin-bottom:15px;">
-                            <h4 style="color:#ff9966; margin-top:0;">🔐 System Licencji</h4>
-                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
+                                    border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
+                            <h4 style="color:#ff9966; margin-top:0; font-size:16px;">🔐 System Licencji</h4>
+                            <p style="color:#ffcc00; font-size:12px; margin:8px 0;">
                                 • Licencje przyznawane przez administratora
                             </p>
-                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                            <p style="color:#ffcc00; font-size:12px; margin:8px 0;">
                                 • Ważność czasowa (30 dni, 90 dni, etc.)
                             </p>
-                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                            <p style="color:#ffcc00; font-size:12px; margin:8px 0;">
                                 • Automatyczne odświeżanie statusu
                             </p>
                         </div>
                         
-                        <div style="color:#ff9966; font-size:10px; margin-top:20px; padding:10px; 
-                                    background:rgba(51,0,0,0.5); border-radius:5px;">
-                            <p>© 2024 Synergy Panel | Wersja 4.0</p>
-                            <p>System licencji GitHub Pages</p>
+                        <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
+                                    background:rgba(51,0,0,0.5); border-radius:6px;">
+                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.0</p>
+                            <p style="margin:5px 0;">System licencji GitHub Pages</p>
                         </div>
                     </div>
                 </div>
@@ -856,7 +850,7 @@
         
         if (enabledAddons.length === 0) {
             container.innerHTML = `
-                <div style="text-align:center; padding:20px; color:#ff9966; font-style:italic; font-size:11px;">
+                <div style="text-align:center; padding:30px; color:#ff9966; font-style:italic; font-size:12px; width:100%;">
                     Brak włączonych dodatków. Włącz dodatek w zakładce "Dodatki".
                 </div>
             `;
@@ -882,6 +876,7 @@
                         ${shortcut}
                     </div>
                     <button class="shortcut-set-btn" data-id="${addon.id}">Ustaw</button>
+                    <button class="shortcut-clear-btn" data-id="${addon.id}">Wyczyść</button>
                     <label class="shortcut-toggle" title="${isEnabled ? 'Wyłącz skrót' : 'Włącz skrót'}">
                         <input type="checkbox" ${isEnabled ? 'checked' : ''} data-id="${addon.id}" class="shortcut-toggle-input">
                         <span class="shortcut-toggle-slider"></span>
@@ -899,12 +894,34 @@
             });
         });
         
+        document.querySelectorAll('.shortcut-clear-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const addonId = this.dataset.id;
+                clearAddonShortcut(addonId);
+            });
+        });
+        
         document.querySelectorAll('.shortcut-toggle-input').forEach(toggle => {
             toggle.addEventListener('change', function() {
                 const addonId = this.dataset.id;
                 toggleShortcutEnabled(addonId, this.checked);
             });
         });
+    }
+
+    function clearAddonShortcut(addonId) {
+        delete addonShortcuts[addonId];
+        saveAddonShortcuts();
+        
+        const display = document.getElementById(`shortcut-display-${addonId}`);
+        if (display) {
+            display.textContent = 'Brak skrótu';
+        }
+        
+        shortcutsEnabled[addonId] = false;
+        saveShortcutsEnabledState();
+        
+        showShortcutMessage('Skrót wyczyszczony', 'info');
     }
 
     function toggleShortcutEnabled(addonId, enabled) {
@@ -1280,7 +1297,7 @@
         
         if (filteredAddons.length === 0) {
             listContainer.innerHTML = `
-                <div style="text-align:center; padding:30px; color:#ff9966; font-style:italic; font-size:11px;">
+                <div style="text-align:center; padding:40px; color:#ff9966; font-style:italic; font-size:12px; width:100%;">
                     ${searchQuery ? 'Nie znaleziono dodatków' : 'Brak dostępnych dodatków'}
                 </div>
             `;
@@ -1297,7 +1314,7 @@
                     <div class="addon-title">
                         ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
                         ${addon.name}
-                        ${addon.locked ? ' <span style="color:#ff3300; font-size:9px;">(Wymaga licencji)</span>' : ''}
+                        ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
                     </div>
                     <div class="addon-description">${addon.description}</div>
                 </div>
