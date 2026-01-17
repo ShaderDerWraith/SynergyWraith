@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v4.0 - Licencja z GitHub)
+// synergy.js - Główny kod panelu Synergy (v4.1 - Fixed Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.0 (GitHub License System)');
+    console.log('🚀 Synergy Panel loaded - v4.1 (Fixed Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -27,7 +27,7 @@
         ADMIN_LICENSES: "sw_admin_licenses"
     };
 
-    // 🔹 Lista dostępnych dodatków (TERAZ: darmowe widoczne, premium ukryte)
+    // 🔹 Lista dostępnych dodatków
     let ADDONS = [
         {
             id: 'enhanced-stats',
@@ -69,7 +69,7 @@
             hidden: false,
             shortcut: null
         },
-        // DODATKI PREMIUM (BĘDĄ UKRYTE DLA BASIC USERÓW)
+        // DODATKI PREMIUM
         {
             id: 'kcs-icons',
             name: 'KCS Icons',
@@ -132,11 +132,11 @@
         }
     ];
 
-    // 🔹 URL do pliku licencji na GitHub Pages
+    // 🔹 URL do pliku licencji - TERAZ POPRAWNY
     const LICENSES_URL = 'https://shaderderwraith.github.io/SynergyWraith/licenses.json';
     
     // ⭐ ID admina - TYLKO TWOJE KONTO
-    const ADMIN_ACCOUNT_IDS = ['7411461'];
+    const ADMIN_ACCOUNT_ID = '7411461';
 
     // 🔹 Safe fallback
     if (!window.synergyWraith) {
@@ -202,24 +202,38 @@
     let panelInitialized = false;
     let addonShortcuts = {};
     let shortcutsEnabled = {};
-    let adminLicenses = [];
 
     // =========================================================================
-    // 🔹 FUNKCJE LICENCJI - GITHUB PAGES SYSTEM
+    // 🔹 FUNKCJE LICENCJI - POPRAWIONA WERSJA
     // =========================================================================
 
-    // 🔹 Pobierz licencje z GitHub Pages
+    // 🔹 Pobierz licencje z GitHub Pages (POPRAWIONE - BEZ BŁĘDÓW CORS)
     async function getLicensesFromGitHubPages() {
         try {
-            const response = await fetch(`${LICENSES_URL}?t=${Date.now()}`);
+            console.log('📄 Pobieram licencje z:', LICENSES_URL);
+            const timestamp = Date.now();
+            
+            // Używamy fetch bezpośrednio z cache-busting
+            const response = await fetch(`${LICENSES_URL}?t=${timestamp}`, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
             if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
+                console.error('❌ Błąd HTTP:', response.status, response.statusText);
+                return [];
             }
+            
             const licenses = await response.json();
-            console.log('📄 Załadowano licencje z GitHub:', licenses);
+            console.log('✅ Załadowano licencje:', licenses);
             return licenses;
+            
         } catch (error) {
-            console.warn('⚠️ Nie można pobrać licencji z GitHub Pages:', error.message);
+            console.error('❌ Nie można pobrać licencji:', error.message);
             return [];
         }
     }
@@ -227,19 +241,19 @@
     // 🔹 Sprawdź czy użytkownik jest adminem
     function checkIfAdmin(accountId) {
         if (!accountId) return false;
-        return ADMIN_ACCOUNT_IDS.includes(accountId.toString());
+        return accountId.toString() === ADMIN_ACCOUNT_ID;
     }
 
-    // 🔹 Sprawdź licencję dla konta (GŁÓWNA FUNKCJA - NAPRAWIONA)
+    // 🔹 Sprawdź licencję dla konta (TERAZ DZIAŁA POPRAWNIE)
     async function checkLicenseForAccount(accountId) {
         try {
             console.log('🔍 Sprawdzam licencję dla:', accountId);
             
             // 1. Sprawdź czy to admin
             if (checkIfAdmin(accountId)) {
-                console.log('👑 To jest konto admina');
+                console.log('👑 To jest konto admina - zawsze premium');
                 const expiryDate = new Date();
-                expiryDate.setFullYear(expiryDate.getFullYear() + 10); // 10 lat dla admina
+                expiryDate.setFullYear(expiryDate.getFullYear() + 10);
                 
                 return {
                     success: true,
@@ -257,21 +271,25 @@
 
             // 2. Pobierz licencje z GitHub
             const licenses = await getLicensesFromGitHubPages();
-            console.log('📋 Licencje z GitHub:', licenses);
+            
+            if (licenses.length === 0) {
+                console.log('📭 Brak licencji w pliku');
+                return {
+                    success: true,
+                    hasLicense: false,
+                    message: 'Brak licencji w systemie',
+                    accountId: accountId,
+                    source: 'github-pages'
+                };
+            }
 
-            // 3. Znajdź licencję dla tego accountId
+            // 3. Znajdź licencję dla tego accountId (porównujemy jako stringi)
             const license = licenses.find(l => {
-                // Porównaj jako stringi, bo w pliku JSON są stringi
-                const userId = l.userId ? l.userId.toString() : '';
-                const searchId = accountId.toString();
-                console.log('Porównanie:', userId, '===', searchId);
-                return userId === searchId;
+                return l.userId && l.userId.toString() === accountId.toString();
             });
 
-            console.log('🎯 Znaleziona licencja:', license);
-
             if (!license) {
-                console.log('❌ Brak licencji dla tego ID');
+                console.log('❌ Brak licencji dla ID:', accountId);
                 return {
                     success: true,
                     hasLicense: false,
@@ -286,7 +304,7 @@
             const expiry = new Date(license.expiry);
             const isExpired = expiry < now;
             const isActive = license.status === 'active' && !isExpired;
-            const daysLeft = isActive ? Math.ceil((expiry - now) / (1000 * 60 * 60 * 24)) : 0;
+            const daysLeft = isActive ? Math.max(0, Math.ceil((expiry - now) / (1000 * 60 * 60 * 24))) : 0;
 
             console.log('📊 Status licencji:', {
                 userId: license.userId,
@@ -318,14 +336,6 @@
                 error: error.message,
                 hasLicense: false
             };
-        }
-    }
-
-    // 🔹 Toggle zakładki admin (tylko dla admina)
-    function toggleAdminTab(show) {
-        const adminTab = document.querySelector('.admin-tab');
-        if (adminTab) {
-            adminTab.style.display = show ? 'flex' : 'none';
         }
     }
 
@@ -379,9 +389,7 @@
             isAdmin = checkIfAdmin(accountId);
             SW.GM_setValue(CONFIG.ADMIN_ACCESS, isAdmin);
             
-            toggleAdminTab(isAdmin);
             updateAccountDisplay(accountId);
-            
             await checkAndUpdateLicense(accountId);
             
             saveAddonShortcuts();
@@ -432,19 +440,12 @@
             } else {
                 console.error('❌ Błąd licencji:', result.error);
                 serverConnected = false;
-                
-                const savedLicense = SW.GM_getValue(CONFIG.LICENSE_DATA);
-                if (savedLicense && savedLicense.hasLicense) {
-                    isLicenseVerified = true;
-                    licenseData = savedLicense;
-                    licenseExpiry = savedLicense.expiry ? new Date(savedLicense.expiry) : null;
-                    loadAddonsBasedOnLicense(['all']);
-                } else {
-                    loadAddonsBasedOnLicense([]);
-                }
+                loadAddonsBasedOnLicense([]);
+                showLicenseMessage('⚠️ Problem z połączeniem. Używam zapisanych ustawień.', 'info');
             }
         } catch (error) {
             console.error('❌ Błąd:', error);
+            loadAddonsBasedOnLicense([]);
         } finally {
             isCheckingLicense = false;
             updateLicenseDisplay();
@@ -452,30 +453,24 @@
     }
 
     function loadAddonsBasedOnLicense(allowedAddons = []) {
-        console.log('📦 Ładowanie dodatków dla:', allowedAddons);
-        
-        const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.length > 0);
-        console.log('🎯 Premium allowed:', isPremiumAllowed, 'License verified:', isLicenseVerified);
-        
-        // Najpierw pokaż darmowe dodatki
-        let visibleAddons = ADDONS.filter(addon => {
-            if (addon.type === 'free') return true;
-            if (addon.type === 'premium' && isPremiumAllowed) return true;
-            return false;
+        console.log('📦 Ładowanie dodatków:', {
+            isLicenseVerified,
+            allowedAddons
         });
         
-        console.log('👀 Widoczne dodatki:', visibleAddons.length);
+        const isPremiumAllowed = isLicenseVerified;
         
-        currentAddons = visibleAddons.map(addon => {
+        // Pokaż darmowe dodatki zawsze
+        // Premium tylko jeśli licencja aktywna
+        currentAddons = ADDONS.map(addon => {
             const isFree = addon.type === 'free';
             const isPremium = addon.type === 'premium';
-            const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.includes(addon.id));
             
             return {
                 ...addon,
                 enabled: false,
                 favorite: addon.favorite || false,
-                hidden: addon.hidden && !isPremiumAllowed,
+                hidden: isPremium && !isPremiumAllowed,
                 locked: isPremium && !isPremiumAllowed
             };
         });
@@ -535,8 +530,7 @@
         const accountEl = document.getElementById('swAccountId');
         if (accountEl) {
             accountEl.innerHTML = `${accountId} <span class="copy-icon" title="Kopiuj do schowka">📋</span>`;
-            accountEl.className = accountId && accountId !== 'Nie znaleziono' ? 
-                'license-status-valid' : 'license-status-invalid';
+            accountEl.className = 'license-status-value';
             
             const copyIcon = accountEl.querySelector('.copy-icon');
             if (copyIcon) {
@@ -583,31 +577,45 @@
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyFontSize
+    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            const minSize = 10;
-            const maxSize = 16;
-            const clampedSize = Math.max(minSize, Math.min(maxSize, size));
-            
-            panel.style.fontSize = clampedSize + 'px';
-            
-            SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
-            
-            const fontSizeValue = document.getElementById('fontSizeValue');
-            if (fontSizeValue) {
-                fontSizeValue.textContent = clampedSize + 'px';
+        if (!panel) return;
+        
+        const minSize = 10;
+        const maxSize = 16;
+        const clampedSize = Math.max(minSize, Math.min(maxSize, size));
+        
+        // Ustawiamy font-size na głównym panelu
+        panel.style.fontSize = clampedSize + 'px';
+        
+        // Aktualizujemy wszystkie elementy wewnątrz
+        const allElements = panel.querySelectorAll('*');
+        allElements.forEach(el => {
+            const computedStyle = window.getComputedStyle(el);
+            if (computedStyle.fontSize) {
+                const currentSize = parseFloat(computedStyle.fontSize);
+                const newSize = (clampedSize / 12) * currentSize; // 12 to domyślny rozmiar
+                el.style.fontSize = newSize + 'px';
             }
-            
-            const fontSizeSlider = document.getElementById('fontSizeSlider');
-            if (fontSizeSlider) {
-                fontSizeSlider.value = clampedSize;
-            }
+        });
+        
+        SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
+        
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeValue) {
+            fontSizeValue.textContent = clampedSize + 'px';
         }
+        
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        if (fontSizeSlider) {
+            fontSizeSlider.value = clampedSize;
+        }
+        
+        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyOpacity - CAŁY PANEL
+    // 🔹 POPRAWIONA: Funkcja applyOpacity
     function applyOpacity(opacity) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -615,6 +623,7 @@
             const maxOpacity = 100;
             const clampedOpacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
             
+            // Ustawiamy opacity na całym panelu
             panel.style.opacity = clampedOpacity / 100;
             
             SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clampedOpacity);
@@ -649,7 +658,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu (ZAKŁADKA ADMIN USUNIĘTA)
+    // 🔹 Tworzenie głównego panelu (UPROSZCZONE)
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -660,7 +669,7 @@
         panel.innerHTML = `
             <div id="swPanelHeader">
                 <strong>SYNERGY PANEL</strong>
-                ${isAdmin ? ' <span style="color:#00ff00; font-size:11px;">(ADMIN)</span>' : ''}
+                ${isAdmin ? ' <span style="color:#00ff00; font-size:14px;">👑</span>' : ''}
             </div>
             
             <div class="tab-container">
@@ -681,8 +690,10 @@
                                       font-size:12px; box-sizing:border-box;">
                     </div>
                     
-                    <div class="addon-list" id="addon-list">
-                        <!-- Lista dodatków będzie dodana dynamicznie -->
+                    <div class="addon-list-container">
+                        <div class="addon-list" id="addon-list">
+                            <!-- Lista dodatków będzie dodana dynamicznie -->
+                        </div>
                     </div>
                     
                     <div class="refresh-button-container">
@@ -703,8 +714,10 @@
                         </p>
                     </div>
                     
-                    <div id="shortcuts-list" style="width:100%; max-width:800px;">
-                        <!-- Skróty będą dodane dynamicznie -->
+                    <div class="shortcuts-list-container">
+                        <div id="shortcuts-list" style="width:100%;">
+                            <!-- Skróty będą dodane dynamicznie -->
+                        </div>
                     </div>
                     
                     <div id="shortcutsMessage" class="license-message" style="display:none; margin-top:10px; width:100%; max-width:800px;"></div>
@@ -793,7 +806,7 @@
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div style="text-align:center; padding:20px; width:100%; max-width:800px;">
-                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.0</h3>
+                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.1</h3>
                         
                         <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
                                     border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
@@ -822,7 +835,7 @@
                         
                         <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
                                     background:rgba(51,0,0,0.5); border-radius:6px;">
-                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.0</p>
+                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.1</p>
                             <p style="margin:5px 0;">System licencji GitHub Pages</p>
                         </div>
                     </div>
@@ -831,13 +844,88 @@
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.0');
+        console.log('✅ Panel created - v4.1');
         
         initializeEventListeners();
         loadSettings();
     }
 
-    // 🔹 POPRAWIONA: Renderowanie skrótów
+    // 🔹 Renderowanie dodatków
+    function renderAddons() {
+        const listContainer = document.getElementById('addon-list');
+        if (!listContainer) return;
+        
+        listContainer.innerHTML = '';
+        
+        let filteredAddons = currentAddons.filter(addon => !addon.hidden);
+        if (searchQuery) {
+            filteredAddons = filteredAddons.filter(addon => 
+                addon.name.toLowerCase().includes(searchQuery) || 
+                addon.description.toLowerCase().includes(searchQuery)
+            );
+        }
+        
+        if (filteredAddons.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; color:#ff9966; font-style:italic; font-size:12px; width:100%;">
+                    ${searchQuery ? 'Nie znaleziono dodatków' : 'Brak dostępnych dodatków'}
+                </div>
+            `;
+            return;
+        }
+        
+        filteredAddons.forEach(addon => {
+            const div = document.createElement('div');
+            div.className = 'addon';
+            div.dataset.id = addon.id;
+            
+            div.innerHTML = `
+                <div class="addon-header">
+                    <div class="addon-title">
+                        ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
+                        ${addon.name}
+                        ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
+                    </div>
+                    <div class="addon-description">${addon.description}</div>
+                </div>
+                <div class="addon-controls">
+                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
+                            data-id="${addon.id}"
+                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}"
+                            ${addon.locked ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                        ★
+                    </button>
+                    <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
+                        <input type="checkbox" 
+                               ${addon.enabled ? 'checked' : ''} 
+                               ${addon.locked ? 'disabled' : ''}
+                               data-id="${addon.id}">
+                        <span class="addon-switch-slider"></span>
+                    </label>
+                </div>
+            `;
+            
+            listContainer.appendChild(div);
+        });
+        
+        document.querySelectorAll('.favorite-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const addonId = this.dataset.id;
+                if (addonId) toggleFavorite(addonId);
+            });
+        });
+        
+        document.querySelectorAll('.addon-switch input:not(:disabled)').forEach(checkbox => {
+            checkbox.addEventListener('change', function(e) {
+                e.stopPropagation();
+                const addonId = this.dataset.id;
+                if (addonId) toggleAddon(addonId, this.checked);
+            });
+        });
+    }
+
+    // 🔹 Renderowanie skrótów (POPRAWIONE - BEZ SCROLLA POZIOMEGO)
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
@@ -872,11 +960,11 @@
                     <div class="shortcut-desc">${addon.description}</div>
                 </div>
                 <div class="shortcut-controls">
-                    <div class="shortcut-display" id="shortcut-display-${addon.id}">
+                    <div class="shortcut-display" id="shortcut-display-${addon.id}" style="min-width: 90px; max-width: 120px;">
                         ${shortcut}
                     </div>
-                    <button class="shortcut-set-btn" data-id="${addon.id}">Ustaw</button>
-                    <button class="shortcut-clear-btn" data-id="${addon.id}">Wyczyść</button>
+                    <button class="shortcut-set-btn" data-id="${addon.id}" style="min-width: 60px;">Ustaw</button>
+                    <button class="shortcut-clear-btn" data-id="${addon.id}" style="min-width: 70px;">Wyczyść</button>
                     <label class="shortcut-toggle" title="${isEnabled ? 'Wyłącz skrót' : 'Włącz skrót'}">
                         <input type="checkbox" ${isEnabled ? 'checked' : ''} data-id="${addon.id}" class="shortcut-toggle-input">
                         <span class="shortcut-toggle-slider"></span>
@@ -887,6 +975,7 @@
             container.appendChild(item);
         });
         
+        // Event listeners
         document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
@@ -907,6 +996,45 @@
                 toggleShortcutEnabled(addonId, this.checked);
             });
         });
+    }
+
+    function toggleFavorite(addonId) {
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        if (addonIndex === -1) return;
+        
+        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
+        saveAddonsState();
+        renderAddons();
+    }
+
+    function toggleAddon(addonId, isEnabled) {
+        const addon = currentAddons.find(a => a.id === addonId);
+        if (!addon || addon.locked) return;
+        
+        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
+        currentAddons[addonIndex].enabled = isEnabled;
+        saveAddonsState();
+        
+        const messageEl = document.getElementById('swAddonsMessage');
+        if (messageEl) {
+            messageEl.textContent = `${addon.name} ${isEnabled ? 'włączony' : 'wyłączony'}`;
+            messageEl.className = `license-message license-${isEnabled ? 'success' : 'info'}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 3000);
+        }
+        
+        if (document.getElementById('shortcuts').classList.contains('active')) {
+            renderShortcuts();
+        }
+    }
+
+    function saveAddonsState() {
+        const addonsToSave = currentAddons.map(addon => ({
+            id: addon.id,
+            enabled: addon.enabled || false,
+            favorite: addon.favorite || false
+        }));
+        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
     }
 
     function clearAddonShortcut(addonId) {
@@ -1034,7 +1162,7 @@
         }
     }
 
-    // 🔹 Setup skrótu panelu (POPRAWIONY PRZYCISK)
+    // 🔹 Setup skrótu panelu
     function setupPanelShortcutInput() {
         const input = document.getElementById('panelShortcutInput');
         const setBtn = document.getElementById('panelShortcutSetBtn');
@@ -1184,7 +1312,7 @@
         });
     }
 
-    // 🔹 Inicjalizacja event listenerów (USUNIĘTE ADMIN)
+    // 🔹 Inicjalizacja event listenerów
     function initializeEventListeners() {
         // Przycisk zapisz i odśwież
         const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
@@ -1278,124 +1406,6 @@
         if (tabBtn) {
             tabBtn.classList.add('active');
         }
-    }
-
-    // 🔹 Renderowanie dodatków
-    function renderAddons() {
-        const listContainer = document.getElementById('addon-list');
-        if (!listContainer) return;
-        
-        listContainer.innerHTML = '';
-        
-        let filteredAddons = currentAddons.filter(addon => !addon.hidden);
-        if (searchQuery) {
-            filteredAddons = filteredAddons.filter(addon => 
-                addon.name.toLowerCase().includes(searchQuery) || 
-                addon.description.toLowerCase().includes(searchQuery)
-            );
-        }
-        
-        if (filteredAddons.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:40px; color:#ff9966; font-style:italic; font-size:12px; width:100%;">
-                    ${searchQuery ? 'Nie znaleziono dodatków' : 'Brak dostępnych dodatków'}
-                </div>
-            `;
-            return;
-        }
-        
-        filteredAddons.forEach(addon => {
-            const div = document.createElement('div');
-            div.className = 'addon';
-            div.dataset.id = addon.id;
-            
-            div.innerHTML = `
-                <div class="addon-header">
-                    <div class="addon-title">
-                        ${addon.type === 'premium' ? '<span class="premium-badge">PREMIUM</span> ' : ''}
-                        ${addon.name}
-                        ${addon.locked ? ' <span style="color:#ff3300; font-size:10px;">(Wymaga licencji)</span>' : ''}
-                    </div>
-                    <div class="addon-description">${addon.description}</div>
-                </div>
-                <div class="addon-controls">
-                    <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
-                            data-id="${addon.id}"
-                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}"
-                            ${addon.locked ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
-                        ★
-                    </button>
-                    <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
-                        <input type="checkbox" 
-                               ${addon.enabled ? 'checked' : ''} 
-                               ${addon.locked ? 'disabled' : ''}
-                               data-id="${addon.id}">
-                        <span class="addon-switch-slider"></span>
-                    </label>
-                </div>
-            `;
-            
-            listContainer.appendChild(div);
-        });
-        
-        document.querySelectorAll('.favorite-btn:not(:disabled)').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const addonId = this.dataset.id;
-                if (addonId) toggleFavorite(addonId);
-            });
-        });
-        
-        document.querySelectorAll('.addon-switch input:not(:disabled)').forEach(checkbox => {
-            checkbox.addEventListener('change', function(e) {
-                e.stopPropagation();
-                const addonId = this.dataset.id;
-                if (addonId) toggleAddon(addonId, this.checked);
-            });
-        });
-    }
-
-    function toggleFavorite(addonId) {
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        if (addonIndex === -1) return;
-        
-        currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
-        saveAddonsState();
-        renderAddons();
-    }
-
-    function toggleAddon(addonId, isEnabled) {
-        const addon = currentAddons.find(a => a.id === addonId);
-        if (!addon || addon.locked) return;
-        
-        const addonIndex = currentAddons.findIndex(a => a.id === addonId);
-        currentAddons[addonIndex].enabled = isEnabled;
-        saveAddonsState();
-        
-        if (addonId === 'kcs-icons') {
-            SW.GM_setValue(CONFIG.KCS_ICONS_ENABLED, isEnabled);
-        }
-        
-        const messageEl = document.getElementById('swAddonsMessage');
-        if (messageEl) {
-            messageEl.textContent = `${addon.name} ${isEnabled ? 'włączony' : 'wyłączony'}`;
-            messageEl.className = `license-message license-${isEnabled ? 'success' : 'info'}`;
-            messageEl.style.display = 'block';
-            setTimeout(() => messageEl.style.display = 'none', 3000);
-        }
-        
-        if (document.getElementById('shortcuts').classList.contains('active')) {
-            renderShortcuts();
-        }
-    }
-
-    function saveAddonsState() {
-        const addonsToSave = currentAddons.map(addon => ({
-            id: addon.id,
-            enabled: addon.enabled || false,
-            favorite: addon.favorite || false
-        }));
-        SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
     }
 
     // 🔹 Setup przeciągania
@@ -1514,24 +1524,10 @@
     // 🔹 Ładowanie ustawień
     function loadSettings() {
         const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        
-        if (fontSizeSlider && fontSizeValue) {
-            fontSizeSlider.value = savedFontSize;
-            fontSizeValue.textContent = savedFontSize + 'px';
-            applyFontSize(savedFontSize);
-        }
+        applyFontSize(savedFontSize);
         
         const savedOpacity = parseInt(SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90));
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityValue = document.getElementById('opacityValue');
-        
-        if (opacitySlider && opacityValue) {
-            opacitySlider.value = savedOpacity;
-            opacityValue.textContent = savedOpacity + '%';
-            applyOpacity(savedOpacity);
-        }
+        applyOpacity(savedOpacity);
     }
 
     // 🔹 Reset wszystkich ustawień
@@ -1606,7 +1602,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v4.0...');
+        console.log('✅ Initializing panel v4.1...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -1637,7 +1633,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.0...');
+    console.log('🎯 Starting Synergy Panel v4.1...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
