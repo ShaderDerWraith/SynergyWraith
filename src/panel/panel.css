@@ -181,6 +181,7 @@
     flex: 1;
     overflow: hidden;
     flex-direction: column;
+    position: relative;
 }
 
 .tabcontent.active {
@@ -190,37 +191,35 @@
 .sw-tab-content {
     padding: 15px;
     background: rgba(26, 0, 0, 0.7);
-    height: calc(100% - 120px);
+    height: calc(100% - 60px);
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
     position: relative;
+    flex: 1;
 }
 
-/* 🔹 ADDONS LIST - POPRAWIONY SCROLL Z OBSŁUGĄ ŚRODKOWEGO PRZYCISKU 🔹 */
-.addon-list-container {
+/* 🔹 SCROLL CONTAINERS - DZIAŁAJĄCY SCROLL NA ŚRODKOWY PRZYCISK 🔹 */
+.addon-list-container,
+.shortcuts-list-container,
+.scrollable-content {
     width: 100%;
     max-width: 800px;
-    height: calc(100% - 140px); /* DOSTOSOWANA WYSOKOŚĆ DLA SCROLLA */
+    flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
-    padding-right: 5px;
+    padding-right: 8px;
     scroll-behavior: smooth;
-    /* Włącz scroll środkowym przyciskiem myszy */
+    /* Włącz scroll na środkowy przycisk myszy */
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
 }
 
-/* Styl dla scrolla środkowym przyciskiem */
-.addon-list-container:active {
-    cursor: grabbing;
-}
-
+/* 🔹 ADDONS LIST 🔹 */
 .addon-list {
     width: 100%;
-    padding-right: 5px;
 }
 
 .addon {
@@ -372,20 +371,7 @@
     background-color: #666666;
 }
 
-/* 🔹 SHORTCUTS LIST - DZIAŁAJĄCY SCROLL 🔹 */
-.shortcuts-list-container {
-    width: 100%;
-    max-width: 800px;
-    height: calc(100% - 120px); /* DOSTOSOWANA WYSOKOŚĆ */
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 10px;
-    padding-right: 5px;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
-}
-
+/* 🔹 SHORTCUTS LIST 🔹 */
 .shortcut-item {
     background: linear-gradient(135deg, 
         rgba(51, 0, 0, 0.9), 
@@ -623,7 +609,7 @@
     text-shadow: 0 0 6px rgba(255, 204, 0, 0.6);
 }
 
-/* 🔹 SETTINGS - NOWY STYL DLA CZCIONKI 🔹 */
+/* 🔹 SETTINGS - NOWY SYSTEM ZMIANY CZCIONKI 🔹 */
 .settings-item {
     margin-bottom: 15px;
     padding: 12px;
@@ -644,19 +630,41 @@
     font-weight: 700;
 }
 
-/* NOWY STYL DLA ZMIANY CZCIONKI - BEZ SUWAKA 🔹 */
-.font-size-control {
+/* 🔹 NOWY SYSTEM ZMIANY CZCIONKI - BEZ SUWAKA 🔹 */
+.font-size-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 8px;
-    flex-wrap: wrap;
+    justify-content: center;
 }
 
-.font-size-input-container {
+.font-size-btn {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #660000, #990000);
+    border: 1px solid #ff3300;
+    border-radius: 5px;
+    color: #ffcc00;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.font-size-btn:hover {
+    background: linear-gradient(135deg, #990000, #cc0000);
+    border-color: #ff6600;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4);
+}
+
+.font-size-btn:active {
+    transform: translateY(0);
 }
 
 .font-size-input {
@@ -664,46 +672,25 @@
     padding: 8px;
     background: rgba(51, 0, 0, 0.8);
     border: 1px solid #660000;
-    border-radius: 4px;
+    border-radius: 5px;
     color: #ffcc00;
-    text-align: center;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
+    text-align: center;
     outline: none;
 }
 
 .font-size-input:focus {
     border-color: #ff3300;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+    background: rgba(102, 0, 0, 0.9);
 }
 
-.font-size-btn {
-    padding: 8px 12px;
-    background: linear-gradient(135deg, #660000, #990000);
-    border: 1px solid #ff3300;
-    border-radius: 4px;
+.font-size-unit {
     color: #ffcc00;
-    cursor: pointer;
+    font-weight: bold;
     font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    min-width: 40px;
-    text-align: center;
-}
-
-.font-size-btn:hover {
-    background: linear-gradient(135deg, #990000, #cc0000);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
-}
-
-.font-size-value {
-    min-width: 40px;
-    text-align: center;
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 12px;
+    min-width: 30px;
 }
 
 /* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
@@ -786,32 +773,35 @@
     letter-spacing: 0.5px;
 }
 
-/* 🔹 SCROLLBAR - POPRAWIONY 🔹 */
+/* 🔹 SCROLLBAR - DZIAŁAJĄCY NA ŚRODKOWY PRZYCISK 🔹 */
 .addon-list-container::-webkit-scrollbar,
 .shortcuts-list-container::-webkit-scrollbar,
-.sw-tab-content.scrollable::-webkit-scrollbar {
-    width: 8px;
+.scrollable-content::-webkit-scrollbar {
+    width: 10px;
 }
 
 .addon-list-container::-webkit-scrollbar-track,
 .shortcuts-list-container::-webkit-scrollbar-track,
-.sw-tab-content.scrollable::-webkit-scrollbar-track {
+.scrollable-content::-webkit-scrollbar-track {
     background: rgba(51, 0, 0, 0.5);
-    border-radius: 4px;
+    border-radius: 5px;
+    border: 1px solid #660000;
 }
 
 .addon-list-container::-webkit-scrollbar-thumb,
 .shortcuts-list-container::-webkit-scrollbar-thumb,
-.sw-tab-content.scrollable::-webkit-scrollbar-thumb {
+.scrollable-content::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #ff3300, #ff6600);
-    border-radius: 4px;
+    border-radius: 5px;
+    border: 1px solid #ff9900;
     transition: all 0.3s ease;
 }
 
 .addon-list-container::-webkit-scrollbar-thumb:hover,
 .shortcuts-list-container::-webkit-scrollbar-thumb:hover,
-.sw-tab-content.scrollable::-webkit-scrollbar-thumb:hover {
+.scrollable-content::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #ff6600, #ff9900);
+    border-color: #ffcc00;
 }
 
 /* 🔹 MESSAGES 🔹 */
@@ -871,26 +861,25 @@
     box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4);
 }
 
-/* 🔹 REFRESH BUTTON - STICKY NA DOLE (POPRAWIONE) 🔹 */
+/* 🔹 REFRESH BUTTON - STICKY NA DOLE PANELU 🔹 */
 .refresh-button-container {
-    width: 100%;
-    max-width: 800px;
-    margin-top: auto;
-    padding: 10px 0;
     position: absolute;
     bottom: 0;
     left: 0;
-    background: linear-gradient(to top, 
-        rgba(26, 0, 0, 0.95) 0%,
-        rgba(26, 0, 0, 0.9) 50%,
-        rgba(26, 0, 0, 0.8) 100%);
+    width: 100%;
+    max-width: 800px;
+    padding: 15px;
+    background: linear-gradient(to bottom, 
+        rgba(26, 0, 0, 0.9),
+        rgba(51, 0, 0, 0.95));
+    border-top: 2px solid #660000;
     z-index: 100;
-    border-top: 1px solid #660000;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
 }
 
 .refresh-button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     background: linear-gradient(135deg, #006600, #008800);
     border: 1px solid #00cc00;
     border-radius: 6px;
@@ -936,14 +925,13 @@
     opacity: 0.7;
 }
 
-/* 🔹 INFO TAB - BEZ SCROLLA POZIOMEGO 🔹 */
+/* 🔹 INFO TAB 🔹 */
 #info .sw-tab-content {
     padding: 15px;
     text-align: center;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
-    height: calc(100% - 20px);
 }
 
 #info h3 {
@@ -1003,10 +991,5 @@
     
     .shortcut-clear-btn {
         min-width: 60px;
-    }
-    
-    .addon-list-container,
-    .shortcuts-list-container {
-        height: calc(100% - 120px);
     }
 }

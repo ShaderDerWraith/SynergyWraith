@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v4.3 - Fixed Edition)
+// synergy.js - Główny kod panelu Synergy (v4.4 - Final Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.3 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.4 (Final Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -132,8 +132,8 @@
         }
     ];
 
-    // 🔹 URL do pliku licencji - TERAZ POPRAWNY
-    const LICENSES_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/docs/licenses.json';
+    // 🔹 URL do pliku licencji - UŻYWAMY BACKEND LICENSES
+    const LICENSES_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/backend/licenses.json';
     
     // ⭐ ID admina - TYLKO TWOJE KONTO
     const ADMIN_ACCOUNT_ID = '7411461';
@@ -202,17 +202,16 @@
     let panelInitialized = false;
     let addonShortcuts = {};
     let shortcutsEnabled = {};
-    let fontSizeUpdateTimeout = null;
     let currentFontSize = 12;
 
     // =========================================================================
-    // 🔹 FUNKCJE LICENCJI - POPRAWIONA WERSJA
+    // 🔹 FUNKCJE LICENCJI - FINALNA WERSJA
     // =========================================================================
 
-    // 🔹 Pobierz licencje z GitHub RAW (bezpośrednio z repo)
-    async function getLicensesFromGitHub() {
+    // 🔹 Pobierz licencje z backend (poprawiony plik)
+    async function getLicensesFromBackend() {
         try {
-            console.log('📄 Pobieram licencje z:', LICENSES_URL);
+            console.log('📄 Pobieram licencje z backend:', LICENSES_URL);
             const timestamp = Date.now();
             
             const response = await fetch(`${LICENSES_URL}?t=${timestamp}`, {
@@ -230,38 +229,61 @@
             }
             
             const text = await response.text();
-            console.log('📋 Otrzymano odpowiedź:', text.substring(0, 200) + '...');
+            console.log('📋 Otrzymano odpowiedź (pierwsze 500 znaków):', text.substring(0, 500));
             
-            // Spróbuj naprawić potencjalne błędy w JSON
+            // SPRÓBUJMY NAPRAWIĆ BŁĘDNY FORMAT JSON
             let cleanedText = text.trim();
             
-            // Usuń potencjalne BOM
+            // 1. Usuń BOM jeśli istnieje
             if (cleanedText.charCodeAt(0) === 0xFEFF) {
                 cleanedText = cleanedText.substring(1);
             }
             
-            // Napraw brakujące przecinki w tablicy
-            cleanedText = cleanedText.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}');
+            // 2. Sprawdź czy to tablica, czy obiekt z tablicą
+            if (cleanedText.startsWith('{')) {
+                // To może być obiekt z tablicą licenses
+                try {
+                    const obj = JSON.parse(cleanedText);
+                    // Sprawdź różne możliwe klucze
+                    if (obj.licenses) return obj.licenses;
+                    if (obj.data) return obj.data;
+                    if (obj.users) return obj.users;
+                    console.log('⚠️ Obiekt JSON nie zawiera tablicy licencji');
+                } catch (e) {
+                    console.error('❌ Błąd parsowania obiektu:', e);
+                }
+            }
+            
+            // 3. Spróbuj wyciągnąć tablicę z tekstu
+            const arrayMatch = cleanedText.match(/\[[\s\S]*\]/);
+            if (arrayMatch) {
+                try {
+                    const licenses = JSON.parse(arrayMatch[0]);
+                    console.log('✅ Wyciągnięto tablicę z tekstu');
+                    return licenses;
+                } catch (e) {
+                    console.error('❌ Nie udało się sparsować wyciągniętej tablicy:', e);
+                }
+            }
+            
+            // 4. Ostatnia próba - ręczne naprawianie
+            cleanedText = cleanedText
+                .replace(/,\s*]/g, ']')  // Usuń przecinki przed końcem tablicy
+                .replace(/,\s*}/g, '}')  // Usuń przecinki przed końcem obiektu
+                .replace(/}\s*{/g, '},{') // Dodaj przecinki między obiektami
+                .replace(/\n/g, ' ')     // Zamień nowe linie na spacje
+                .replace(/\r/g, ' ')     // Zamień carriage return na spacje
+                .replace(/\t/g, ' ')     // Zamień tabulatory na spacje
+                .replace(/\s+/g, ' ')    // Usuń wielokrotne spacje
+                .trim();
             
             try {
                 const licenses = JSON.parse(cleanedText);
-                console.log('✅ Poprawnie sparsowano licencje');
+                console.log('✅ Udało się sparsować po naprawie');
                 return licenses;
-            } catch (parseError) {
-                console.error('❌ Błąd parsowania JSON:', parseError);
-                
-                // Spróbuj znaleźć i wyciągnąć tablicę JSON
-                const arrayMatch = cleanedText.match(/\[[\s\S]*\]/);
-                if (arrayMatch) {
-                    try {
-                        const licenses = JSON.parse(arrayMatch[0]);
-                        console.log('✅ Wyciągnięto tablicę z tekstu');
-                        return licenses;
-                    } catch (e2) {
-                        console.error('❌ Nie udało się wyciągnąć tablicy');
-                    }
-                }
-                
+            } catch (finalError) {
+                console.error('❌ Ostateczny błąd parsowania:', finalError);
+                console.log('📝 Ostatnia próba tekstu:', cleanedText.substring(0, 300));
                 return null;
             }
             
@@ -277,7 +299,7 @@
         return accountId.toString() === ADMIN_ACCOUNT_ID;
     }
 
-    // 🔹 Sprawdź licencję dla konta (POPRAWIONE DLA KONTA 10056201)
+    // 🔹 Sprawdź licencję dla konta (OSTATECZNA WERSJA)
     async function checkLicenseForAccount(accountId) {
         try {
             console.log('🔍 Sprawdzam licencję dla:', accountId);
@@ -302,28 +324,36 @@
                 };
             }
 
-            // 2. Pobierz licencje z GitHub
-            const licenses = await getLicensesFromGitHub();
+            // 2. Pobierz licencje z backend
+            const licenses = await getLicensesFromBackend();
             
             if (!licenses) {
-                console.log('📭 Nie udało się pobrać licencji');
+                console.log('📭 Nie udało się pobrać lub sparsować licencji');
                 return {
                     success: true,
                     hasLicense: false,
                     message: 'Brak połączenia z serwerem licencji',
                     accountId: accountId,
-                    source: 'github'
+                    source: 'backend'
                 };
             }
             
             if (!Array.isArray(licenses)) {
-                console.log('❌ Licencje nie są tablicą:', typeof licenses);
+                console.log('❌ Licencje nie są tablicą:', typeof licenses, licenses);
+                // Może to być pojedynczy obiekt?
+                if (licenses && typeof licenses === 'object') {
+                    // Sprawdź czy to może być pojedyncza licencja
+                    if (licenses.userId && licenses.userId.toString() === accountId.toString()) {
+                        console.log('✅ Znaleziono pojedynczą licencję');
+                        return processSingleLicense(licenses, accountId);
+                    }
+                }
                 return {
                     success: true,
                     hasLicense: false,
                     message: 'Nieprawidłowy format licencji',
                     accountId: accountId,
-                    source: 'github'
+                    source: 'backend'
                 };
             }
             
@@ -334,65 +364,43 @@
                     hasLicense: false,
                     message: 'Brak licencji w systemie',
                     accountId: accountId,
-                    source: 'github'
+                    source: 'backend'
                 };
             }
 
-            // 3. Znajdź licencję dla tego accountId (porównujemy jako stringi)
+            // 3. Znajdź licencję dla tego accountId
             const accountIdStr = accountId.toString();
             console.log('🔎 Szukam licencji dla:', accountIdStr);
-            console.log('📋 Dostępne ID:', licenses.map(l => l.userId));
             
-            const license = licenses.find(l => {
-                if (!l.userId) return false;
-                return l.userId.toString() === accountIdStr;
-            });
+            // Sprawdź wszystkie możliwe klucze dla userId
+            let license = null;
+            for (const lic of licenses) {
+                if (!lic) continue;
+                
+                // Sprawdź różne możliwe nazwy pól
+                const userId = lic.userId || lic.user_id || lic.id || lic.accountId || lic.account_id;
+                if (userId && userId.toString() === accountIdStr) {
+                    license = lic;
+                    break;
+                }
+            }
 
             if (!license) {
                 console.log('❌ Brak licencji dla ID:', accountIdStr);
+                console.log('📋 Dostępne licencje:', licenses.map(l => {
+                    const uid = l.userId || l.user_id || l.id || l.accountId || l.account_id;
+                    return { userId: uid, expiry: l.expiry, status: l.status };
+                }));
                 return {
                     success: true,
                     hasLicense: false,
                     message: 'Brak aktywnej licencji',
                     accountId: accountId,
-                    source: 'github'
+                    source: 'backend'
                 };
             }
 
-            // 4. Sprawdź status i datę
-            const now = new Date();
-            const expiry = new Date(license.expiry);
-            const isExpired = expiry < now;
-            
-            // Sprawdź czy status jest aktywny (jeśli pole istnieje)
-            const status = license.status || 'active';
-            const isActive = status === 'active' && !isExpired;
-            
-            const daysLeft = isActive ? Math.max(0, Math.ceil((expiry - now) / (1000 * 60 * 60 * 24))) : 0;
-
-            console.log('📊 Status licencji:', {
-                userId: license.userId,
-                status: status,
-                isActive,
-                isExpired,
-                expiry: expiry.toLocaleDateString(),
-                now: now.toLocaleDateString(),
-                daysLeft
-            });
-
-            return {
-                success: true,
-                hasLicense: isActive,
-                expired: isExpired,
-                used: license.used || false,
-                expiry: license.expiry,
-                daysLeft: daysLeft,
-                addons: ['all'],
-                type: 'premium',
-                accountId: accountId,
-                source: 'github',
-                licenseData: license
-            };
+            return processSingleLicense(license, accountId);
 
         } catch (error) {
             console.error('❌ Błąd podczas sprawdzania licencji:', error);
@@ -402,6 +410,59 @@
                 hasLicense: false
             };
         }
+    }
+
+    // 🔹 Przetwórz pojedynczą licencję
+    function processSingleLicense(license, accountId) {
+        // 4. Sprawdź status i datę
+        const now = new Date();
+        
+        // Pobierz datę wygaśnięcia
+        let expiryDate;
+        try {
+            expiryDate = new Date(license.expiry);
+            if (isNaN(expiryDate.getTime())) {
+                // Spróbuj innego formatu
+                const dateStr = license.expiry.replace('Z', '');
+                expiryDate = new Date(dateStr);
+            }
+        } catch (e) {
+            console.error('❌ Błąd parsowania daty:', license.expiry);
+            expiryDate = new Date('2099-12-31');
+        }
+        
+        const isExpired = expiryDate < now;
+        
+        // Sprawdź czy status jest aktywny
+        const status = license.status || 'active';
+        const isActive = status === 'active' && !isExpired;
+        
+        const daysLeft = isActive ? Math.max(0, Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24))) : 0;
+
+        console.log('📊 Status licencji:', {
+            userId: license.userId || license.user_id || license.id || 'unknown',
+            status: status,
+            isActive,
+            isExpired,
+            expiry: expiryDate.toLocaleDateString(),
+            now: now.toLocaleDateString(),
+            daysLeft,
+            rawExpiry: license.expiry
+        });
+
+        return {
+            success: true,
+            hasLicense: isActive,
+            expired: isExpired,
+            used: license.used || false,
+            expiry: expiryDate.toISOString(),
+            daysLeft: daysLeft,
+            addons: ['all'],
+            type: 'premium',
+            accountId: accountId,
+            source: 'backend',
+            licenseData: license
+        };
     }
 
     // =========================================================================
@@ -642,51 +703,75 @@
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA
-    function applyFontSize(size) {
-        if (fontSizeUpdateTimeout) {
-            clearTimeout(fontSizeUpdateTimeout);
-        }
+    // 🔹 NOWA: Funkcja zmiany czcionki - BEZ SUWAKA
+    function setupFontSizeControls() {
+        const fontSizeInput = document.getElementById('fontSizeInput');
+        const fontSizeDecrease = document.getElementById('fontSizeDecrease');
+        const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
-        fontSizeUpdateTimeout = setTimeout(() => {
-            const panel = document.getElementById('swAddonsPanel');
-            if (!panel) return;
-            
-            const minSize = 10;
-            const maxSize = 16;
-            const clampedSize = Math.max(minSize, Math.min(maxSize, size));
-            
-            // Ustawiamy font-size tylko na głównym panelu
-            currentFontSize = clampedSize;
-            panel.style.fontSize = clampedSize + 'px';
-            
-            // Aktualizujemy wszystkie elementy tekstowe w panelu
-            const textElements = panel.querySelectorAll('*');
-            textElements.forEach(el => {
-                const style = window.getComputedStyle(el);
-                if (style.fontSize && style.fontSize.includes('px')) {
-                    const currentSize = parseFloat(style.fontSize);
-                    const baseSize = 12; // Domyślny rozmiar
-                    const ratio = currentSize / baseSize;
-                    const newSize = clampedSize * ratio;
-                    el.style.fontSize = newSize + 'px';
-                }
-            });
-            
-            SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
-            
-            const fontSizeValue = document.getElementById('fontSizeValue');
-            if (fontSizeValue) {
-                fontSizeValue.textContent = clampedSize + 'px';
+        if (!fontSizeInput || !fontSizeDecrease || !fontSizeIncrease) return;
+        
+        // Wczytaj zapisany rozmiar
+        const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
+        currentFontSize = Math.max(10, Math.min(16, savedFontSize));
+        fontSizeInput.value = currentFontSize;
+        applyFontSize(currentFontSize);
+        
+        // Zmniejsz czcionkę
+        fontSizeDecrease.addEventListener('click', () => {
+            if (currentFontSize > 10) {
+                currentFontSize--;
+                fontSizeInput.value = currentFontSize;
+                applyFontSize(currentFontSize);
             }
-            
-            const fontSizeSlider = document.getElementById('fontSizeSlider');
-            if (fontSizeSlider) {
-                fontSizeSlider.value = clampedSize;
+        });
+        
+        // Zwiększ czcionkę
+        fontSizeIncrease.addEventListener('click', () => {
+            if (currentFontSize < 16) {
+                currentFontSize++;
+                fontSizeInput.value = currentFontSize;
+                applyFontSize(currentFontSize);
             }
-            
-            console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
-        }, 50);
+        });
+        
+        // Zmiana przez pole tekstowe
+        fontSizeInput.addEventListener('change', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value)) {
+                value = 12;
+            }
+            value = Math.max(10, Math.min(16, value));
+            currentFontSize = value;
+            this.value = currentFontSize;
+            applyFontSize(currentFontSize);
+        });
+        
+        // Walidacja podczas wpisywania
+        fontSizeInput.addEventListener('input', function() {
+            let value = this.value.replace(/[^0-9]/g, '');
+            if (value) {
+                let num = parseInt(value);
+                if (num < 10) value = '10';
+                if (num > 16) value = '16';
+            }
+            this.value = value;
+        });
+    }
+
+    function applyFontSize(size) {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        const clampedSize = Math.max(10, Math.min(16, size));
+        currentFontSize = clampedSize;
+        
+        // Ustaw font-size na całym panelu
+        panel.style.fontSize = clampedSize + 'px';
+        
+        SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
+        
+        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
     }
 
     // 🔹 POPRAWIONA: Funkcja applyOpacity
@@ -731,7 +816,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu (Z POPRAWIONYM SCROLLEM)
+    // 🔹 Tworzenie głównego panelu (Z SCROLLEM ŚRODKOWYM I NOWYMI USTAWIENIAMI)
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -741,7 +826,7 @@
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY PANEL v4.3</strong>
+                <strong>SYNERGY PANEL v4.4</strong>
                 ${isAdmin ? ' <span style="color:#00ff00; font-size:14px;">👑</span>' : ''}
             </div>
             
@@ -753,7 +838,7 @@
                 <button class="tablink" data-tab="info">ℹ️ Info</button>
             </div>
 
-            <!-- ZAKŁADKA DODATKI - Z SCROLLEM -->
+            <!-- ZAKŁADKA DODATKI - Z SCROLLEM I PRZYCISKIEM NA DOLE -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
@@ -769,6 +854,7 @@
                         </div>
                     </div>
                     
+                    <!-- PRZYCISK PRZYKLEJONY DO DOŁU -->
                     <div class="refresh-button-container">
                         <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
@@ -834,16 +920,18 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA USTAWIENIA - Z SCROLLEM -->
+            <!-- ZAKŁADKA USTAWIENIA - NOWY SYSTEM ZMIANY CZCIONKI -->
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div class="settings-item">
                         <div class="settings-label">📝 Rozmiar czcionki:</div>
-                        <div class="slider-container">
-                            <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
-                            <span class="slider-value" id="fontSizeValue">12px</span>
+                        <div class="font-size-controls">
+                            <button class="font-size-btn" id="fontSizeDecrease">-</button>
+                            <input type="text" class="font-size-input" id="fontSizeInput" value="12" maxlength="2">
+                            <span class="font-size-unit">px</span>
+                            <button class="font-size-btn" id="fontSizeIncrease">+</button>
                         </div>
-                        <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">10-16px</small>
+                        <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">10-16px (kliknij +/- lub wpisz)</small>
                     </div>
                     
                     <div class="settings-item">
@@ -875,11 +963,11 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA INFO - Z SCROLLEM -->
+            <!-- ZAKŁADKA INFO -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div style="text-align:center; padding:20px; width:100%; max-width:800px;">
-                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.3</h3>
+                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.4</h3>
                         
                         <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
                                     border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
@@ -908,8 +996,8 @@
                         
                         <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
                                     background:rgba(51,0,0,0.5); border-radius:6px;">
-                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.3</p>
-                            <p style="margin:5px 0;">System licencji GitHub RAW</p>
+                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.4</p>
+                            <p style="margin:5px 0;">System licencji Backend</p>
                         </div>
                     </div>
                 </div>
@@ -917,10 +1005,76 @@
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.3');
+        console.log('✅ Panel created - v4.4');
         
         initializeEventListeners();
         loadSettings();
+        setupMiddleButtonScroll();
+    }
+
+    // 🔹 SCROLL ŚRODKOWYM PRZYCISKIEM MYSZY
+    function setupMiddleButtonScroll() {
+        const addonContainer = document.querySelector('.addon-list-container');
+        const shortcutsContainer = document.querySelector('.shortcuts-list-container');
+        
+        [addonContainer, shortcutsContainer].forEach(container => {
+            if (!container) return;
+            
+            let isMiddleClick = false;
+            let startX = 0;
+            let startY = 0;
+            let scrollLeft = 0;
+            let scrollTop = 0;
+            
+            container.addEventListener('mousedown', function(e) {
+                if (e.button === 1) { // Środkowy przycisk
+                    e.preventDefault();
+                    isMiddleClick = true;
+                    startX = e.pageX - container.offsetLeft;
+                    startY = e.pageY - container.offsetTop;
+                    scrollLeft = container.scrollLeft;
+                    scrollTop = container.scrollTop;
+                    
+                    container.style.cursor = 'grabbing';
+                    container.style.userSelect = 'none';
+                    
+                    // Dodajemy event listeners
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                }
+            });
+            
+            function onMouseMove(e) {
+                if (!isMiddleClick) return;
+                
+                e.preventDefault();
+                const x = e.pageX - container.offsetLeft;
+                const y = e.pageY - container.offsetTop;
+                const walkX = (x - startX) * 2;
+                const walkY = (y - startY) * 2;
+                
+                container.scrollLeft = scrollLeft - walkX;
+                container.scrollTop = scrollTop - walkY;
+            }
+            
+            function onMouseUp(e) {
+                if (e.button === 1) {
+                    isMiddleClick = false;
+                    container.style.cursor = '';
+                    container.style.userSelect = '';
+                    
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
+            }
+            
+            // Zapobiegaj domyślnej akcji środkowego przycisku (autoscroll)
+            container.addEventListener('click', function(e) {
+                if (e.button === 1) {
+                    e.preventDefault();
+                }
+            });
+        });
     }
 
     // 🔹 Renderowanie dodatków
@@ -1406,23 +1560,8 @@
             });
         }
         
-        // SUWAK CZCIONKI - POPRAWIONY
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeSlider && fontSizeValue) {
-            fontSizeSlider.addEventListener('input', function() {
-                const size = parseInt(this.value);
-                fontSizeValue.textContent = size + 'px';
-                applyFontSize(size);
-            });
-            
-            // Dodaj również event change dla pewności
-            fontSizeSlider.addEventListener('change', function() {
-                const size = parseInt(this.value);
-                fontSizeValue.textContent = size + 'px';
-                applyFontSize(size);
-            });
-        }
+        // NOWY SYSTEM ZMIANY CZCIONKI
+        setupFontSizeControls();
         
         // SUWAK PRZEŹROCZYSTOŚCI
         const opacitySlider = document.getElementById('opacitySlider');
@@ -1684,7 +1823,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v4.3...');
+        console.log('✅ Initializing panel v4.4...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -1708,6 +1847,7 @@
             renderAddons();
             renderShortcuts();
             
+            // Sprawdzaj licencję co 5 minut
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
             }, 5 * 60 * 1000);
@@ -1715,7 +1855,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.3...');
+    console.log('🎯 Starting Synergy Panel v4.4...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
