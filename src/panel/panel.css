@@ -65,7 +65,7 @@
     }
 }
 
-/* 🔹 MAIN PANEL - STAŁE TŁO 🔹 */
+/* 🔹 MAIN PANEL 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
@@ -175,7 +175,7 @@
     color: #ff6600; 
 }
 
-/* 🔹 TAB CONTENT 🔹 */
+/* 🔹 TAB CONTENT - POPRAWIONY LAYOUT 🔹 */
 .tabcontent {
     display: none;
     flex: 1;
@@ -190,18 +190,29 @@
 .sw-tab-content {
     padding: 15px;
     background: rgba(26, 0, 0, 0.7);
-    height: calc(100% - 120px);
+    height: calc(100% - 60px);
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
+    position: relative;
 }
 
-/* 🔹 ADDONS LIST - POPRAWIONY SCROLL 🔹 */
+/* 🔹 FIXED SCROLL CONTAINER - KLUCZOWA ZMIANA 🔹 */
+.scrollable-content {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+/* 🔹 ADDONS LIST - TERAZ DZIAŁA SCROLL 🔹 */
 .addon-list-container {
     width: 100%;
     max-width: 800px;
-    flex: 1;
+    height: 400px; /* FIXED HEIGHT FOR SCROLL */
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
@@ -210,7 +221,6 @@
 
 .addon-list {
     width: 100%;
-    padding-right: 5px;
 }
 
 .addon {
@@ -362,11 +372,11 @@
     background-color: #666666;
 }
 
-/* 🔹 SHORTCUTS LIST - POPRAWIONY LAYOUT 🔹 */
+/* 🔹 SHORTCUTS LIST - DZIAŁAJĄCY SCROLL 🔹 */
 .shortcuts-list-container {
     width: 100%;
     max-width: 800px;
-    flex: 1;
+    height: 420px; /* FIXED HEIGHT FOR SCROLL */
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
@@ -646,8 +656,8 @@
     font-size: 12px;
 }
 
-/* 🔹 POPRAWIONY SUWAK CZCIONKI 🔹 */
-.font-size-slider {
+/* 🔹 SUWAKI 🔹 */
+.font-size-slider, .opacity-slider {
     flex: 1;
     -webkit-appearance: none;
     height: 7px;
@@ -657,39 +667,7 @@
     outline: none;
 }
 
-.font-size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #ff3300;
-    cursor: pointer;
-    border: 2px solid #ffcc00;
-    box-shadow: 0 0 8px rgba(255, 51, 0, 0.8);
-    transition: background 0.2s ease;
-}
-
-.font-size-slider::-webkit-slider-thumb:hover {
-    background: #ff6600;
-    transform: scale(1.1);
-}
-
-.font-size-slider:active::-webkit-slider-thumb {
-    background: #ff9900;
-    transform: scale(1.05);
-}
-
-/* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
-.opacity-slider {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 7px;
-    background: linear-gradient(to right, #330000, #660000);
-    border-radius: 4px;
-    border: 1px solid #660000;
-    outline: none;
-}
-
+.font-size-slider::-webkit-slider-thumb,
 .opacity-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 18px;
@@ -701,6 +679,7 @@
     box-shadow: 0 0 8px rgba(255, 51, 0, 0.8);
 }
 
+.font-size-slider::-webkit-slider-thumb:hover,
 .opacity-slider::-webkit-slider-thumb:hover {
     background: #ff6600;
     transform: scale(1.1);
@@ -744,15 +723,17 @@
     letter-spacing: 0.5px;
 }
 
-/* 🔹 SCROLLBAR - POPRAWIONY 🔹 */
+/* 🔹 SCROLLBAR - DZIAŁAJĄCY 🔹 */
 .addon-list-container::-webkit-scrollbar,
 .shortcuts-list-container::-webkit-scrollbar,
+.scrollable-content::-webkit-scrollbar,
 .sw-tab-content.scrollable::-webkit-scrollbar {
     width: 8px;
 }
 
 .addon-list-container::-webkit-scrollbar-track,
 .shortcuts-list-container::-webkit-scrollbar-track,
+.scrollable-content::-webkit-scrollbar-track,
 .sw-tab-content.scrollable::-webkit-scrollbar-track {
     background: rgba(51, 0, 0, 0.5);
     border-radius: 4px;
@@ -760,6 +741,7 @@
 
 .addon-list-container::-webkit-scrollbar-thumb,
 .shortcuts-list-container::-webkit-scrollbar-thumb,
+.scrollable-content::-webkit-scrollbar-thumb,
 .sw-tab-content.scrollable::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #ff3300, #ff6600);
     border-radius: 4px;
@@ -768,6 +750,7 @@
 
 .addon-list-container::-webkit-scrollbar-thumb:hover,
 .shortcuts-list-container::-webkit-scrollbar-thumb:hover,
+.scrollable-content::-webkit-scrollbar-thumb:hover,
 .sw-tab-content.scrollable::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(to bottom, #ff6600, #ff9900);
 }
@@ -829,7 +812,7 @@
     box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4);
 }
 
-/* 🔹 REFRESH BUTTON - STICKY NA DOLE 🔹 */
+/* 🔹 REFRESH BUTTON 🔹 */
 .refresh-button-container {
     width: 100%;
     max-width: 800px;
@@ -890,7 +873,7 @@
     opacity: 0.7;
 }
 
-/* 🔹 INFO TAB - POPRAWIONY BEZ SCROLLA POZIOMEGO 🔹 */
+/* 🔹 INFO TAB - BEZ SCROLLA POZIOMEGO 🔹 */
 #info .sw-tab-content {
     padding: 15px;
     text-align: center;

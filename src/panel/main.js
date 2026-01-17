@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v4.2 - Fixed Edition)
+// synergy.js - Główny kod panelu Synergy (v4.3 - Fixed Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.2 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.3 (Fixed Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -133,7 +133,7 @@
     ];
 
     // 🔹 URL do pliku licencji - TERAZ POPRAWNY
-    const LICENSES_URL = 'https://shaderderwraith.github.io/SynergyWraith/licenses.json';
+    const LICENSES_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/docs/licenses.json';
     
     // ⭐ ID admina - TYLKO TWOJE KONTO
     const ADMIN_ACCOUNT_ID = '7411461';
@@ -203,18 +203,18 @@
     let addonShortcuts = {};
     let shortcutsEnabled = {};
     let fontSizeUpdateTimeout = null;
+    let currentFontSize = 12;
 
     // =========================================================================
     // 🔹 FUNKCJE LICENCJI - POPRAWIONA WERSJA
     // =========================================================================
 
-    // 🔹 Pobierz licencje z GitHub Pages (POPRAWIONE - BEZ BŁĘDÓW CORS)
-    async function getLicensesFromGitHubPages() {
+    // 🔹 Pobierz licencje z GitHub RAW (bezpośrednio z repo)
+    async function getLicensesFromGitHub() {
         try {
             console.log('📄 Pobieram licencje z:', LICENSES_URL);
             const timestamp = Date.now();
             
-            // Używamy fetch bezpośrednio z cache-busting
             const response = await fetch(`${LICENSES_URL}?t=${timestamp}`, {
                 method: 'GET',
                 mode: 'cors',
@@ -226,32 +226,48 @@
             
             if (!response.ok) {
                 console.error('❌ Błąd HTTP:', response.status, response.statusText);
-                return [];
+                return null;
             }
             
             const text = await response.text();
-            let licenses;
+            console.log('📋 Otrzymano odpowiedź:', text.substring(0, 200) + '...');
             
-            try {
-                licenses = JSON.parse(text);
-            } catch (parseError) {
-                console.error('❌ Błąd parsowania JSON:', parseError);
-                // Spróbuj naprawić format JSON jeśli jest nieprawidłowy
-                const fixedText = text.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}');
-                try {
-                    licenses = JSON.parse(fixedText);
-                } catch (e) {
-                    console.error('❌ Nie można naprawić JSON');
-                    return [];
-                }
+            // Spróbuj naprawić potencjalne błędy w JSON
+            let cleanedText = text.trim();
+            
+            // Usuń potencjalne BOM
+            if (cleanedText.charCodeAt(0) === 0xFEFF) {
+                cleanedText = cleanedText.substring(1);
             }
             
-            console.log('✅ Załadowano licencje:', licenses);
-            return licenses;
+            // Napraw brakujące przecinki w tablicy
+            cleanedText = cleanedText.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}');
+            
+            try {
+                const licenses = JSON.parse(cleanedText);
+                console.log('✅ Poprawnie sparsowano licencje');
+                return licenses;
+            } catch (parseError) {
+                console.error('❌ Błąd parsowania JSON:', parseError);
+                
+                // Spróbuj znaleźć i wyciągnąć tablicę JSON
+                const arrayMatch = cleanedText.match(/\[[\s\S]*\]/);
+                if (arrayMatch) {
+                    try {
+                        const licenses = JSON.parse(arrayMatch[0]);
+                        console.log('✅ Wyciągnięto tablicę z tekstu');
+                        return licenses;
+                    } catch (e2) {
+                        console.error('❌ Nie udało się wyciągnąć tablicy');
+                    }
+                }
+                
+                return null;
+            }
             
         } catch (error) {
             console.error('❌ Nie można pobrać licencji:', error.message);
-            return [];
+            return null;
         }
     }
 
@@ -287,7 +303,18 @@
             }
 
             // 2. Pobierz licencje z GitHub
-            const licenses = await getLicensesFromGitHubPages();
+            const licenses = await getLicensesFromGitHub();
+            
+            if (!licenses) {
+                console.log('📭 Nie udało się pobrać licencji');
+                return {
+                    success: true,
+                    hasLicense: false,
+                    message: 'Brak połączenia z serwerem licencji',
+                    accountId: accountId,
+                    source: 'github'
+                };
+            }
             
             if (!Array.isArray(licenses)) {
                 console.log('❌ Licencje nie są tablicą:', typeof licenses);
@@ -296,7 +323,7 @@
                     hasLicense: false,
                     message: 'Nieprawidłowy format licencji',
                     accountId: accountId,
-                    source: 'github-pages'
+                    source: 'github'
                 };
             }
             
@@ -307,12 +334,15 @@
                     hasLicense: false,
                     message: 'Brak licencji w systemie',
                     accountId: accountId,
-                    source: 'github-pages'
+                    source: 'github'
                 };
             }
 
             // 3. Znajdź licencję dla tego accountId (porównujemy jako stringi)
             const accountIdStr = accountId.toString();
+            console.log('🔎 Szukam licencji dla:', accountIdStr);
+            console.log('📋 Dostępne ID:', licenses.map(l => l.userId));
+            
             const license = licenses.find(l => {
                 if (!l.userId) return false;
                 return l.userId.toString() === accountIdStr;
@@ -320,13 +350,12 @@
 
             if (!license) {
                 console.log('❌ Brak licencji dla ID:', accountIdStr);
-                console.log('📋 Dostępne ID:', licenses.map(l => l.userId));
                 return {
                     success: true,
                     hasLicense: false,
                     message: 'Brak aktywnej licencji',
                     accountId: accountId,
-                    source: 'github-pages'
+                    source: 'github'
                 };
             }
 
@@ -347,6 +376,7 @@
                 isActive,
                 isExpired,
                 expiry: expiry.toLocaleDateString(),
+                now: now.toLocaleDateString(),
                 daysLeft
             });
 
@@ -360,7 +390,7 @@
                 addons: ['all'],
                 type: 'premium',
                 accountId: accountId,
-                source: 'github-pages',
+                source: 'github',
                 licenseData: license
             };
 
@@ -612,7 +642,7 @@
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA POPRAWNIE
+    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA
     function applyFontSize(size) {
         if (fontSizeUpdateTimeout) {
             clearTimeout(fontSizeUpdateTimeout);
@@ -627,8 +657,21 @@
             const clampedSize = Math.max(minSize, Math.min(maxSize, size));
             
             // Ustawiamy font-size tylko na głównym panelu
-            // Wszystkie elementy wewnętrzne użyją jednostek em/rem
+            currentFontSize = clampedSize;
             panel.style.fontSize = clampedSize + 'px';
+            
+            // Aktualizujemy wszystkie elementy tekstowe w panelu
+            const textElements = panel.querySelectorAll('*');
+            textElements.forEach(el => {
+                const style = window.getComputedStyle(el);
+                if (style.fontSize && style.fontSize.includes('px')) {
+                    const currentSize = parseFloat(style.fontSize);
+                    const baseSize = 12; // Domyślny rozmiar
+                    const ratio = currentSize / baseSize;
+                    const newSize = clampedSize * ratio;
+                    el.style.fontSize = newSize + 'px';
+                }
+            });
             
             SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
             
@@ -643,7 +686,7 @@
             }
             
             console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
-        }, 100);
+        }, 50);
     }
 
     // 🔹 POPRAWIONA: Funkcja applyOpacity
@@ -688,7 +731,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu (UPROSZCZONE)
+    // 🔹 Tworzenie głównego panelu (Z POPRAWIONYM SCROLLEM)
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -698,7 +741,7 @@
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY PANEL</strong>
+                <strong>SYNERGY PANEL v4.3</strong>
                 ${isAdmin ? ' <span style="color:#00ff00; font-size:14px;">👑</span>' : ''}
             </div>
             
@@ -710,7 +753,7 @@
                 <button class="tablink" data-tab="info">ℹ️ Info</button>
             </div>
 
-            <!-- ZAKŁADKA DODATKI -->
+            <!-- ZAKŁADKA DODATKI - Z SCROLLEM -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
@@ -734,9 +777,9 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA SKRÓTY -->
+            <!-- ZAKŁADKA SKRÓTY - Z SCROLLEM -->
             <div id="shortcuts" class="tabcontent">
-                <div class="sw-tab-content scrollable">
+                <div class="sw-tab-content">
                     <div style="margin-bottom:15px; padding:15px; background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); border-radius:8px; border:1px solid #660000; width:100%; max-width:800px;">
                         <h3 style="color:#ffcc00; margin-top:0; margin-bottom:5px; font-size:14px; text-align:center;">⌨️ Skróty klawiszowe</h3>
                         <p style="color:#ff9966; font-size:12px; margin:0; text-align:center;">
@@ -754,7 +797,7 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA LICENCJA -->
+            <!-- ZAKŁADKA LICENCJA - Z SCROLLEM -->
             <div id="license" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div class="license-container">
@@ -791,7 +834,7 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA USTAWIENIA -->
+            <!-- ZAKŁADKA USTAWIENIA - Z SCROLLEM -->
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div class="settings-item">
@@ -832,11 +875,11 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA INFO -->
+            <!-- ZAKŁADKA INFO - Z SCROLLEM -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div style="text-align:center; padding:20px; width:100%; max-width:800px;">
-                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.2</h3>
+                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.3</h3>
                         
                         <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
                                     border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
@@ -865,8 +908,8 @@
                         
                         <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
                                     background:rgba(51,0,0,0.5); border-radius:6px;">
-                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.2</p>
-                            <p style="margin:5px 0;">System licencji GitHub Pages</p>
+                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.3</p>
+                            <p style="margin:5px 0;">System licencji GitHub RAW</p>
                         </div>
                     </div>
                 </div>
@@ -874,7 +917,7 @@
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.2');
+        console.log('✅ Panel created - v4.3');
         
         initializeEventListeners();
         loadSettings();
@@ -955,7 +998,7 @@
         });
     }
 
-    // 🔹 Renderowanie skrótów (POPRAWIONE)
+    // 🔹 Renderowanie skrótów
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
@@ -1363,18 +1406,25 @@
             });
         }
         
-        // POPRAWIONY SUWAK CZCIONKI - debounced
+        // SUWAK CZCIONKI - POPRAWIONY
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeSlider && fontSizeValue) {
             fontSizeSlider.addEventListener('input', function() {
                 const size = parseInt(this.value);
                 fontSizeValue.textContent = size + 'px';
-                // Opóźniona aktualizacja dla lepszej wydajności
+                applyFontSize(size);
+            });
+            
+            // Dodaj również event change dla pewności
+            fontSizeSlider.addEventListener('change', function() {
+                const size = parseInt(this.value);
+                fontSizeValue.textContent = size + 'px';
                 applyFontSize(size);
             });
         }
         
+        // SUWAK PRZEŹROCZYSTOŚCI
         const opacitySlider = document.getElementById('opacitySlider');
         const opacityValue = document.getElementById('opacityValue');
         if (opacitySlider && opacityValue) {
@@ -1554,6 +1604,7 @@
     // 🔹 Ładowanie ustawień
     function loadSettings() {
         const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
+        currentFontSize = savedFontSize;
         applyFontSize(savedFontSize);
         
         const savedOpacity = parseInt(SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90));
@@ -1582,6 +1633,7 @@
         addonShortcuts = {};
         shortcutsEnabled = {};
         panelShortcut = 'Ctrl+A';
+        currentFontSize = 12;
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
@@ -1632,7 +1684,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v4.2...');
+        console.log('✅ Initializing panel v4.3...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -1663,7 +1715,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.2...');
+    console.log('🎯 Starting Synergy Panel v4.3...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
