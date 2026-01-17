@@ -194,9 +194,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow: hidden;
 }
 
-/* 🔹 ADDONS LIST - Z SCROLLEM 🔹 */
+/* 🔹 ADDONS LIST - POPRAWIONY SCROLL 🔹 */
 .addon-list-container {
     width: 100%;
     max-width: 800px;
@@ -204,10 +205,12 @@
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
+    padding-right: 5px;
 }
 
 .addon-list {
     width: 100%;
+    padding-right: 5px;
 }
 
 .addon {
@@ -359,7 +362,7 @@
     background-color: #666666;
 }
 
-/* 🔹 SHORTCUTS LIST - BEZ SCROLLA POZIOMEGO 🔹 */
+/* 🔹 SHORTCUTS LIST - POPRAWIONY LAYOUT 🔹 */
 .shortcuts-list-container {
     width: 100%;
     max-width: 800px;
@@ -367,6 +370,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     margin-bottom: 10px;
+    padding-right: 5px;
 }
 
 .shortcut-item {
@@ -382,6 +386,7 @@
     align-items: center;
     width: 100%;
     box-sizing: border-box;
+    flex-wrap: wrap;
 }
 
 .shortcut-item:hover {
@@ -393,8 +398,9 @@
 
 .shortcut-info {
     flex: 1;
-    min-width: 0;
+    min-width: 200px;
     margin-right: 15px;
+    margin-bottom: 10px;
 }
 
 .shortcut-name {
@@ -414,7 +420,7 @@
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .shortcut-display {
@@ -640,7 +646,8 @@
     font-size: 12px;
 }
 
-input[type="range"] {
+/* 🔹 POPRAWIONY SUWAK CZCIONKI 🔹 */
+.font-size-slider {
     flex: 1;
     -webkit-appearance: none;
     height: 7px;
@@ -650,7 +657,40 @@ input[type="range"] {
     outline: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+.font-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff3300;
+    cursor: pointer;
+    border: 2px solid #ffcc00;
+    box-shadow: 0 0 8px rgba(255, 51, 0, 0.8);
+    transition: background 0.2s ease;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+    background: #ff6600;
+    transform: scale(1.1);
+}
+
+.font-size-slider:active::-webkit-slider-thumb {
+    background: #ff9900;
+    transform: scale(1.05);
+}
+
+/* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
+.opacity-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 7px;
+    background: linear-gradient(to right, #330000, #660000);
+    border-radius: 4px;
+    border: 1px solid #660000;
+    outline: none;
+}
+
+.opacity-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
@@ -661,7 +701,7 @@ input[type="range"]::-webkit-slider-thumb {
     box-shadow: 0 0 8px rgba(255, 51, 0, 0.8);
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
+.opacity-slider::-webkit-slider-thumb:hover {
     background: #ff6600;
     transform: scale(1.1);
 }
@@ -704,7 +744,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     letter-spacing: 0.5px;
 }
 
-/* 🔹 SCROLLBAR - PŁYNNY VERTICAL SCROLL 🔹 */
+/* 🔹 SCROLLBAR - POPRAWIONY 🔹 */
 .addon-list-container::-webkit-scrollbar,
 .shortcuts-list-container::-webkit-scrollbar,
 .sw-tab-content.scrollable::-webkit-scrollbar {
@@ -850,11 +890,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
     opacity: 0.7;
 }
 
-/* 🔹 INFO TAB 🔹 */
+/* 🔹 INFO TAB - POPRAWIONY BEZ SCROLLA POZIOMEGO 🔹 */
 #info .sw-tab-content {
     padding: 15px;
     text-align: center;
     overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 #info h3 {
@@ -879,6 +921,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-size: 12px;
     line-height: 1.5;
     margin: 5px 0;
+    max-width: 100%;
+    word-wrap: break-word;
 }
 
 /* 🔹 RESPONSIVE 🔹 */

@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v4.1 - Fixed Edition)
+// synergy.js - Główny kod panelu Synergy (v4.2 - Fixed Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.1 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.2 (Fixed Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -202,6 +202,7 @@
     let panelInitialized = false;
     let addonShortcuts = {};
     let shortcutsEnabled = {};
+    let fontSizeUpdateTimeout = null;
 
     // =========================================================================
     // 🔹 FUNKCJE LICENCJI - POPRAWIONA WERSJA
@@ -228,7 +229,23 @@
                 return [];
             }
             
-            const licenses = await response.json();
+            const text = await response.text();
+            let licenses;
+            
+            try {
+                licenses = JSON.parse(text);
+            } catch (parseError) {
+                console.error('❌ Błąd parsowania JSON:', parseError);
+                // Spróbuj naprawić format JSON jeśli jest nieprawidłowy
+                const fixedText = text.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}');
+                try {
+                    licenses = JSON.parse(fixedText);
+                } catch (e) {
+                    console.error('❌ Nie można naprawić JSON');
+                    return [];
+                }
+            }
+            
             console.log('✅ Załadowano licencje:', licenses);
             return licenses;
             
@@ -244,7 +261,7 @@
         return accountId.toString() === ADMIN_ACCOUNT_ID;
     }
 
-    // 🔹 Sprawdź licencję dla konta (TERAZ DZIAŁA POPRAWNIE)
+    // 🔹 Sprawdź licencję dla konta (POPRAWIONE DLA KONTA 10056201)
     async function checkLicenseForAccount(accountId) {
         try {
             console.log('🔍 Sprawdzam licencję dla:', accountId);
@@ -272,6 +289,17 @@
             // 2. Pobierz licencje z GitHub
             const licenses = await getLicensesFromGitHubPages();
             
+            if (!Array.isArray(licenses)) {
+                console.log('❌ Licencje nie są tablicą:', typeof licenses);
+                return {
+                    success: true,
+                    hasLicense: false,
+                    message: 'Nieprawidłowy format licencji',
+                    accountId: accountId,
+                    source: 'github-pages'
+                };
+            }
+            
             if (licenses.length === 0) {
                 console.log('📭 Brak licencji w pliku');
                 return {
@@ -284,12 +312,15 @@
             }
 
             // 3. Znajdź licencję dla tego accountId (porównujemy jako stringi)
+            const accountIdStr = accountId.toString();
             const license = licenses.find(l => {
-                return l.userId && l.userId.toString() === accountId.toString();
+                if (!l.userId) return false;
+                return l.userId.toString() === accountIdStr;
             });
 
             if (!license) {
-                console.log('❌ Brak licencji dla ID:', accountId);
+                console.log('❌ Brak licencji dla ID:', accountIdStr);
+                console.log('📋 Dostępne ID:', licenses.map(l => l.userId));
                 return {
                     success: true,
                     hasLicense: false,
@@ -303,16 +334,20 @@
             const now = new Date();
             const expiry = new Date(license.expiry);
             const isExpired = expiry < now;
-            const isActive = license.status === 'active' && !isExpired;
+            
+            // Sprawdź czy status jest aktywny (jeśli pole istnieje)
+            const status = license.status || 'active';
+            const isActive = status === 'active' && !isExpired;
+            
             const daysLeft = isActive ? Math.max(0, Math.ceil((expiry - now) / (1000 * 60 * 60 * 24))) : 0;
 
             console.log('📊 Status licencji:', {
                 userId: license.userId,
+                status: status,
                 isActive,
                 isExpired,
                 expiry: expiry.toLocaleDateString(),
-                daysLeft,
-                status: license.status
+                daysLeft
             });
 
             return {
@@ -577,42 +612,38 @@
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA
+    // 🔹 POPRAWIONA: Funkcja applyFontSize - TERAZ DZIAŁA POPRAWNIE
     function applyFontSize(size) {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
+        if (fontSizeUpdateTimeout) {
+            clearTimeout(fontSizeUpdateTimeout);
+        }
         
-        const minSize = 10;
-        const maxSize = 16;
-        const clampedSize = Math.max(minSize, Math.min(maxSize, size));
-        
-        // Ustawiamy font-size na głównym panelu
-        panel.style.fontSize = clampedSize + 'px';
-        
-        // Aktualizujemy wszystkie elementy wewnątrz
-        const allElements = panel.querySelectorAll('*');
-        allElements.forEach(el => {
-            const computedStyle = window.getComputedStyle(el);
-            if (computedStyle.fontSize) {
-                const currentSize = parseFloat(computedStyle.fontSize);
-                const newSize = (clampedSize / 12) * currentSize; // 12 to domyślny rozmiar
-                el.style.fontSize = newSize + 'px';
+        fontSizeUpdateTimeout = setTimeout(() => {
+            const panel = document.getElementById('swAddonsPanel');
+            if (!panel) return;
+            
+            const minSize = 10;
+            const maxSize = 16;
+            const clampedSize = Math.max(minSize, Math.min(maxSize, size));
+            
+            // Ustawiamy font-size tylko na głównym panelu
+            // Wszystkie elementy wewnętrzne użyją jednostek em/rem
+            panel.style.fontSize = clampedSize + 'px';
+            
+            SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
+            
+            const fontSizeValue = document.getElementById('fontSizeValue');
+            if (fontSizeValue) {
+                fontSizeValue.textContent = clampedSize + 'px';
             }
-        });
-        
-        SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
-        
-        const fontSizeValue = document.getElementById('fontSizeValue');
-        if (fontSizeValue) {
-            fontSizeValue.textContent = clampedSize + 'px';
-        }
-        
-        const fontSizeSlider = document.getElementById('fontSizeSlider');
-        if (fontSizeSlider) {
-            fontSizeSlider.value = clampedSize;
-        }
-        
-        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
+            
+            const fontSizeSlider = document.getElementById('fontSizeSlider');
+            if (fontSizeSlider) {
+                fontSizeSlider.value = clampedSize;
+            }
+            
+            console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
+        }, 100);
     }
 
     // 🔹 POPRAWIONA: Funkcja applyOpacity
@@ -623,7 +654,6 @@
             const maxOpacity = 100;
             const clampedOpacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
             
-            // Ustawiamy opacity na całym panelu
             panel.style.opacity = clampedOpacity / 100;
             
             SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clampedOpacity);
@@ -806,7 +836,7 @@
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div style="text-align:center; padding:20px; width:100%; max-width:800px;">
-                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.1</h3>
+                        <h3 style="color:#ffcc00; margin-bottom:20px; font-size:20px;">ℹ️ Synergy Panel v4.2</h3>
                         
                         <div style="background:linear-gradient(135deg, rgba(51,0,0,0.9), rgba(102,0,0,0.9)); 
                                     border:1px solid #660000; border-radius:8px; padding:20px; margin-bottom:15px;">
@@ -835,7 +865,7 @@
                         
                         <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
                                     background:rgba(51,0,0,0.5); border-radius:6px;">
-                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.1</p>
+                            <p style="margin:5px 0;">© 2024 Synergy Panel | Wersja 4.2</p>
                             <p style="margin:5px 0;">System licencji GitHub Pages</p>
                         </div>
                     </div>
@@ -844,7 +874,7 @@
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.1');
+        console.log('✅ Panel created - v4.2');
         
         initializeEventListeners();
         loadSettings();
@@ -925,7 +955,7 @@
         });
     }
 
-    // 🔹 Renderowanie skrótów (POPRAWIONE - BEZ SCROLLA POZIOMEGO)
+    // 🔹 Renderowanie skrótów (POPRAWIONE)
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
@@ -960,11 +990,11 @@
                     <div class="shortcut-desc">${addon.description}</div>
                 </div>
                 <div class="shortcut-controls">
-                    <div class="shortcut-display" id="shortcut-display-${addon.id}" style="min-width: 90px; max-width: 120px;">
+                    <div class="shortcut-display" id="shortcut-display-${addon.id}">
                         ${shortcut}
                     </div>
-                    <button class="shortcut-set-btn" data-id="${addon.id}" style="min-width: 60px;">Ustaw</button>
-                    <button class="shortcut-clear-btn" data-id="${addon.id}" style="min-width: 70px;">Wyczyść</button>
+                    <button class="shortcut-set-btn" data-id="${addon.id}">Ustaw</button>
+                    <button class="shortcut-clear-btn" data-id="${addon.id}">Wyczyść</button>
                     <label class="shortcut-toggle" title="${isEnabled ? 'Wyłącz skrót' : 'Włącz skrót'}">
                         <input type="checkbox" ${isEnabled ? 'checked' : ''} data-id="${addon.id}" class="shortcut-toggle-input">
                         <span class="shortcut-toggle-slider"></span>
@@ -975,7 +1005,6 @@
             container.appendChild(item);
         });
         
-        // Event listeners
         document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
@@ -1334,13 +1363,14 @@
             });
         }
         
-        // SUWAKI
+        // POPRAWIONY SUWAK CZCIONKI - debounced
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeSlider && fontSizeValue) {
             fontSizeSlider.addEventListener('input', function() {
                 const size = parseInt(this.value);
                 fontSizeValue.textContent = size + 'px';
+                // Opóźniona aktualizacja dla lepszej wydajności
                 applyFontSize(size);
             });
         }
@@ -1602,7 +1632,7 @@
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v4.1...');
+        console.log('✅ Initializing panel v4.2...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -1633,7 +1663,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.1...');
+    console.log('🎯 Starting Synergy Panel v4.2...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
