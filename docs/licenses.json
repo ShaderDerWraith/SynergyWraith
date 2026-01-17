@@ -19,5 +19,12 @@
     "grantedAt": "2024-01-20T15:45:00.000Z",
     "adminId": "7411461",
     "status": "expired"
+  },
+  {
+    "userId": "10032106",
+    "expiry": "2027-12-31T23:59:59.999Z",
+    "grantedAt": "2024-01-21T10:30:00.000Z",
+    "adminId": "7411461",
+    "status": "active"
   }
 ]
