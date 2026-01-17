@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v3.7 - Final Fix Edition)
+// synergy.js - Główny kod panelu Synergy (v4.0 - Licencja z GitHub)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v3.7 (Final Fix Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.0 (GitHub License System)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -27,42 +27,12 @@
         ADMIN_LICENSES: "sw_admin_licenses"
     };
 
-    // 🔹 Lista dostępnych dodatków
+    // 🔹 Lista dostępnych dodatków (TERAZ: darmowe widoczne, premium ukryte)
     let ADDONS = [
-        {
-            id: 'kcs-icons',
-            name: 'KCS Icons',
-            description: 'Dodaje ikony do interfejsu gry',
-            type: 'premium',
-            enabled: false,
-            favorite: false,
-            hidden: true,
-            shortcut: null
-        },
-        {
-            id: 'auto-looter',
-            name: 'Auto Looter',
-            description: 'Automatycznie zbiera loot',
-            type: 'premium',
-            enabled: false,
-            favorite: false,
-            hidden: true,
-            shortcut: null
-        },
-        {
-            id: 'quest-helper',
-            name: 'Quest Helper',
-            description: 'Pomocnik zadań',
-            type: 'premium',
-            enabled: false,
-            favorite: false,
-            hidden: true,
-            shortcut: null
-        },
         {
             id: 'enhanced-stats',
             name: 'Enhanced Stats',
-            description: 'Rozszerzone statystyki',
+            description: 'Rozszerzone statystyki postaci',
             type: 'free',
             enabled: false,
             favorite: false,
@@ -72,7 +42,7 @@
         {
             id: 'trade-helper',
             name: 'Trade Helper',
-            description: 'Pomocnik handlu',
+            description: 'Pomocnik handlu i aukcji',
             type: 'free',
             enabled: false,
             favorite: false,
@@ -80,9 +50,80 @@
             shortcut: null
         },
         {
+            id: 'chat-manager',
+            name: 'Chat Manager',
+            description: 'Zaawansowane zarządzanie czatem',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false,
+            shortcut: null
+        },
+        {
+            id: 'quest-logger',
+            name: 'Quest Logger',
+            description: 'Logowanie postępów w zadaniach',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false,
+            shortcut: null
+        },
+        // DODATKI PREMIUM (BĘDĄ UKRYTE DLA BASIC USERÓW)
+        {
+            id: 'kcs-icons',
+            name: 'KCS Icons',
+            description: 'Profesjonalne ikony KCS do interfejsu',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true,
+            shortcut: null
+        },
+        {
+            id: 'auto-looter',
+            name: 'Auto Looter',
+            description: 'Inteligentny zbieracz łupów',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true,
+            shortcut: null
+        },
+        {
+            id: 'quest-helper',
+            name: 'Quest Helper',
+            description: 'Pełna pomoc w zadaniach z mapą',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true,
+            shortcut: null
+        },
+        {
             id: 'combat-log',
             name: 'Combat Log',
-            description: 'Rozszerzony log walki',
+            description: 'Szczegółowy log walki z analizą',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true,
+            shortcut: null
+        },
+        {
+            id: 'auto-potion',
+            name: 'Auto Potion',
+            description: 'Automatyczne używanie mikstur',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true,
+            shortcut: null
+        },
+        {
+            id: 'fishing-bot',
+            name: 'Fishing Bot',
+            description: 'Automatyczne łowienie ryb',
             type: 'premium',
             enabled: false,
             favorite: false,
@@ -91,13 +132,10 @@
         }
     ];
 
-    // 🔹 Backend URL - Cloudflare Worker
-    const BACKEND_URL = 'https://synergy-licenses.lozu-oo.workers.dev';
-    
     // 🔹 URL do pliku licencji na GitHub Pages
     const LICENSES_URL = 'https://shaderderwraith.github.io/SynergyWraith/licenses.json';
     
-    // ⭐⭐⭐ ZMIEŃ TUTAJ: wpisz swoje ID konta z gry
+    // ⭐ ID admina - TYLKO TWOJE KONTO
     const ADMIN_ACCOUNT_IDS = ['7411461'];
 
     // 🔹 Safe fallback
@@ -167,28 +205,8 @@
     let adminLicenses = [];
 
     // =========================================================================
-    // 🔹 FUNKCJE ADMINISTRACYJNE - SYSTEM LOKALNY + GITHUB PAGES
+    // 🔹 FUNKCJE LICENCJI - GITHUB PAGES SYSTEM
     // =========================================================================
-
-    function checkIfAdmin(accountId) {
-        if (!accountId) return false;
-        return ADMIN_ACCOUNT_IDS.includes(accountId.toString()) || 
-               ADMIN_ACCOUNT_IDS.includes(accountId);
-    }
-
-    function toggleAdminTab(show) {
-        const adminTab = document.querySelector('.admin-tab');
-        if (adminTab) {
-            adminTab.style.display = show ? 'flex' : 'none';
-        }
-        
-        const panel = document.getElementById('swAddonsPanel');
-        if (panel && show) {
-            panel.classList.add('admin-visible');
-        } else if (panel) {
-            panel.classList.remove('admin-visible');
-        }
-    }
 
     // 🔹 Pobierz licencje z GitHub Pages
     async function getLicensesFromGitHubPages() {
@@ -197,168 +215,101 @@
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
             }
-            return await response.json();
+            const licenses = await response.json();
+            console.log('📄 Załadowano licencje z GitHub:', licenses);
+            return licenses;
         } catch (error) {
-            console.warn('⚠️ Nie można pobrać licencji z GitHub Pages, używam lokalnych:', error.message);
-            return SW.GM_getValue(CONFIG.ADMIN_LICENSES, []);
+            console.warn('⚠️ Nie można pobrać licencji z GitHub Pages:', error.message);
+            return [];
         }
     }
 
-    // 🔹 Zapisz licencje lokalnie
-    function saveLicensesLocally(licenses) {
-        adminLicenses = licenses;
-        SW.GM_setValue(CONFIG.ADMIN_LICENSES, licenses);
-        return true;
+    // 🔹 Sprawdź czy użytkownik jest adminem
+    function checkIfAdmin(accountId) {
+        if (!accountId) return false;
+        return ADMIN_ACCOUNT_IDS.includes(accountId.toString());
     }
 
-    // 🔹 Nadaj licencję (tylko lokalnie)
-    async function grantLicense(userId, expiryDate) {
-        try {
-            let licenses = await getLicensesFromGitHubPages();
-            
-            const existingIndex = licenses.findIndex(l => l.userId === userId);
-            
-            const licenseData = {
-                userId: userId,
-                expiry: expiryDate,
-                grantedAt: new Date().toISOString(),
-                adminId: userAccountId,
-                status: 'active'
-            };
-            
-            if (existingIndex !== -1) {
-                licenses[existingIndex] = licenseData;
-            } else {
-                licenses.push(licenseData);
-            }
-            
-            saveLicensesLocally(licenses);
-            
-            showAdminInstructions(userId, expiryDate, existingIndex !== -1 ? 'updated' : 'added');
-            
-            return true;
-        } catch (error) {
-            console.error('❌ Błąd nadawania licencji:', error);
-            showAdminMessage(`Błąd: ${error.message}`, 'error');
-            return false;
-        }
-    }
-
-    // 🔹 Odbierz licencję (tylko lokalnie)
-    async function revokeLicense(userId) {
-        try {
-            let licenses = await getLicensesFromGitHubPages();
-            
-            licenses = licenses.map(license => {
-                if (license.userId === userId) {
-                    return {
-                        ...license,
-                        status: 'revoked',
-                        revokedAt: new Date().toISOString()
-                    };
-                }
-                return license;
-            });
-            
-            saveLicensesLocally(licenses);
-            
-            showAdminMessage(`Licencja oznaczona jako odebrana dla ${userId}`, 'success');
-            return true;
-        } catch (error) {
-            console.error('❌ Błąd odbierania licencji:', error);
-            showAdminMessage(`Błąd: ${error.message}`, 'error');
-            return false;
-        }
-    }
-
-    // 🔹 Pokaż instrukcję ręcznego dodania do pliku
-    function showAdminInstructions(userId, expiryDate, action = 'added') {
-        const expiryFormatted = new Date(expiryDate).toLocaleDateString('pl-PL');
-        const licenseJson = JSON.stringify({
-            userId: userId,
-            expiry: new Date(expiryDate).toISOString(),
-            grantedAt: new Date().toISOString(),
-            adminId: userAccountId,
-            status: 'active'
-        }, null, 2);
-        
-        const message = `
-✅ Licencja ${action === 'added' ? 'dodana' : 'zaktualizowana'} lokalnie!
-
-Aby dodać ją do pliku licenses.json:
-1. Otwórz plik docs/licenses.json w GitHub
-2. Dodaj ten wpis do tablicy:
-
-${licenseJson}
-
-3. Zachowaj format JSON
-4. Zatwierdź zmiany
-
-ID użytkownika: ${userId}
-Ważna do: ${expiryFormatted}
-        `;
-        
-        const resultDiv = document.getElementById('adminGrantResult');
-        const messageDiv = document.getElementById('adminGrantMessage');
-        
-        if (resultDiv && messageDiv) {
-            resultDiv.style.display = 'block';
-            messageDiv.textContent = message;
-            messageDiv.style.color = '#00ff00';
-            
-            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-        
-        navigator.clipboard.writeText(licenseJson).then(() => {
-            console.log('✅ JSON skopiowany do schowka');
-        });
-    }
-
-    // =========================================================================
-    // 🔹 FUNKCJE LICENCJI
-    // =========================================================================
-
+    // 🔹 Sprawdź licencję dla konta (GŁÓWNA FUNKCJA - NAPRAWIONA)
     async function checkLicenseForAccount(accountId) {
         try {
-            if (isAdmin) {
-                const localLicenses = SW.GM_getValue(CONFIG.ADMIN_LICENSES, []);
-                const localLicense = localLicenses.find(l => l.userId === accountId && l.status === 'active');
+            console.log('🔍 Sprawdzam licencję dla:', accountId);
+            
+            // 1. Sprawdź czy to admin
+            if (checkIfAdmin(accountId)) {
+                console.log('👑 To jest konto admina');
+                const expiryDate = new Date();
+                expiryDate.setFullYear(expiryDate.getFullYear() + 10); // 10 lat dla admina
                 
-                if (localLicense) {
-                    const expiryDate = new Date(localLicense.expiry);
-                    const now = new Date();
-                    const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-                    const isExpired = expiryDate < now;
-                    
-                    return {
-                        success: true,
-                        hasLicense: !isExpired,
-                        expired: isExpired,
-                        used: false,
-                        expiry: localLicense.expiry,
-                        daysLeft: daysLeft > 0 ? daysLeft : 0,
-                        addons: ['all'],
-                        type: 'premium',
-                        accountId: accountId,
-                        source: 'local'
-                    };
-                }
+                return {
+                    success: true,
+                    hasLicense: true,
+                    expired: false,
+                    used: false,
+                    expiry: expiryDate.toISOString(),
+                    daysLeft: 3650,
+                    addons: ['all'],
+                    type: 'premium',
+                    accountId: accountId,
+                    source: 'admin'
+                };
             }
-            
-            const response = await fetch(`${BACKEND_URL}/api/check`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ accountId: accountId })
+
+            // 2. Pobierz licencje z GitHub
+            const licenses = await getLicensesFromGitHubPages();
+            console.log('📋 Licencje z GitHub:', licenses);
+
+            // 3. Znajdź licencję dla tego accountId
+            const license = licenses.find(l => {
+                // Porównaj jako stringi, bo w pliku JSON są stringi
+                const userId = l.userId ? l.userId.toString() : '';
+                const searchId = accountId.toString();
+                return userId === searchId;
             });
-            
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            return await response.json();
-            
+
+            console.log('🎯 Znaleziona licencja:', license);
+
+            if (!license) {
+                console.log('❌ Brak licencji dla tego ID');
+                return {
+                    success: true,
+                    hasLicense: false,
+                    message: 'Brak aktywnej licencji',
+                    accountId: accountId,
+                    source: 'github-pages'
+                };
+            }
+
+            // 4. Sprawdź status i datę
+            const now = new Date();
+            const expiry = new Date(license.expiry);
+            const isExpired = expiry < now;
+            const isActive = license.status === 'active' && !isExpired;
+            const daysLeft = isActive ? Math.ceil((expiry - now) / (1000 * 60 * 60 * 24)) : 0;
+
+            console.log('📊 Status licencji:', {
+                isActive,
+                isExpired,
+                expiry: expiry.toLocaleDateString(),
+                daysLeft,
+                status: license.status
+            });
+
+            return {
+                success: true,
+                hasLicense: isActive,
+                expired: isExpired,
+                used: license.used || false,
+                expiry: license.expiry,
+                daysLeft: daysLeft,
+                addons: ['all'],
+                type: 'premium',
+                accountId: accountId,
+                source: 'github-pages'
+            };
+
         } catch (error) {
-            console.error('❌ Błąd połączenia z serwerem:', error);
+            console.error('❌ Błąd podczas sprawdzania licencji:', error);
             return {
                 success: false,
                 error: error.message,
@@ -367,29 +318,11 @@ Ważna do: ${expiryFormatted}
         }
     }
 
-    async function activateLicense(licenseKey) {
-        try {
-            const response = await fetch(`${BACKEND_URL}/api/activate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    accountId: userAccountId, 
-                    licenseKey: licenseKey 
-                })
-            });
-            
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            return await response.json();
-            
-        } catch (error) {
-            console.error('❌ Błąd aktywacji:', error);
-            return {
-                success: false,
-                error: error.message
-            };
+    // 🔹 Toggle zakładki admin (tylko dla admina)
+    function toggleAdminTab(show) {
+        const adminTab = document.querySelector('.admin-tab');
+        if (adminTab) {
+            adminTab.style.display = show ? 'flex' : 'none';
         }
     }
 
@@ -434,6 +367,7 @@ Ważna do: ${expiryFormatted}
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const accountId = await getAccountId();
+        console.log('👤 ID konta:', accountId);
         
         if (accountId) {
             userAccountId = accountId;
@@ -444,7 +378,7 @@ Ważna do: ${expiryFormatted}
             
             toggleAdminTab(isAdmin);
             updateAccountDisplay(accountId);
-            loadAddonsBasedOnLicense([]);
+            
             await checkAndUpdateLicense(accountId);
             
             saveAddonShortcuts();
@@ -459,6 +393,7 @@ Ważna do: ${expiryFormatted}
         
         try {
             const result = await checkLicenseForAccount(accountId);
+            console.log('📋 Wynik licencji:', result);
             
             if (result.success) {
                 if (result.hasLicense && !result.expired && !result.used) {
@@ -471,7 +406,7 @@ Ważna do: ${expiryFormatted}
                     SW.GM_setValue(CONFIG.LICENSE_DATA, licenseData);
                     
                     loadAddonsBasedOnLicense(result.addons || ['all']);
-                    showLicenseMessage(`Licencja aktywna! Ważna do: ${licenseExpiry ? licenseExpiry.toLocaleDateString('pl-PL') : 'bezterminowo'}`, 'success');
+                    showLicenseMessage(`✅ Licencja aktywna! Ważna do: ${licenseExpiry ? licenseExpiry.toLocaleDateString('pl-PL') : 'bezterminowo'}`, 'success');
                 } else {
                     isLicenseVerified = false;
                     licenseData = null;
@@ -484,11 +419,11 @@ Ważna do: ${expiryFormatted}
                     loadAddonsBasedOnLicense([]);
                     
                     if (result.expired) {
-                        showLicenseMessage('Licencja wygasła. Dostęp tylko do darmowych dodatków.', 'error');
+                        showLicenseMessage('❌ Licencja wygasła. Dostęp tylko do darmowych dodatków.', 'error');
                     } else if (result.used) {
-                        showLicenseMessage('Licencja została już użyta. Dostęp tylko do darmowych dodatków.', 'error');
+                        showLicenseMessage('⚠️ Licencja została już użyta. Dostęp tylko do darmowych dodatków.', 'error');
                     } else {
-                        showLicenseMessage('Brak aktywnej licencji. Dostęp tylko do darmowych dodatków.', 'info');
+                        showLicenseMessage('ℹ️ Brak aktywnej licencji. Dostęp tylko do darmowych dodatków.', 'info');
                     }
                 }
             } else {
@@ -500,6 +435,9 @@ Ważna do: ${expiryFormatted}
                     isLicenseVerified = true;
                     licenseData = savedLicense;
                     licenseExpiry = savedLicense.expiry ? new Date(savedLicense.expiry) : null;
+                    loadAddonsBasedOnLicense(['all']);
+                } else {
+                    loadAddonsBasedOnLicense([]);
                 }
             }
         } catch (error) {
@@ -511,15 +449,21 @@ Ważna do: ${expiryFormatted}
     }
 
     function loadAddonsBasedOnLicense(allowedAddons = []) {
-        const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.length > 0);
+        console.log('📦 Ładowanie dodatków dla:', allowedAddons);
         
-        currentAddons = ADDONS.filter(addon => {
-            const isFree = addon.type === 'free';
-            const isPremium = addon.type === 'premium';
-            if (isFree) return true;
-            if (isPremium && isPremiumAllowed) return true;
+        const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.length > 0);
+        console.log('🎯 Premium allowed:', isPremiumAllowed, 'License verified:', isLicenseVerified);
+        
+        // Najpierw pokaż darmowe dodatki
+        let visibleAddons = ADDONS.filter(addon => {
+            if (addon.type === 'free') return true;
+            if (addon.type === 'premium' && isPremiumAllowed) return true;
             return false;
-        }).map(addon => {
+        });
+        
+        console.log('👀 Widoczne dodatki:', visibleAddons.length);
+        
+        currentAddons = visibleAddons.map(addon => {
             const isFree = addon.type === 'free';
             const isPremium = addon.type === 'premium';
             const isPremiumAllowed = isLicenseVerified && (allowedAddons.includes('all') || allowedAddons.includes(addon.id));
@@ -528,6 +472,7 @@ Ważna do: ${expiryFormatted}
                 ...addon,
                 enabled: false,
                 favorite: addon.favorite || false,
+                hidden: addon.hidden && !isPremiumAllowed,
                 locked: isPremium && !isPremiumAllowed
             };
         });
@@ -595,10 +540,10 @@ Ważna do: ${expiryFormatted}
                 copyIcon.addEventListener('click', function(e) {
                     e.stopPropagation();
                     navigator.clipboard.writeText(accountId).then(() => {
-                        showLicenseMessage('ID konta skopiowane do schowka', 'success');
+                        showLicenseMessage('✅ ID konta skopiowane do schowka', 'success');
                     }).catch(err => {
                         console.error('Błąd kopiowania: ', err);
-                        showLicenseMessage('Nie udało się skopiować ID', 'error');
+                        showLicenseMessage('❌ Nie udało się skopiować ID', 'error');
                     });
                 });
             }
@@ -628,14 +573,14 @@ Ważna do: ${expiryFormatted}
         if (daysEl) {
             if (licenseData && licenseData.daysLeft !== undefined) {
                 daysEl.textContent = `${licenseData.daysLeft} dni`;
-                daysEl.className = licenseData.daysLeft < 7 ? 'license-status-invalid' : 'license-status-valid';
+                daysEl.className = licenseData.daysLeft < 7 ? 'license-status-warning' : 'license-status-valid';
             } else {
                 daysEl.textContent = '-';
             }
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyFontSize - działa na cały panel
+    // 🔹 POPRAWIONA: Funkcja applyFontSize
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -644,11 +589,6 @@ Ważna do: ${expiryFormatted}
             const clampedSize = Math.max(minSize, Math.min(maxSize, size));
             
             panel.style.fontSize = clampedSize + 'px';
-            
-            const allElements = panel.querySelectorAll('*:not(#swPanelHeader)');
-            allElements.forEach(el => {
-                el.style.fontSize = 'inherit';
-            });
             
             SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
             
@@ -664,7 +604,7 @@ Ważna do: ${expiryFormatted}
         }
     }
 
-    // 🔹 POPRAWIONA: Funkcja applyOpacity - wpływa na CAŁY panel
+    // 🔹 POPRAWIONA: Funkcja applyOpacity - CAŁY PANEL
     function applyOpacity(opacity) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -672,12 +612,7 @@ Ważna do: ${expiryFormatted}
             const maxOpacity = 100;
             const clampedOpacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
             
-            const opacityValue = clampedOpacity / 100;
-            
-            panel.style.background = `linear-gradient(135deg, 
-                rgba(26, 0, 0, ${opacityValue}), 
-                rgba(51, 0, 0, ${opacityValue}), 
-                rgba(102, 0, 0, ${opacityValue}))`;
+            panel.style.opacity = clampedOpacity / 100;
             
             SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clampedOpacity);
             
@@ -700,18 +635,18 @@ Ważna do: ${expiryFormatted}
         
         const toggleBtn = document.createElement("div");
         toggleBtn.id = "swPanelToggle";
-        toggleBtn.title = "Kliknij dwukrotnie - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
+        toggleBtn.title = "Kliknij - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
         
         const iconUrl = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg';
         toggleBtn.innerHTML = `<img src="${iconUrl}" alt="Synergy" onerror="this.style.display='none'; this.parentNode.innerHTML='S';" />`;
         
         document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created with icon');
+        console.log('✅ Toggle button created');
         
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu
+    // 🔹 Tworzenie głównego panelu (ZAKŁADKA ADMIN USUNIĘTA)
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -721,23 +656,23 @@ Ważna do: ${expiryFormatted}
         
         panel.innerHTML = `
             <div id="swPanelHeader">
-                <strong>SYNERGY</strong>
+                <strong>SYNERGY PANEL</strong>
                 ${isAdmin ? ' <span style="color:#00ff00; font-size:11px;">(ADMIN)</span>' : ''}
             </div>
             
             <div class="tab-container">
-                <button class="tablink active" data-tab="addons">Dodatki</button>
-                <button class="tablink" data-tab="shortcuts">Skróty</button>
-                <button class="tablink" data-tab="license">Licencja</button>
-                <button class="tablink" data-tab="settings">Ustawienia</button>
-                <button class="tablink admin-tab" data-tab="admin" style="display:none;">Admin</button>
+                <button class="tablink active" data-tab="addons">🎮 Dodatki</button>
+                <button class="tablink" data-tab="shortcuts">⌨️ Skróty</button>
+                <button class="tablink" data-tab="license">🔐 Licencja</button>
+                <button class="tablink" data-tab="settings">⚙️ Ustawienia</button>
+                <button class="tablink" data-tab="info">ℹ️ Info</button>
             </div>
 
             <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="margin-bottom:10px;">
-                        <input type="text" id="searchAddons" placeholder="Wyszukaj dodatki..." 
+                        <input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." 
                                style="width:100%; padding:8px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
                                       border-radius:4px; color:#ffcc00; font-size:11px; box-sizing: border-box;">
                     </div>
@@ -747,7 +682,7 @@ Ważna do: ${expiryFormatted}
                     </div>
                     
                     <div class="refresh-button-container">
-                        <button class="refresh-button" id="swSaveAndRestartButton">Zapisz i odśwież grę</button>
+                        <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
                     
                     <div id="swAddonsMessage" class="license-message" style="display: none; font-size: 10px;"></div>
@@ -758,7 +693,7 @@ Ważna do: ${expiryFormatted}
             <div id="shortcuts" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div style="margin-bottom:15px; padding:10px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); border-radius:6px; border:1px solid #660000;">
-                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:5px; font-size:12px;">Skróty klawiszowe</h3>
+                        <h3 style="color:#ffcc00; margin-top:0; margin-bottom:5px; font-size:12px;">⌨️ Skróty klawiszowe</h3>
                         <p style="color:#ff9966; font-size:10px; margin:0;">
                             Skróty pokazują się tylko dla włączonych dodatków
                         </p>
@@ -776,7 +711,7 @@ Ważna do: ${expiryFormatted}
             <div id="license" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div class="license-container">
-                        <div class="license-header">Status Licencji</div>
+                        <div class="license-header">📊 Status Licencji</div>
                         <div class="license-status-item">
                             <span class="license-status-label">ID Konta:</span>
                             <span id="swAccountId" class="license-status-value">Ładowanie...</span>
@@ -790,30 +725,19 @@ Ważna do: ${expiryFormatted}
                             <span id="swLicenseExpiry" class="license-status-value">-</span>
                         </div>
                         <div class="license-status-item">
-                            <span class="license-status-label">Połączenie:</span>
-                            <span id="swServerStatus" class="license-status-connected">Aktywne</span>
+                            <span class="license-status-label">Dni pozostało:</span>
+                            <span id="swLicenseDaysLeft" class="license-status-value">-</span>
                         </div>
                     </div>
                     
-                    <div class="license-container">
-                        <div class="license-header">Aktywacja Licencji</div>
-                        
-                        <div style="margin:10px 0;">
-                            <input type="text" id="licenseKeyInput" 
-                                   style="width:100%; padding:6px; background:rgba(30,0,0,0.8); 
-                                          border:1px solid #ff3300; border-radius:4px; 
-                                          color:#ffffff; font-size:11px; text-align:center;"
-                                   placeholder="XXXX-XXXX-XXXX-XXXX">
+                    <div class="license-container" style="margin-top:15px;">
+                        <div class="license-header">🎫 Informacje o Premium</div>
+                        <div style="padding:10px; color:#ffcc00; font-size:11px; text-align:center;">
+                            <p>Aby uzyskać dostęp do dodatków premium, skontaktuj się z administratorem.</p>
+                            <p style="color:#ff9966; font-size:10px; margin-top:5px;">
+                                Licencje przyznawane są czasowo (np. 30 dni).
+                            </p>
                         </div>
-                        
-                        <button id="activateLicenseBtn" 
-                                style="width:100%; padding:8px; background:linear-gradient(to right, #006600, #008800);
-                                       border:1px solid #00cc00; border-radius:4px; color:#ffffff;
-                                       font-size:11px; cursor:pointer; margin: 5px 0;">
-                            Aktywuj Licencję
-                        </button>
-                        
-                        <div id="activationResult" style="display:none; padding:6px; border-radius:4px; margin-top:6px; font-size:10px; text-align:center;"></div>
                     </div>
                     
                     <div id="swLicenseMessage" class="license-message"></div>
@@ -824,7 +748,7 @@ Ważna do: ${expiryFormatted}
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content scrollable">
                     <div class="settings-item">
-                        <div class="settings-label">Rozmiar czcionki panelu:</div>
+                        <div class="settings-label">📝 Rozmiar czcionki:</div>
                         <div class="slider-container">
                             <input type="range" min="10" max="16" value="12" class="font-size-slider" id="fontSizeSlider" step="1">
                             <span class="slider-value" id="fontSizeValue">12px</span>
@@ -833,7 +757,7 @@ Ważna do: ${expiryFormatted}
                     </div>
                     
                     <div class="settings-item">
-                        <div class="settings-label">Przeźroczystość panelu:</div>
+                        <div class="settings-label">🎨 Przeźroczystość panelu:</div>
                         <div class="slider-container">
                             <input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider" step="1">
                             <span class="slider-value" id="opacityValue">90%</span>
@@ -842,105 +766,83 @@ Ważna do: ${expiryFormatted}
                     </div>
                     
                     <div class="settings-item">
-                        <div class="shortcut-input-container">
-                            <span class="shortcut-input-label">Skrót panelu:</span>
-                            <input type="text" class="shortcut-input" id="panelShortcutInput" value="Ctrl+A" readonly>
-                            <button class="shortcut-set-btn-panel" id="panelShortcutSetBtn">Ustaw</button>
+                        <div class="settings-label">⌨️ Skrót do panelu:</div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="text" id="panelShortcutInput" 
+                                   style="flex:1; padding:8px; background:rgba(51,0,0,0.8); border:1px solid #660000; 
+                                          border-radius:4px; color:#ffcc00; font-size:11px; text-align:center;" 
+                                   value="Ctrl+A" readonly>
+                            <button id="panelShortcutSetBtn" 
+                                    style="padding:8px 15px; background:linear-gradient(135deg, #660000, #990000); 
+                                           border:1px solid #ff3300; border-radius:4px; color:#ffffff; 
+                                           cursor:pointer; font-size:11px; font-weight:bold;">
+                                Ustaw
+                            </button>
                         </div>
                         <small style="color:#ff9966; font-size:10px;">Kliknij "Ustaw" i wciśnij kombinację</small>
                     </div>
                     
-                    <div style="margin-top:15px; padding-top:10px; border-top:1px solid #660000;">
-                        <button style="width:100%; padding:10px; background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
-                                border:1px solid #660000; border-radius:4px; color:#ff3300; cursor:pointer; font-weight:600; font-size:11px;" 
+                    <div style="margin-top:20px; padding-top:15px; border-top:1px solid #660000;">
+                        <button style="width:100%; padding:12px; background:linear-gradient(135deg, rgba(102,0,0,0.8), rgba(153,0,0,0.8)); 
+                                border:1px solid #ff3300; border-radius:4px; color:#ffffff; cursor:pointer; 
+                                font-weight:600; font-size:12px;" 
                                 id="swResetButton">
-                            Resetuj ustawienia
+                            🔄 Resetuj ustawienia
                         </button>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top:10px; padding:8px; border-radius:4px; display:none; font-size:10px;"></div>
+                    <div id="swResetMessage" style="margin-top:10px; padding:10px; border-radius:4px; display:none; font-size:11px;"></div>
                 </div>
             </div>
 
-            <!-- ZAKŁADKA ADMIN -->
-            <div id="admin" class="tabcontent">
+            <!-- ZAKŁADKA INFO -->
+            <div id="info" class="tabcontent">
                 <div class="sw-tab-content scrollable">
-                    <div style="padding:8px; background:linear-gradient(135deg, rgba(0,51,0,0.8), rgba(0,102,0,0.8)); border:1px solid #00cc00; border-radius:5px; margin-bottom:8px;">
-                        <div style="color:#00ff00; font-size:11px; font-weight:bold; text-align:center;">Panel Administratora</div>
-                        <div style="color:#00cc00; font-size:9px; text-align:center; margin-top:3px;">System lokalny + GitHub Pages</div>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3>Zarządzanie Licencjami</h3>
-                        <div style="color:#00aa00; font-size:9px; margin-bottom:8px; padding:5px; background:rgba(0,40,0,0.3); border-radius:3px;">
-                            Licencje zapisywane lokalnie. Aby dodać do pliku, skopiuj JSON poniżej.
+                    <div style="text-align:center; padding:20px;">
+                        <h3 style="color:#ffcc00; margin-bottom:15px;">ℹ️ Synergy Panel v4.0</h3>
+                        
+                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
+                                    border:1px solid #660000; border-radius:8px; padding:15px; margin-bottom:15px;">
+                            <h4 style="color:#ff9966; margin-top:0;">🎮 System Dodatków</h4>
+                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                                • Darmowe dodatki: dostępne dla każdego
+                            </p>
+                            <p style="color:#00ff00; font-size:11px; margin:5px 0;">
+                                • Premium dodatki: wymagają aktywnej licencji
+                            </p>
                         </div>
                         
-                        <div class="admin-input-group">
-                            <label class="admin-label">ID Użytkownika:</label>
-                            <input type="text" id="adminUserId" class="admin-input" placeholder="Wpisz ID konta">
+                        <div style="background:linear-gradient(135deg, rgba(51,0,0,0.8), rgba(102,0,0,0.8)); 
+                                    border:1px solid #660000; border-radius:8px; padding:15px; margin-bottom:15px;">
+                            <h4 style="color:#ff9966; margin-top:0;">🔐 System Licencji</h4>
+                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                                • Licencje przyznawane przez administratora
+                            </p>
+                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                                • Ważność czasowa (30 dni, 90 dni, etc.)
+                            </p>
+                            <p style="color:#ffcc00; font-size:11px; margin:5px 0;">
+                                • Automatyczne odświeżanie statusu
+                            </p>
                         </div>
                         
-                        <div class="admin-input-group">
-                            <label class="admin-label">Data ważności:</label>
-                            <input type="date" id="adminLicenseExpiry" class="admin-input">
-                        </div>
-                        
-                        <button id="adminGrantLicenseBtn" class="admin-button">
-                            Dodaj Licencję (lokalnie)
-                        </button>
-                        
-                        <button id="adminRevokeLicenseBtn" class="admin-button" style="background:linear-gradient(to right, #660000, #990000);">
-                            Oznacz jako Odebraną
-                        </button>
-                    </div>
-                    
-                    <div id="adminGrantResult" style="display:none; padding:8px; background:rgba(0,60,0,0.5); 
-                                                          border-radius:5px; border:1px solid #00ff00; margin-bottom:8px;">
-                        <div style="color:#00ff00; font-size:10px; font-weight:bold; margin-bottom:4px; text-align:center;">
-                            Instrukcja
-                        </div>
-                        <div id="adminGrantMessage" style="padding:5px; background:rgba(0,30,0,0.8); border-radius:3px; margin-bottom:3px; font-size:10px; white-space: pre-line; max-height: 150px; overflow-y: auto;"></div>
-                        <button id="copyJsonBtn" style="width:100%; padding:5px; background:linear-gradient(to right, #006666, #008888); border:1px solid #00cccc; border-radius:3px; color:#ffffff; font-size:9px; cursor:pointer; margin-top:5px;">
-                            Kopiuj JSON do schowka
-                        </button>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3>Lista Licencji (GitHub Pages)</h3>
-                        <div style="color:#00aa00; font-size:9px; margin-bottom:5px;">
-                            Pobierane z: shaderderwraith.github.io/SynergyWraith/licenses.json
-                        </div>
-                        
-                        <button id="adminListLicensesBtn" class="admin-button" style="background:linear-gradient(to right, #006666, #008888);">
-                            Odśwież Listę
-                        </button>
-                        
-                        <div id="adminLicensesContainer" style="display:none; margin-top:8px;">
-                            <!-- Lista licencji pojawi się tutaj -->
+                        <div style="color:#ff9966; font-size:10px; margin-top:20px; padding:10px; 
+                                    background:rgba(51,0,0,0.5); border-radius:5px;">
+                            <p>© 2024 Synergy Panel | Wersja 4.0</p>
+                            <p>System licencji GitHub Pages</p>
                         </div>
                     </div>
-                    
-                    <div id="adminMessage" class="license-message" style="display:none; margin-top:8px;"></div>
                 </div>
             </div>
         `;
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - FINAL FIX VERSION');
+        console.log('✅ Panel created - v4.0');
         
         initializeEventListeners();
-        
-        const expiryInput = document.getElementById('adminLicenseExpiry');
-        if (expiryInput) {
-            const defaultExpiry = new Date();
-            defaultExpiry.setDate(defaultExpiry.getDate() + 30);
-            expiryInput.value = defaultExpiry.toISOString().split('T')[0];
-            expiryInput.min = new Date().toISOString().split('T')[0];
-        }
-        
         loadSettings();
     }
+
     // 🔹 POPRAWIONA: Renderowanie skrótów
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
@@ -949,7 +851,7 @@ Ważna do: ${expiryFormatted}
         container.innerHTML = '';
         
         const enabledAddons = currentAddons.filter(addon => 
-            addon.enabled && !addon.locked
+            addon.enabled && !addon.locked && !addon.hidden
         );
         
         if (enabledAddons.length === 0) {
@@ -980,7 +882,6 @@ Ważna do: ${expiryFormatted}
                         ${shortcut}
                     </div>
                     <button class="shortcut-set-btn" data-id="${addon.id}">Ustaw</button>
-                    <button class="shortcut-clear-btn" data-id="${addon.id}">Wyczyść</button>
                     <label class="shortcut-toggle" title="${isEnabled ? 'Wyłącz skrót' : 'Włącz skrót'}">
                         <input type="checkbox" ${isEnabled ? 'checked' : ''} data-id="${addon.id}" class="shortcut-toggle-input">
                         <span class="shortcut-toggle-slider"></span>
@@ -998,13 +899,6 @@ Ważna do: ${expiryFormatted}
             });
         });
         
-        document.querySelectorAll('.shortcut-clear-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const addonId = this.dataset.id;
-                clearAddonShortcut(addonId);
-            });
-        });
-        
         document.querySelectorAll('.shortcut-toggle-input').forEach(toggle => {
             toggle.addEventListener('change', function() {
                 const addonId = this.dataset.id;
@@ -1016,7 +910,7 @@ Ważna do: ${expiryFormatted}
     function toggleShortcutEnabled(addonId, enabled) {
         shortcutsEnabled[addonId] = enabled;
         saveShortcutsEnabledState();
-        showShortcutMessage(enabled ? 'Skrót włączony' : 'Skrót wyłączony', 'info');
+        showShortcutMessage(enabled ? '✅ Skrót włączony' : '⚠️ Skrót wyłączony', 'info');
     }
 
     function setAddonShortcut(addonId) {
@@ -1069,7 +963,7 @@ Ważna do: ${expiryFormatted}
                 display.style.color = '#00ff00';
                 display.style.borderColor = '#00cc00';
                 
-                showShortcutMessage(`Skrót ustawiony: ${shortcut}`, 'success');
+                showShortcutMessage(`✅ Skrót ustawiony: ${shortcut}`, 'success');
                 
                 setTimeout(() => {
                     display.style.color = '#ffcc00';
@@ -1108,24 +1002,9 @@ Ważna do: ${expiryFormatted}
                 display.style.color = '#ffcc00';
                 display.style.borderColor = '#660000';
                 
-                showShortcutMessage('Czas minął', 'error');
+                showShortcutMessage('⏰ Czas minął', 'error');
             }
         }, 10000);
-    }
-
-    function clearAddonShortcut(addonId) {
-        delete addonShortcuts[addonId];
-        saveAddonShortcuts();
-        
-        const display = document.getElementById(`shortcut-display-${addonId}`);
-        if (display) {
-            display.textContent = 'Brak skrótu';
-        }
-        
-        shortcutsEnabled[addonId] = false;
-        saveShortcutsEnabledState();
-        
-        showShortcutMessage('Skrót wyczyszczony', 'info');
     }
 
     function showShortcutMessage(message, type) {
@@ -1138,7 +1017,7 @@ Ważna do: ${expiryFormatted}
         }
     }
 
-    // 🔹 Setup skrótu panelu
+    // 🔹 Setup skrótu panelu (POPRAWIONY PRZYCISK)
     function setupPanelShortcutInput() {
         const input = document.getElementById('panelShortcutInput');
         const setBtn = document.getElementById('panelShortcutSetBtn');
@@ -1194,7 +1073,7 @@ Ważna do: ${expiryFormatted}
                     
                     const messageEl = document.getElementById('swResetMessage');
                     if (messageEl) {
-                        messageEl.textContent = `Skrót ustawiony: ${panelShortcut}`;
+                        messageEl.textContent = `✅ Skrót ustawiony: ${panelShortcut}`;
                         messageEl.style.background = 'rgba(0, 255, 0, 0.1)';
                         messageEl.style.color = '#00ff00';
                         messageEl.style.border = '1px solid #00ff00';
@@ -1281,27 +1160,21 @@ Ważna do: ${expiryFormatted}
                     const addon = currentAddons.find(a => a.id === addonId);
                     if (addon && addon.enabled && !addon.locked) {
                         toggleAddon(addonId, false);
-                        showShortcutMessage(`${addon.name} wyłączony (${shortcut})`, 'info');
+                        showShortcutMessage(`⚠️ ${addon.name} wyłączony (${shortcut})`, 'info');
                     }
                 }
             });
         });
     }
 
-    // 🔹 Inicjalizacja event listenerów
+    // 🔹 Inicjalizacja event listenerów (USUNIĘTE ADMIN)
     function initializeEventListeners() {
-        // Aktywacja licencji
-        const activateBtn = document.getElementById('activateLicenseBtn');
-        if (activateBtn) {
-            activateBtn.addEventListener('click', handleLicenseActivation);
-        }
-        
         // Przycisk zapisz i odśwież
         const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
         if (saveRestartBtn) {
             saveRestartBtn.addEventListener('click', () => {
                 saveAddonsState();
-                showLicenseMessage('Zapisano ustawienia! Odświeżanie gry...', 'success');
+                showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success');
                 setTimeout(() => location.reload(), 1500);
             });
         }
@@ -1310,7 +1183,9 @@ Ważna do: ${expiryFormatted}
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (confirm('Resetować wszystkie ustawienia?')) resetAllSettings();
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    resetAllSettings();
+                }
             });
         }
         
@@ -1336,7 +1211,6 @@ Ważna do: ${expiryFormatted}
         }
         
         setupPanelShortcutInput();
-        setupAdminEvents();
         setupTabs();
         setupDrag();
         setupGlobalShortcuts();
@@ -1351,241 +1225,6 @@ Ważna do: ${expiryFormatted}
         }
     }
 
-    // 🔹 Obsługa aktywacji licencji
-    async function handleLicenseActivation() {
-        const licenseKeyInput = document.getElementById('licenseKeyInput');
-        const activateBtn = document.getElementById('activateLicenseBtn');
-        const resultDiv = document.getElementById('activationResult');
-        
-        if (!licenseKeyInput || !activateBtn || !resultDiv) return;
-        
-        const licenseKey = licenseKeyInput.value.trim();
-        
-        if (!licenseKey || licenseKey.length < 10) {
-            resultDiv.textContent = 'Wprowadź poprawny klucz';
-            resultDiv.style.background = 'rgba(255,51,0,0.2)';
-            resultDiv.style.color = '#ff3300';
-            resultDiv.style.border = '1px solid #ff3300';
-            resultDiv.style.display = 'block';
-            return;
-        }
-        
-        activateBtn.textContent = 'Aktywuję...';
-        activateBtn.disabled = true;
-        
-        try {
-            const result = await activateLicense(licenseKey);
-            
-            if (result.success) {
-                resultDiv.innerHTML = `✅ Licencja aktywowana!<br>Dodatki premium dostępne.`;
-                resultDiv.style.background = 'rgba(0,255,0,0.2)';
-                resultDiv.style.color = '#00ff00';
-                resultDiv.style.border = '1px solid #00ff00';
-                
-                SW.GM_setValue(CONFIG.LICENSE_KEY, licenseKey);
-                
-                setTimeout(() => {
-                    checkAndUpdateLicense(userAccountId);
-                    showTab('license');
-                }, 2000);
-                
-            } else {
-                resultDiv.textContent = `❌ Błąd: ${result.message || 'Nieznany błąd'}`;
-                resultDiv.style.background = 'rgba(255,51,0,0.2)';
-                resultDiv.style.color = '#ff3300';
-                resultDiv.style.border = '1px solid #ff3300';
-            }
-            
-        } catch (error) {
-            resultDiv.textContent = `❌ Błąd połączenia: ${error.message}`;
-            resultDiv.style.background = 'rgba(255,51,0,0.2)';
-            resultDiv.style.color = '#ff3300';
-            resultDiv.style.border = '1px solid #ff3300';
-        } finally {
-            resultDiv.style.display = 'block';
-            activateBtn.textContent = 'Aktywuj Licencję';
-            activateBtn.disabled = false;
-        }
-    }
-
-    // 🔹 Setup event listenerów dla admina
-    function setupAdminEvents() {
-        if (!isAdmin) return;
-        
-        // Przycisk kopiowania JSON
-        const copyJsonBtn = document.getElementById('copyJsonBtn');
-        if (copyJsonBtn) {
-            copyJsonBtn.addEventListener('click', function() {
-                const messageDiv = document.getElementById('adminGrantMessage');
-                if (messageDiv) {
-                    const text = messageDiv.textContent;
-                    const jsonMatch = text.match(/\{[^}]+\}/);
-                    if (jsonMatch) {
-                        navigator.clipboard.writeText(jsonMatch[0]).then(() => {
-                            showAdminMessage('JSON skopiowany do schowka!', 'success');
-                        });
-                    }
-                }
-            });
-        }
-        
-        // Nadaj licencję
-        const grantBtn = document.getElementById('adminGrantLicenseBtn');
-        if (grantBtn) {
-            grantBtn.addEventListener('click', async function() {
-                const userId = document.getElementById('adminUserId').value.trim();
-                const expiry = document.getElementById('adminLicenseExpiry').value;
-                
-                if (!userId) {
-                    showAdminMessage('Wpisz ID użytkownika!', 'error');
-                    return;
-                }
-                
-                if (!expiry) {
-                    showAdminMessage('Wybierz datę ważności!', 'error');
-                    return;
-                }
-                
-                const btn = this;
-                const originalText = btn.textContent;
-                btn.textContent = 'Dodaję...';
-                btn.disabled = true;
-                
-                try {
-                    await grantLicense(userId, expiry);
-                } catch (error) {
-                    console.error('Admin grant error:', error);
-                    showAdminMessage(`Błąd: ${error.message}`, 'error');
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
-        }
-        
-        // Odbierz licencję
-        const revokeBtn = document.getElementById('adminRevokeLicenseBtn');
-        if (revokeBtn) {
-            revokeBtn.addEventListener('click', async function() {
-                const userId = document.getElementById('adminUserId').value.trim();
-                
-                if (!userId) {
-                    showAdminMessage('Wpisz ID użytkownika!', 'error');
-                    return;
-                }
-                
-                if (!confirm(`Czy na pewno chcesz oznaczyć licencję użytkownika ${userId} jako odebraną?`)) {
-                    return;
-                }
-                
-                const btn = this;
-                const originalText = btn.textContent;
-                btn.textContent = 'Oznaczam...';
-                btn.disabled = true;
-                
-                try {
-                    await revokeLicense(userId);
-                    
-                    setTimeout(() => {
-                        const listBtn = document.getElementById('adminListLicensesBtn');
-                        if (listBtn) listBtn.click();
-                    }, 1000);
-                } catch (error) {
-                    console.error('Admin revoke error:', error);
-                    showAdminMessage(`Błąd: ${error.message}`, 'error');
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
-        }
-        
-        // Pokaż listę licencji
-        const adminListLicensesBtn = document.getElementById('adminListLicensesBtn');
-        if (adminListLicensesBtn) {
-            adminListLicensesBtn.addEventListener('click', async function() {
-                const container = document.getElementById('adminLicensesContainer');
-                container.innerHTML = '<div style="color:#00aa99; text-align:center; padding:10px; font-size:10px;">Ładowanie licencji z GitHub Pages...</div>';
-                container.style.display = 'block';
-                
-                const btn = this;
-                const originalText = btn.textContent;
-                btn.textContent = 'Ładuję...';
-                btn.disabled = true;
-                
-                try {
-                    const licenses = await getLicensesFromGitHubPages();
-                    
-                    let html = '';
-                    
-                    if (licenses.length > 0) {
-                        licenses.sort((a, b) => new Date(b.expiry) - new Date(a.expiry));
-                        
-                        licenses.forEach(license => {
-                            const expiry = new Date(license.expiry);
-                            const now = new Date();
-                            const isExpired = expiry < now;
-                            const grantedDate = new Date(license.grantedAt);
-                            
-                            let statusColor = '#00ff00';
-                            let statusText = 'AKTYWNA';
-                            
-                            if (license.status === 'revoked') {
-                                statusColor = '#ff9900';
-                                statusText = 'ODEBRANA';
-                            } else if (isExpired) {
-                                statusColor = '#ff3300';
-                                statusText = 'WYGASŁA';
-                            } else if (license.status === 'expired') {
-                                statusColor = '#ff3300';
-                                statusText = 'WYGASŁA';
-                            }
-                            
-                            html += `
-                                <div class="license-key-item ${isExpired ? 'expired' : ''}">
-                                    <div><strong style="color:#00ff00;">ID:</strong> ${license.userId}</div>
-                                    <div><strong style="color:#00ccff;">Ważna do:</strong> ${expiry.toLocaleDateString('pl-PL')}</div>
-                                    <div><strong style="color:#00cc99;">Nadana:</strong> ${grantedDate.toLocaleDateString('pl-PL')}</div>
-                                    <div><strong style="color:#00cc99;">Status:</strong> 
-                                        <span style="color:${statusColor}">${statusText}</span>
-                                    </div>
-                                    <div style="font-size:8px; color:#00aa99; margin-top:3px;">
-                                        ID admina: ${license.adminId || 'nieznany'}
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        
-                        html += `<div style="color:#00aa99; font-size:9px; text-align:center; padding:5px; margin-top:5px;">
-                                    Łącznie: ${licenses.length} licencji
-                                </div>`;
-                    } else {
-                        html = '<div style="color:#00aa99; text-align:center; padding:20px; font-size:10px;">Brak licencji w pliku</div>';
-                    }
-                    
-                    container.innerHTML = html;
-                    showAdminMessage(`Załadowano ${licenses.length} licencji z GitHub Pages`, 'success');
-                } catch (error) {
-                    container.innerHTML = `<div style="color:#ff6666; text-align:center; padding:10px; font-size:10px;">Błąd: ${error.message}</div>`;
-                    showAdminMessage(`Błąd: ${error.message}`, 'error');
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
-        }
-    }
-
-    function showAdminMessage(text, type = 'info') {
-        const messageEl = document.getElementById('adminMessage');
-        if (messageEl) {
-            messageEl.textContent = text;
-            messageEl.className = `license-message license-${type}`;
-            messageEl.style.display = 'block';
-            setTimeout(() => messageEl.style.display = 'none', 5000);
-        }
-    }
-
     // 🔹 Setup zakładek
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
@@ -1597,11 +1236,6 @@ Ważna do: ${expiryFormatted}
                 
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
-                } else if (tabName === 'admin') {
-                    setTimeout(() => {
-                        const listBtn = document.getElementById('adminListLicensesBtn');
-                        if (listBtn) listBtn.click();
-                    }, 500);
                 }
             });
         });
@@ -1636,9 +1270,9 @@ Ważna do: ${expiryFormatted}
         
         listContainer.innerHTML = '';
         
-        let filteredAddons = currentAddons;
+        let filteredAddons = currentAddons.filter(addon => !addon.hidden);
         if (searchQuery) {
-            filteredAddons = currentAddons.filter(addon => 
+            filteredAddons = filteredAddons.filter(addon => 
                 addon.name.toLowerCase().includes(searchQuery) || 
                 addon.description.toLowerCase().includes(searchQuery)
             );
@@ -1670,7 +1304,8 @@ Ważna do: ${expiryFormatted}
                 <div class="addon-controls">
                     <button class="favorite-btn ${addon.favorite ? 'favorite' : ''}" 
                             data-id="${addon.id}"
-                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}">
+                            title="${addon.locked ? 'Wymaga licencji' : 'Dodaj do ulubionych'}"
+                            ${addon.locked ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
                         ★
                     </button>
                     <label class="addon-switch" title="${addon.locked ? 'Wymaga licencji' : 'Włącz/Wyłącz'}">
@@ -1686,17 +1321,15 @@ Ważna do: ${expiryFormatted}
             listContainer.appendChild(div);
         });
         
-        document.querySelectorAll('.favorite-btn').forEach(btn => {
-            if (!btn.disabled) {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const addonId = this.dataset.id;
-                    if (addonId) toggleFavorite(addonId);
-                });
-            }
+        document.querySelectorAll('.favorite-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const addonId = this.dataset.id;
+                if (addonId) toggleFavorite(addonId);
+            });
         });
         
-        document.querySelectorAll('.addon-switch input').forEach(checkbox => {
+        document.querySelectorAll('.addon-switch input:not(:disabled)').forEach(checkbox => {
             checkbox.addEventListener('change', function(e) {
                 e.stopPropagation();
                 const addonId = this.dataset.id;
@@ -1894,7 +1527,8 @@ Ważna do: ${expiryFormatted}
             ...addon,
             enabled: false,
             favorite: false,
-            locked: false
+            locked: false,
+            hidden: false
         }));
         
         userAccountId = null;
@@ -1908,7 +1542,7 @@ Ważna do: ${expiryFormatted}
         
         const resetMessage = document.getElementById('swResetMessage');
         if (resetMessage) {
-            resetMessage.textContent = 'Wszystkie ustawienia zresetowane! Strona zostanie odświeżona...';
+            resetMessage.textContent = '✅ Wszystkie ustawienia zresetowane! Strona zostanie odświeżona...';
             resetMessage.style.background = 'rgba(255, 102, 0, 0.1)';
             resetMessage.style.color = '#ff6600';
             resetMessage.style.border = '1px solid #ff6600';
@@ -1955,7 +1589,7 @@ Ważna do: ${expiryFormatted}
 
     // 🔹 Główne funkcje panelu
     async function initPanel() {
-        console.log('✅ Initializing panel v3.7 - FINAL FIX VERSION...');
+        console.log('✅ Initializing panel v4.0...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -1976,11 +1610,6 @@ Ważna do: ${expiryFormatted}
         setTimeout(async () => {
             await initAccountAndLicense();
             
-            if (isAdmin) {
-                toggleAdminTab(true);
-                console.log('✅ Admin panel enabled for account:', userAccountId);
-            }
-            
             renderAddons();
             renderShortcuts();
             
@@ -1991,7 +1620,7 @@ Ważna do: ${expiryFormatted}
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v3.7 - FINAL FIX VERSION...');
+    console.log('🎯 Starting Synergy Panel v4.0...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);

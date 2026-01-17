@@ -1,3 +1,48 @@
+/* 🔹 ANIMOWANE TŁO PANELU 🔹 */
+@keyframes fireBackground {
+    0% {
+        background: linear-gradient(135deg, 
+            rgba(26, 0, 0, 0.95), 
+            rgba(51, 0, 0, 0.95), 
+            rgba(102, 0, 0, 0.95));
+        box-shadow: 0 0 30px rgba(255, 51, 0, 0.8);
+    }
+    25% {
+        background: linear-gradient(135deg, 
+            rgba(51, 0, 0, 0.95), 
+            rgba(102, 0, 0, 0.95), 
+            rgba(153, 0, 0, 0.95));
+        box-shadow: 0 0 35px rgba(255, 102, 0, 0.9);
+    }
+    50% {
+        background: linear-gradient(135deg, 
+            rgba(102, 0, 0, 0.95), 
+            rgba(153, 0, 0, 0.95), 
+            rgba(204, 0, 0, 0.95));
+        box-shadow: 0 0 40px rgba(255, 153, 0, 1);
+    }
+    75% {
+        background: linear-gradient(135deg, 
+            rgba(153, 0, 0, 0.95), 
+            rgba(204, 0, 0, 0.95), 
+            rgba(255, 51, 0, 0.95));
+        box-shadow: 0 0 35px rgba(255, 102, 0, 0.9);
+    }
+    100% {
+        background: linear-gradient(135deg, 
+            rgba(26, 0, 0, 0.95), 
+            rgba(51, 0, 0, 0.95), 
+            rgba(102, 0, 0, 0.95));
+        box-shadow: 0 0 30px rgba(255, 51, 0, 0.8);
+    }
+}
+
+@keyframes borderPulse {
+    0% { border-color: #ff3300; }
+    50% { border-color: #ffcc00; }
+    100% { border-color: #ff3300; }
+}
+
 /* 🔹 BASE STYLES 🔹 */
 #swPanelToggle {
     position: fixed;
@@ -24,6 +69,7 @@
     -moz-user-select: none;
     -ms-user-select: none;
     overflow: hidden;
+    animation: borderPulse 3s infinite;
 }
 
 #swPanelToggle img {
@@ -40,6 +86,7 @@
     box-shadow: 0 0 30px rgba(255, 102, 0, 1.2);
     border: 3px solid #ffcc00;
     z-index: 1000001;
+    animation: none;
 }
 
 #swPanelToggle:hover:not(.dragging) {
@@ -68,7 +115,7 @@
     }
 }
 
-/* 🔹 MAIN PANEL 🔹 */
+/* 🔹 MAIN PANEL - ANIMOWANY 🔹 */
 #swAddonsPanel {
     position: fixed;
     top: 140px;
@@ -91,6 +138,8 @@
     max-height: 900px;
     resize: both;
     font-size: 12px;
+    animation: fireBackground 10s ease infinite;
+    border-image: linear-gradient(45deg, #ff3300, #ff6600, #ff3300) 1;
 }
 
 #swAddonsPanel::after {
@@ -110,20 +159,35 @@
     opacity: 1;
 }
 
+/* ANIMOWANY NAGŁÓWEK */
 #swPanelHeader {
     background: linear-gradient(to right, #330000, #660000);
     padding: 12px;
     text-align: center;
     border-bottom: 1px solid #ff3300;
     cursor: grab;
-    font-size: 18px !important; /* Stały rozmiar dla nagłówka */
+    font-size: 18px !important;
     font-weight: bold;
     color: #ffcc00;
     text-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
     user-select: none;
+    animation: headerGlow 3s infinite alternate;
 }
 
-/* 🔹 TABS 🔹 */
+@keyframes headerGlow {
+    from {
+        text-shadow: 0 0 10px rgba(255, 51, 0, 0.8),
+                     0 0 20px rgba(255, 51, 0, 0.6),
+                     0 0 30px rgba(255, 51, 0, 0.4);
+    }
+    to {
+        text-shadow: 0 0 15px rgba(255, 102, 0, 0.9),
+                     0 0 25px rgba(255, 102, 0, 0.7),
+                     0 0 35px rgba(255, 102, 0, 0.5);
+    }
+}
+
+/* 🔹 TABS - ANIMOWANE 🔹 */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, #330000, #1a0000);
@@ -139,7 +203,7 @@
     cursor: pointer;
     padding: 12px 5px;
     margin: 0 2px;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     color: #ff9966;
     font-weight: 600;
     font-size: 12px;
@@ -147,9 +211,25 @@
     letter-spacing: 0.5px;
     border-bottom: 2px solid transparent;
     position: relative;
+    overflow: hidden;
 }
 
 .tablink::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 51, 0, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.tablink:hover::before {
+    left: 100%;
+}
+
+.tablink::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -159,230 +239,74 @@
     height: 2px;
     background: #ff3300;
     transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
 }
 
-.tablink:hover::before { width: 80%; }
-.tablink.active { color: #ffcc00; text-shadow: 0 0 10px rgba(255, 102, 0, 0.8); }
-.tablink.active::before { width: 100%; background: #ff3300; box-shadow: 0 0 10px rgba(255, 51, 0, 0.8); }
-.tablink:hover:not(.active) { color: #ff6600; text-shadow: 0 0 5px rgba(255, 102, 0, 0.5); }
-
-/* 🔹 TAB CONTENT 🔹 */
-.tabcontent {
-    display: none;
-    flex: 1;
-    overflow: hidden;
-    animation: fadeEffect 0.3s ease;
-    flex-direction: column;
+.tablink:hover::after { 
+    width: 80%; 
+    background: linear-gradient(to right, #ff3300, #ff6600, #ff3300);
 }
 
-.tabcontent.active {
-    display: flex;
+.tablink.active { 
+    color: #ffcc00; 
+    text-shadow: 0 0 10px rgba(255, 102, 0, 0.8); 
 }
 
-@keyframes fadeEffect {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+.tablink.active::after { 
+    width: 100%; 
+    background: linear-gradient(to right, #ff3300, #ffcc00, #ff3300);
+    box-shadow: 0 0 15px rgba(255, 102, 0, 1);
 }
 
-.sw-tab-content {
-    padding: 15px;
-    background: rgba(26, 0, 0, 0.9);
-    height: calc(100% - 120px);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+.tablink:hover:not(.active) { 
+    color: #ff6600; 
+    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5); 
 }
 
-/* 🔹 SCROLLABLE CONTENT 🔹 */
-.sw-tab-content.scrollable {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    padding: 10px !important;
-}
-
-.sw-tab-content.scrollable::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sw-tab-content.scrollable::-webkit-scrollbar-track {
-    background: rgba(51, 0, 0, 0.5);
-    border-radius: 3px;
-}
-
-.sw-tab-content.scrollable::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff3300, #ff6600);
-    border-radius: 3px;
-}
-
-/* 🔹 ADDONS LIST 🔹 */
-#addons .sw-tab-content {
-    overflow-y: hidden !important;
-    overflow-x: hidden !important;
-    padding: 10px !important;
-}
-
+/* 🔹 ADDONS - ANIMOWANE HOVERY 🔹 */
 .addon {
     background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
     border: 1px solid #660000;
     border-radius: 8px;
     padding: 10px 12px;
     margin-bottom: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
     justify-content: space-between;
     align-items: center;
     min-height: 50px;
     box-sizing: border-box;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.addon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 69, 0, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.addon:hover::before {
+    left: 100%;
 }
 
 .addon:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) scale(1.01);
     border-color: #ff4500;
-    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.6);
-    background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9));
+    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.6),
+                inset 0 0 20px rgba(255, 69, 0, 0.2);
+    background: linear-gradient(135deg, 
+        rgba(139, 0, 0, 0.9), 
+        rgba(255, 69, 0, 0.9));
 }
 
-.addon-header {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.addon-title {
-    font-weight: 600;
-    color: #ffcc00;
-    font-size: 13px;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-    margin-bottom: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.addon-description {
-    color: #ff9966;
-    font-size: 11px;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.addon-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-/* 🔹 SEARCH BOX - FIXED 🔹 */
-#searchAddons {
-    width: 100%;
-    padding: 8px 10px;
-    background: rgba(51, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 4px;
-    color: #ffcc00;
-    font-size: 11px;
-    box-sizing: border-box;
-    outline: none;
-    transition: all 0.3s ease;
-    margin-bottom: 10px;
-}
-
-#searchAddons:focus {
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-#searchAddons::placeholder {
-    color: #ff9966;
-    opacity: 0.7;
-}
-
-/* 🔹 PRZYCISK ZAPISZ I ODŚWIEŻ - POPRAWIONY 🔹 */
-#addons .refresh-button-container {
-    position: sticky;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(26, 0, 0, 0.95), rgba(51, 0, 0, 0.95));
-    padding: 8px 10px;
-    margin-top: auto;
-    border-top: 1px solid #660000;
-    z-index: 10;
-    flex-shrink: 0;
-}
-
-#addons .refresh-button {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(135deg, #006600, #008800);
-    border: 1px solid #00cc00;
-    border-radius: 5px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 12px;
-    transition: all 0.3s ease;
-}
-
-#addons .refresh-button:hover {
-    background: linear-gradient(135deg, #008800, #00aa00);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
-}
-
-/* 🔹 FAVORITE BUTTON 🔹 */
-.favorite-btn {
-    background: transparent;
-    border: none;
-    font-size: 20px;
-    color: #666666;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: all 0.3s ease;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.favorite-btn:hover {
-    color: #ff9900;
-    background: rgba(255, 153, 0, 0.1);
-}
-
-.favorite-btn.favorite {
-    color: #ffcc00;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
-}
-
-.favorite-btn.favorite:hover {
-    color: #ff9900;
-}
-
-/* 🔹 ADDON SWITCH 🔹 */
-.addon-switch {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 24px;
-}
-
-.addon-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
+/* ANIMOWANY PRZEŁĄCZNIK */
 .addon-switch-slider {
     position: absolute;
     cursor: pointer;
@@ -406,486 +330,250 @@
     background-color: #ff3300;
     transition: .4s;
     border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 51, 0, 0.8);
 }
 
 .addon-switch input:checked + .addon-switch-slider {
     background-color: #006600;
     border-color: #00cc00;
+    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
 .addon-switch input:checked + .addon-switch-slider:before {
     transform: translateX(21px);
     background-color: #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
 }
 
-.addon-switch input:disabled + .addon-switch-slider {
-    background-color: #333333;
-    border-color: #666666;
-    cursor: not-allowed;
+/* 🔹 LICENSE STATUS COLORS 🔹 */
+.license-status-valid { 
+    color: #00ff00 !important; 
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    animation: pulseGreen 2s infinite;
 }
 
-.addon-switch input:disabled + .addon-switch-slider:before {
-    background-color: #666666;
+@keyframes pulseGreen {
+    0% { text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.4); }
+    100% { text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
 }
 
-/* 🔹 SHORTCUTS TAB - POPRAWIONY PRZEŁĄCZNIK 🔹 */
-.shortcut-item {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s ease;
+.license-status-invalid { 
+    color: #ff3300 !important; 
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
-.shortcut-item:hover {
-    border-color: #ff4500;
-    background: linear-gradient(135deg, rgba(139, 0, 0, 0.9), rgba(255, 69, 0, 0.9));
+.license-status-warning { 
+    color: #ffcc00 !important; 
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    animation: pulseYellow 2s infinite;
 }
 
-.shortcut-info {
-    flex: 1;
-    min-width: 0;
+@keyframes pulseYellow {
+    0% { text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+    50% { text-shadow: 0 0 10px rgba(255, 204, 0, 0.8), 0 0 20px rgba(255, 204, 0, 0.4); }
+    100% { text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
 }
 
-.shortcut-name {
-    font-weight: 600;
-    color: #ffcc00;
-    font-size: 12px;
-    margin-bottom: 3px;
+.license-status-connected { 
+    color: #00ff00 !important; 
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
 }
 
-.shortcut-desc {
-    color: #ff9966;
-    font-size: 10px;
+.license-status-disconnected { 
+    color: #ff3300 !important; 
+    text-shadow: 0 0 5px rgba(255, 51, 0, 0.5);
 }
 
-.shortcut-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.shortcut-display {
-    padding: 5px 8px;
-    background: rgba(30, 0, 0, 0.8);
-    border: 1px solid #660000;
-    border-radius: 4px;
-    color: #ffcc00;
-    font-size: 10px;
-    font-weight: bold;
-    min-width: 70px;
-    text-align: center;
-    letter-spacing: 0.5px;
-}
-
-.shortcut-set-btn {
-    padding: 5px 10px;
-    background: linear-gradient(to right, #660000, #990000);
-    border: 1px solid #ff3300;
-    border-radius: 4px;
-    color: #ffcc00;
-    cursor: pointer;
-    font-size: 10px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.shortcut-set-btn:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-}
-
-.shortcut-clear-btn {
-    padding: 5px 8px;
-    background: linear-gradient(to right, #660000, #990000);
-    border: 1px solid #ff3300;
-    border-radius: 4px;
-    color: #ff9966;
-    cursor: pointer;
-    font-size: 10px;
-    transition: all 0.3s ease;
-}
-
-.shortcut-clear-btn:hover {
-    background: linear-gradient(to right, #990000, #cc0000);
-    color: #ffffff;
-}
-
-/* 🔹 PRZEŁĄCZNIK DLA SKRÓTU - POPRAWIONY (jak w dodatkach) 🔹 */
-.shortcut-toggle {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 24px;
-}
-
-.shortcut-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.shortcut-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #330000;
-    border: 1px solid #660000;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.shortcut-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 2px;
-    background-color: #ff3300;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-.shortcut-toggle input:checked + .shortcut-toggle-slider {
-    background-color: #006600;
-    border-color: #00cc00;
-}
-
-.shortcut-toggle input:checked + .shortcut-toggle-slider:before {
-    transform: translateX(21px);
-    background-color: #00ff00;
-}
-
-/* 🔹 LICENSE SYSTEM 🔹 */
-.license-container {
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
-.license-header {
-    color: #ffcc00;
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ff3300;
-    padding-bottom: 5px;
-    text-align: center;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-.license-status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    font-size: 11px;
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(255, 51, 0, 0.3);
-}
-
-.license-status-item:last-child { border-bottom: none; margin-bottom: 0; }
-
-.license-status-label {
-    color: #ff9966;
-    font-weight: 600;
-    white-space: nowrap;
-    font-size: 11px;
-}
-
-.license-status-value {
-    font-weight: 600;
-    text-align: right;
-    color: #ffcc00;
-    max-width: 150px;
-    word-break: break-all;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 5px;
-}
-
-.copy-icon {
-    cursor: pointer;
-    color: #ffcc00;
-    font-size: 12px;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-}
-
-.copy-icon:hover {
-    opacity: 1;
-    color: #ffffff;
-    transform: scale(1.1);
-}
-
-.license-status-valid { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-.license-status-invalid { color: #ff3300 !important; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
-.license-status-connected { color: #00ff00 !important; text-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
-.license-status-disconnected { color: #ff3300 !important; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
-
-/* 🔹 SETTINGS TAB - POPRAWIONY 🔹 */
-.settings-item {
-    margin-bottom: 15px;
-    padding: 10px;
-    background: linear-gradient(135deg, rgba(51, 0, 0, 0.8), rgba(102, 0, 0, 0.8));
-    border: 1px solid #660000;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.settings-label {
-    display: block;
-    color: #ffcc00;
-    font-size: 12px;
-    margin-bottom: 8px;
-    font-weight: 600;
-    text-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
-}
-
-/* POPRAWIONY SUWAK CZCIONKI */
-.slider-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.slider-value {
-    min-width: 35px;
-    text-align: center;
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 11px;
-}
-
-input[type="range"] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 6px;
-    background: linear-gradient(to right, #330000, #660000);
-    border-radius: 3px;
-    border: 1px solid #660000;
-    outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #ff3300;
-    cursor: pointer;
-    border: 2px solid #ffcc00;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.8);
-}
-
-input[type="range"]::-webkit-slider-thumb:hover {
-    background: #ff6600;
-    transform: scale(1.1);
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #ff3300;
-    cursor: pointer;
-    border: 2px solid #ffcc00;
-    box-shadow: 0 0 5px rgba(255, 51, 0, 0.8);
-}
-
-/* 🔹 ADMIN TAB 🔹 */
-#admin .sw-tab-content {
-    padding: 8px !important;
-    font-size: 11px;
-}
-
-#admin .admin-section {
-    padding: 8px;
-    background: rgba(0, 50, 0, 0.2);
-    border: 1px solid #00aa00;
-    border-radius: 5px;
-    margin-bottom: 8px;
-}
-
-#admin .admin-section h3 {
-    color: #00ff00;
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 11px;
-    border-bottom: 1px solid #008800;
-    padding-bottom: 4px;
-}
-
-.admin-input-group {
-    margin-bottom: 8px;
-}
-
-.admin-label {
-    display: block;
-    color: #00cc00;
-    font-size: 10px;
-    margin-bottom: 3px;
-    font-weight: 600;
-}
-
-.admin-input {
-    width: 100%;
-    padding: 5px 8px;
-    background: rgba(0, 40, 0, 0.8);
-    border: 1px solid #008800;
-    color: #00ff00;
-    border-radius: 3px;
-    font-size: 11px;
-    box-sizing: border-box;
-}
-
-.admin-input:focus {
-    outline: none;
-    border-color: #00ff00;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
-}
-
-.admin-button {
-    width: 100%;
-    padding: 8px;
-    background: linear-gradient(to right, #006600, #008800);
-    border: 1px solid #00cc00;
-    border-radius: 4px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 11px;
-    margin-bottom: 6px;
-    transition: all 0.3s ease;
-}
-
-.admin-button:hover {
-    background: linear-gradient(to right, #008800, #00aa00);
-    border-color: #00ff00;
-}
-
-.admin-button-secondary {
-    background: linear-gradient(to right, #006666, #008888);
-    border: 1px solid #00cccc;
-}
-
-.admin-button-secondary:hover {
-    background: linear-gradient(to right, #008888, #00aaaa);
-    border-color: #00ffff;
-}
-
-#adminLicensesContainer {
-    max-height: 150px;
-    overflow-y: auto !important;
-    background: rgba(0, 30, 0, 0.5);
-    border-radius: 4px;
-    padding: 6px;
-    font-size: 10px;
-    border: 1px solid #00aa00;
-    margin-top: 5px;
-}
-
-.license-key-item {
-    padding: 6px;
-    margin-bottom: 5px;
-    background: rgba(0, 40, 0, 0.3);
-    border-radius: 3px;
-    border-left: 3px solid #00aa00;
-    font-size: 9px;
-}
-
-.license-key-item.expired {
-    border-left-color: #aa0000;
-    background: rgba(40, 0, 0, 0.3);
-}
-
-.license-key-item.used {
-    border-left-color: #ffaa00;
-    background: rgba(40, 40, 0, 0.3);
-}
-
-/* 🔹 MESSAGES 🔹 */
+/* 🔹 MESSAGES - ANIMOWANE 🔹 */
 .license-message {
     padding: 8px 10px;
     border-radius: 4px;
     margin: 8px 0;
     font-size: 10px;
     display: none;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .license-success {
-    background: rgba(0, 255, 0, 0.1);
+    background: linear-gradient(135deg, 
+        rgba(0, 255, 0, 0.1), 
+        rgba(0, 200, 0, 0.2));
     border: 1px solid #00ff00;
     color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
 .license-error {
-    background: rgba(255, 51, 0, 0.1);
+    background: linear-gradient(135deg, 
+        rgba(255, 51, 0, 0.1), 
+        rgba(200, 40, 0, 0.2));
     border: 1px solid #ff3300;
     color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.3);
 }
 
 .license-info {
-    background: rgba(255, 153, 0, 0.1);
+    background: linear-gradient(135deg, 
+        rgba(255, 153, 0, 0.1), 
+        rgba(200, 120, 0, 0.2));
     border: 1px solid #ff9900;
     color: #ff9900;
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.3);
 }
 
-/* 🔹 BADGE 🔹 */
+/* 🔹 PREMIUM BADGE - ANIMOWANY 🔹 */
 .premium-badge {
     display: inline-block;
-    background: linear-gradient(to right, #ff9900, #ffcc00);
+    background: linear-gradient(45deg, #ff9900, #ffcc00, #ff9900);
     color: #330000;
     font-size: 9px;
     font-weight: bold;
-    padding: 1px 4px;
+    padding: 2px 6px;
     border-radius: 3px;
     margin-right: 4px;
     text-shadow: none;
+    animation: goldShine 3s infinite;
+    background-size: 200% 100%;
 }
 
-/* 🔹 HIDDEN SCROLLBAR FOR ADDONS 🔹 */
-#addons .sw-tab-content::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
+@keyframes goldShine {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-#addons .sw-tab-content {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
+/* 🔹 BUTTON ANIMATIONS 🔹 */
+.refresh-button, .admin-button, .shortcut-set-btn {
+    transition: all 0.3s ease !important;
+    position: relative;
+    overflow: hidden;
 }
 
-/* 🔹 SHORTCUTS LIST SCROLL 🔹 */
-#shortcuts-list {
-    max-height: 250px;
-    overflow-y: auto;
-    padding-right: 5px;
+.refresh-button::before, .admin-button::before, .shortcut-set-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
 }
 
-#shortcuts-list::-webkit-scrollbar {
-    width: 6px;
+.refresh-button:hover::before, 
+.admin-button:hover::before, 
+.shortcut-set-btn:hover::before {
+    left: 100%;
 }
 
-#shortcuts-list::-webkit-scrollbar-track {
+.refresh-button:hover, .admin-button:hover, .shortcut-set-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 102, 0, 0.4);
+}
+
+/* 🔹 SCROLLBAR STYLING 🔹 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
     background: rgba(51, 0, 0, 0.5);
-    border-radius: 3px;
+    border-radius: 4px;
 }
 
-#shortcuts-list::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #ff3300, #ff6600);
-    border-radius: 3px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 102, 0, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #ff6600, #ff9900);
+}
+
+/* 🔹 INPUT FOCUS EFFECTS 🔹 */
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #ff3300 !important;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5) !important;
+    animation: inputPulse 2s infinite;
+}
+
+@keyframes inputPulse {
+    0% { box-shadow: 0 0 10px rgba(255, 51, 0, 0.5); }
+    50% { box-shadow: 0 0 15px rgba(255, 102, 0, 0.7); }
+    100% { box-shadow: 0 0 10px rgba(255, 51, 0, 0.5); }
+}
+
+/* 🔹 LOADING ANIMATION 🔹 */
+@keyframes loadingSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ff3300;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: loadingSpin 1s linear infinite;
+    margin-right: 8px;
+}
+
+/* 🔹 FADE IN EFFECT 🔹 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tabcontent {
+    animation: fadeIn 0.5s ease;
+}
+
+/* 🔹 RESPONSIVE FIXES 🔹 */
+@media (max-width: 768px) {
+    #swAddonsPanel {
+        width: 95vw !important;
+        height: 80vh !important;
+        left: 2.5vw !important;
+        top: 10vh !important;
+        min-width: unset;
+        min-height: unset;
+    }
+    
+    .tablink {
+        font-size: 10px !important;
+        padding: 8px 2px !important;
+    }
+}
+
+/* 🔹 COPY ICON ANIMATION 🔹 */
+.copy-icon {
+    cursor: pointer;
+    color: #ffcc00;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    display: inline-block;
+}
+
+.copy-icon:hover {
+    opacity: 1;
+    color: #ffffff;
+    transform: scale(1.1) rotate(5deg);
+    text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
 }
