@@ -3,45 +3,52 @@
     position: fixed;
     top: 70px;
     left: 70px;
-    width: 50px;
-    height: 50px;
-    background: transparent;
-    border: 3px solid #ff3300;
+    width: 35px; /* Zmniejszone o połowę */
+    height: 35px; /* Zmniejszone o połowę */
+    background: linear-gradient(135deg, #660000, #990000);
+    border: 2px solid #ff3300;
     border-radius: 50%;
     cursor: grab;
     z-index: 1000000;
-    box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+    box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
     color: white;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 11px; /* Mniejsza czcionka */
     display: flex;
     align-items: center;
     justify-content: center;
     text-shadow: 0 0 5px black;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     user-select: none;
     overflow: hidden;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    transform: translate(-50%, -50%); /* Płynniejsze przesuwanie */
+}
+
+#swPanelToggle::before {
+    content: "SYNERGY";
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
 }
 
 #swPanelToggle img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    display: block;
+    display: none; /* Usunięto ikonę */
 }
 
 #swPanelToggle.dragging {
     cursor: grabbing;
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(255, 102, 0, 1.2);
-    border: 3px solid #ffcc00;
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 102, 0, 1);
+    border: 2px solid #ffcc00;
     z-index: 1000001;
 }
 
 #swPanelToggle:hover:not(.dragging) {
-    transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255, 102, 0, 1);
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 102, 0, 1);
     cursor: grab;
 }
 
@@ -51,16 +58,16 @@
 
 @keyframes savePulse {
     0% { 
-        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
         border-color: #ff3300;
     }
     50% { 
-        box-shadow: 0 0 35px rgba(255, 153, 0, 1.2);
+        box-shadow: 0 0 25px rgba(255, 153, 0, 1);
         border-color: #ffcc00;
-        transform: scale(1.05);
+        transform: translate(-50%, -50%) scale(1.05);
     }
     100% { 
-        box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
         border-color: #ff3300;
     }
 }
@@ -93,9 +100,14 @@
     max-height: 900px;
     resize: both;
     font-size: 12px;
+    cursor: default; /* Domyślny kursor dla panelu */
 }
 
-/* ANIMOWANY NAGŁÓWEK */
+#swAddonsPanel.dragging {
+    cursor: grabbing;
+}
+
+/* ANIMOWANY NAGŁÓWEK - POWIĘKSZONY OBSZAR CHWYTANIA */
 #swPanelHeader {
     background: linear-gradient(to right, 
         rgba(51, 0, 0, 0.95), 
@@ -112,6 +124,19 @@
         0 0 10px rgba(255, 51, 0, 0.8),
         0 0 20px rgba(255, 51, 0, 0.6);
     user-select: none;
+    position: relative;
+}
+
+/* Dodatkowy obszar do chwytania - cały panel */
+#swAddonsPanel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px; /* Obszar chwytania rozszerzony */
+    cursor: grab;
+    z-index: 1000;
 }
 
 /* 🔹 TABS 🔹 */
@@ -175,13 +200,14 @@
     color: #ff6600; 
 }
 
-/* 🔹 TAB CONTENT - POPRAWIONY LAYOUT 🔹 */
+/* 🔹 TAB CONTENT - POPRAWIONY LAYOUT Z SCROLLEM 🔹 */
 .tabcontent {
     display: none;
     flex: 1;
     overflow: hidden;
     flex-direction: column;
     position: relative;
+    height: calc(100% - 110px); /* Zmniejszone o wysokość nagłówka i przycisku */
 }
 
 .tabcontent.active {
@@ -191,7 +217,7 @@
 .sw-tab-content {
     padding: 15px;
     background: rgba(26, 0, 0, 0.7);
-    height: calc(100% - 60px);
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -200,9 +226,7 @@
     flex: 1;
 }
 
-/* 🔹 SCROLL CONTAINERS - DZIAŁAJĄCY SCROLL NA ŚRODKOWY PRZYCISK 🔹 */
-.addon-list-container,
-.shortcuts-list-container,
+/* 🔹 SCROLL CONTAINERS - DZIAŁAJĄCY SCROLL 🔹 */
 .scrollable-content {
     width: 100%;
     max-width: 800px;
@@ -212,12 +236,23 @@
     margin-bottom: 10px;
     padding-right: 8px;
     scroll-behavior: smooth;
-    /* Włącz scroll na środkowy przycisk myszy */
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
 }
 
 /* 🔹 ADDONS LIST 🔹 */
+.addon-list-container {
+    width: 100%;
+    max-width: 800px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 60px; /* Miejsce na przycisk "Zapisz i odśwież" */
+    padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+}
+
 .addon-list {
     width: 100%;
 }
@@ -371,7 +406,57 @@
     background-color: #666666;
 }
 
+/* 🔹 FILTRY DODATKÓW 🔹 */
+.addon-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 800px;
+    justify-content: center;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #330000, #660000);
+    border: 1px solid #660000;
+    border-radius: 5px;
+    color: #ff9966;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.filter-btn:hover {
+    background: linear-gradient(135deg, #660000, #990000);
+    color: #ffcc00;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #990000, #cc0000);
+    border-color: #ff3300;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
+}
+
 /* 🔹 SHORTCUTS LIST 🔹 */
+.shortcuts-list-container {
+    width: 100%;
+    max-width: 800px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 10px;
+    padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+}
+
 .shortcut-item {
     background: linear-gradient(135deg, 
         rgba(51, 0, 0, 0.9), 
@@ -467,7 +552,7 @@
     min-width: 70px;
 }
 
-/* 🔹 SHORTCUT TOGGLE 🔹 */
+/* 🔹 SHORTCUT TOGGLE - DOMYŚLNIE WŁĄCZONY 🔹 */
 .shortcut-toggle {
     position: relative;
     display: inline-block;
@@ -488,8 +573,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #330000;
-    border: 1px solid #660000;
+    background-color: #006600; /* DOMYŚLNIE WŁĄCZONY */
+    border: 1px solid #00cc00;
     transition: .4s;
     border-radius: 34px;
 }
@@ -501,9 +586,10 @@
     width: 18px;
     left: 3px;
     bottom: 2px;
-    background-color: #ff3300;
+    background-color: #00ff00; /* DOMYŚLNIE WŁĄCZONY */
     transition: .4s;
     border-radius: 50%;
+    transform: translateX(21px); /* DOMYŚLNIE WŁĄCZONY */
 }
 
 .shortcut-toggle input:checked + .shortcut-toggle-slider {
@@ -514,6 +600,16 @@
 .shortcut-toggle input:checked + .shortcut-toggle-slider:before {
     transform: translateX(21px);
     background-color: #00ff00;
+}
+
+.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider {
+    background-color: #330000;
+    border-color: #660000;
+}
+
+.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider:before {
+    transform: translateX(3px);
+    background-color: #ff3300;
 }
 
 /* 🔹 LICENSE SYSTEM 🔹 */
@@ -609,7 +705,7 @@
     text-shadow: 0 0 6px rgba(255, 204, 0, 0.6);
 }
 
-/* 🔹 SETTINGS - NOWY SYSTEM ZMIANY CZCIONKI 🔹 */
+/* 🔹 SETTINGS - NOWY SYSTEM ZMIANY CZCIONKI (PRZYCISKI) 🔹 */
 .settings-item {
     margin-bottom: 15px;
     padding: 12px;
@@ -628,15 +724,16 @@
     font-size: 13px;
     margin-bottom: 8px;
     font-weight: 700;
+    text-align: center;
 }
 
-/* 🔹 NOWY SYSTEM ZMIANY CZCIONKI - BEZ SUWAKA 🔹 */
+/* NOWY SYSTEM ZMIANY CZCIONKI - PRZYCISKI GÓRA/DÓŁ */
 .font-size-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
     justify-content: center;
+    gap: 15px;
+    margin-bottom: 8px;
 }
 
 .font-size-btn {
@@ -667,8 +764,8 @@
     transform: translateY(0);
 }
 
-.font-size-input {
-    width: 60px;
+.font-size-display {
+    min-width: 60px;
     padding: 8px;
     background: rgba(51, 0, 0, 0.8);
     border: 1px solid #660000;
@@ -677,20 +774,6 @@
     font-size: 14px;
     font-weight: bold;
     text-align: center;
-    outline: none;
-}
-
-.font-size-input:focus {
-    border-color: #ff3300;
-    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
-    background: rgba(102, 0, 0, 0.9);
-}
-
-.font-size-unit {
-    color: #ffcc00;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 30px;
 }
 
 /* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
@@ -773,7 +856,7 @@
     letter-spacing: 0.5px;
 }
 
-/* 🔹 SCROLLBAR - DZIAŁAJĄCY NA ŚRODKOWY PRZYCISK 🔹 */
+/* 🔹 SCROLLBAR 🔹 */
 .addon-list-container::-webkit-scrollbar,
 .shortcuts-list-container::-webkit-scrollbar,
 .scrollable-content::-webkit-scrollbar {
@@ -861,20 +944,19 @@
     box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4);
 }
 
-/* 🔹 REFRESH BUTTON - STICKY NA DOLE PANELU 🔹 */
+/* 🔹 REFRESH BUTTON - STICKY NA DOLE PANELU (POPRAWIONE) 🔹 */
 .refresh-button-container {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    max-width: 800px;
-    padding: 15px;
+    padding: 10px 15px;
     background: linear-gradient(to bottom, 
-        rgba(26, 0, 0, 0.9),
-        rgba(51, 0, 0, 0.95));
+        rgba(26, 0, 0, 0.95),
+        rgba(51, 0, 0, 0.98));
     border-top: 2px solid #660000;
     z-index: 100;
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.7);
 }
 
 .refresh-button {
@@ -925,13 +1007,14 @@
     opacity: 0.7;
 }
 
-/* 🔹 INFO TAB 🔹 */
+/* 🔹 INFO TAB - RESPONSYWNE 🔹 */
 #info .sw-tab-content {
     padding: 15px;
     text-align: center;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
+    max-width: 800px;
 }
 
 #info h3 {
@@ -940,6 +1023,7 @@
     margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    word-wrap: break-word;
 }
 
 #info h4 {
@@ -949,6 +1033,8 @@
     border-bottom: 1px solid #660000;
     padding-bottom: 5px;
     display: inline-block;
+    max-width: 100%;
+    word-wrap: break-word;
 }
 
 #info p {
@@ -958,6 +1044,68 @@
     margin: 5px 0;
     max-width: 100%;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* 🔹 EKSPORT/IMPORT USTAWIEN 🔹 */
+.import-export-container {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, 
+        rgba(51, 0, 0, 0.9), 
+        rgba(102, 0, 0, 0.9));
+    border: 1px solid #660000;
+    border-radius: 8px;
+}
+
+.import-export-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.import-export-btn {
+    flex: 1;
+    padding: 10px;
+    background: linear-gradient(135deg, #660000, #990000);
+    border: 1px solid #ff3300;
+    border-radius: 5px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.import-export-btn:hover {
+    background: linear-gradient(135deg, #990000, #cc0000);
+    border-color: #ff6600;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 0, 0.3);
+}
+
+.import-export-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    background: rgba(26, 0, 0, 0.8);
+    border: 1px solid #660000;
+    border-radius: 5px;
+    color: #ffcc00;
+    font-size: 11px;
+    font-family: monospace;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.import-export-textarea:focus {
+    border-color: #ff3300;
+    box-shadow: 0 0 10px rgba(255, 51, 0, 0.5);
 }
 
 /* 🔹 RESPONSIVE 🔹 */
@@ -967,6 +1115,8 @@
         height: 80vh !important;
         left: 2.5vw !important;
         top: 10vh !important;
+        min-width: 300px;
+        min-height: 300px;
     }
     
     .tablink {
@@ -992,4 +1142,26 @@
     .shortcut-clear-btn {
         min-width: 60px;
     }
+    
+    #info h3 {
+        font-size: 16px;
+    }
+    
+    #info h4 {
+        font-size: 13px;
+    }
+    
+    #info p {
+        font-size: 11px;
+    }
+}
+
+/* 🔹 POPRAWKI DLA ZMIANY ROZMIARU OKNA 🔹 */
+#swAddonsPanel:active {
+    cursor: grabbing;
+}
+
+/* Dodatkowe style dla lepszego skalowania */
+.tabcontent.active .sw-tab-content {
+    min-height: 0;
 }
