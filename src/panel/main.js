@@ -1,8 +1,1351 @@
-// synergy.js - Główny kod panelu Synergy (v4.6 - Final Edition)
+// ==UserScript==
+// @name         Synergy Panel v4.6 - Final Edition (Fixed)
+// @namespace    http://tampermonkey.net/
+// @version      4.6.1
+// @description  Zaawansowany panel dodatków do gry z systemem licencji
+// @author       ShaderDerWraith
+// @match        *://*/*
+// @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6 (Final Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.1 (Fixed Edition)');
+
+    // 🔹 Dodanie CSS
+    const panelCSS = `
+        /* 🔹 BASE STYLES - POPRAWIONE 🔹 */
+        #swPanelToggle {
+            position: fixed;
+            top: 70px;
+            left: 70px;
+            width: 50px;
+            height: 50px;
+            background: url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg') center/cover no-repeat;
+            border: 2px solid #ff3300;
+            border-radius: 50%;
+            cursor: grab;
+            z-index: 1000000;
+            box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 5px black;
+            transition: all 0.2s ease;
+            user-select: none;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+        }
+
+        #swPanelToggle.dragging {
+            cursor: grabbing;
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 102, 0, 1);
+            border: 2px solid #ffcc00;
+            z-index: 1000001;
+        }
+
+        #swPanelToggle:hover:not(.dragging) {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 102, 0, 1);
+            cursor: grab;
+        }
+
+        #swPanelToggle.saved {
+            animation: savePulse 1.5s ease-in-out;
+        }
+
+        @keyframes savePulse {
+            0% { 
+                box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+                border-color: #ff3300;
+            }
+            50% { 
+                box-shadow: 0 0 35px rgba(255, 153, 0, 1);
+                border-color: #ffcc00;
+                transform: scale(1.05);
+            }
+            100% { 
+                box-shadow: 0 0 20px rgba(255, 51, 0, 0.9);
+                border-color: #ff3300;
+            }
+        }
+
+        /* 🔹 MAIN PANEL - WIĘKSZY, BEZ WERSJI 🔹 */
+        #swAddonsPanel {
+            position: fixed;
+            top: 140px;
+            left: 70px;
+            width: 720px;
+            height: 660px;
+            background: linear-gradient(135deg, 
+                rgba(26, 0, 0, 0.98), 
+                rgba(51, 0, 0, 0.98), 
+                rgba(102, 0, 0, 0.98));
+            border: 2px solid #ff3300;
+            border-radius: 12px;
+            color: #ffffff;
+            z-index: 999999;
+            box-shadow: 
+                0 0 35px rgba(255, 51, 0, 0.8),
+                inset 0 0 60px rgba(255, 51, 0, 0.1);
+            backdrop-filter: blur(12px);
+            display: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            min-width: 600px;
+            min-height: 500px;
+            max-width: 1200px;
+            max-height: 900px;
+            resize: both;
+            font-size: 13px;
+            cursor: default;
+        }
+
+        #swAddonsPanel.dragging {
+            cursor: grabbing;
+        }
+
+        /* 🔹 NAGŁÓWEK - TYLKO "SYNERGY" 🔹 */
+        #swPanelHeader {
+            background: linear-gradient(to right, 
+                rgba(51, 0, 0, 0.95), 
+                rgba(102, 0, 0, 0.95), 
+                rgba(153, 0, 0, 0.95));
+            padding: 16px;
+            text-align: center;
+            border-bottom: 2px solid #ff3300;
+            cursor: move;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 
+                0 0 12px rgba(255, 51, 0, 0.8),
+                0 0 24px rgba(255, 51, 0, 0.6);
+            user-select: none;
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 🔹 OBSZAR DO CHWYTANIA - CAŁY NAGŁÓWEK I 30px POD 🔹 */
+        #swAddonsPanel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 90px;
+            cursor: move;
+            z-index: 1000;
+        }
+
+        /* 🔹 TABS - BEZ IKON 🔹 */
+        .tab-container {
+            display: flex;
+            background: linear-gradient(to bottom, 
+                rgba(51, 0, 0, 0.95), 
+                rgba(38, 0, 0, 0.95));
+            border-bottom: 1px solid #ff3300;
+            padding: 0 5px;
+            justify-content: center;
+            height: 46px;
+        }
+
+        .tablink {
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 20px;
+            margin: 0 3px;
+            transition: all 0.3s ease;
+            color: #ff9966;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid transparent;
+            position: relative;
+            min-width: 90px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .tablink::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: #ff3300;
+            transition: width 0.3s ease;
+        }
+
+        .tablink:hover::after { 
+            width: 80%; 
+        }
+
+        .tablink.active { 
+            color: #ffcc00; 
+            text-shadow: 0 0 8px rgba(255, 102, 0, 0.8); 
+        }
+
+        .tablink.active::after { 
+            width: 100%; 
+            background: linear-gradient(to right, #ff3300, #ffcc00, #ff3300);
+            box-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+        }
+
+        .tablink:hover:not(.active) { 
+            color: #ff6600; 
+        }
+
+        /* 🔹 TAB CONTENT - SCROLLOWANIE W KAŻDEJ ZAKŁADCE 🔹 */
+        .tabcontent {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+            position: relative;
+            height: calc(100% - 106px);
+        }
+
+        .tabcontent.active {
+            display: flex;
+        }
+
+        .sw-tab-content {
+            padding: 15px;
+            background: rgba(26, 0, 0, 0.7);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* 🔹 DODATKI - SCROLL DZIAŁAJĄCY, PRZYCISK NIE UCIĘTY 🔹 */
+        .addon-list-container {
+            width: 100%;
+            max-width: 800px;
+            flex: 1;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            margin-bottom: 10px;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+            height: auto;
+            min-height: 300px;
+            max-height: calc(100% - 180px);
+        }
+
+        /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
+        .addon-list-container::-webkit-scrollbar {
+            width: 12px !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .addon-list-container::-webkit-scrollbar-track {
+            background: rgba(51, 0, 0, 0.5) !important;
+            border-radius: 8px !important;
+            border: 1px solid #660000 !important;
+        }
+
+        .addon-list-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #ff3300, #ff6600) !important;
+            border-radius: 8px !important;
+            border: 1px solid #ff9900 !important;
+        }
+
+        .addon-list {
+            width: 100%;
+        }
+
+        .addon {
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 65px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .addon:hover {
+            transform: translateY(-3px);
+            border-color: #ff3300;
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.4);
+            background: linear-gradient(135deg, 
+                rgba(102, 0, 0, 0.95), 
+                rgba(153, 0, 0, 0.95));
+        }
+
+        .addon-header {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+            margin-right: 20px;
+        }
+
+        .addon-title {
+            font-weight: 700;
+            color: #ffcc00;
+            font-size: 14px;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .addon-description {
+            color: #ff9966;
+            font-size: 12px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .addon-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        /* 🔹 PRZYCISK ULUBIONYCH 🔹 */
+        .favorite-btn {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            color: #666666;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: all 0.3s ease;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .favorite-btn:hover {
+            color: #ff9900;
+            background: rgba(255, 153, 0, 0.1);
+        }
+
+        .favorite-btn.favorite {
+            color: #ffcc00;
+            text-shadow: 0 0 12px rgba(255, 204, 0, 0.8);
+        }
+
+        /* 🔹 ADDON SWITCH 🔹 */
+        .addon-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .addon-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .addon-switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #330000;
+            border: 1px solid #660000;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .addon-switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 2px;
+            background-color: #ff3300;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .addon-switch input:checked + .addon-switch-slider {
+            background-color: #006600;
+            border-color: #00cc00;
+        }
+
+        .addon-switch input:checked + .addon-switch-slider:before {
+            transform: translateX(21px);
+            background-color: #00ff00;
+        }
+
+        .addon-switch input:disabled + .addon-switch-slider {
+            background-color: #333333;
+            border-color: #666666;
+            cursor: not-allowed;
+        }
+
+        .addon-switch input:disabled + .addon-switch-slider:before {
+            background-color: #666666;
+        }
+
+        /* 🔹 FILTRY DODATKÓW 🔹 */
+        .addon-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #330000, #660000);
+            border: 1px solid #660000;
+            border-radius: 6px;
+            color: #ff9966;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            min-width: 110px;
+        }
+
+        .filter-btn:hover {
+            background: linear-gradient(135deg, #660000, #990000);
+            color: #ffcc00;
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            border-color: #ff3300;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(255, 51, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 🔹 PRZYCISK ZAPISZ - ZAWSZE WIDOCZNY, PRZYPIEJTY DO DOŁU 🔹 */
+        #addons {
+            position: relative;
+            min-height: 100%;
+            padding-bottom: 90px;
+        }
+
+        .refresh-button-container {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            padding: 15px !important;
+            background: linear-gradient(to top, 
+                rgba(26, 0, 0, 0.98),
+                rgba(51, 0, 0, 0.98)) !important;
+            border-top: 2px solid #660000 !important;
+            z-index: 1000 !important;
+            box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8) !important;
+            box-sizing: border-box !important;
+            border-radius: 0 0 8px 8px !important;
+            margin-top: auto !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .refresh-button {
+            width: 100% !important;
+            padding: 14px !important;
+            background: linear-gradient(135deg, #006600, #008800) !important;
+            border: 1px solid #00cc00 !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+            cursor: pointer !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            transition: all 0.3s ease !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            display: block !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            margin: 0 !important;
+        }
+
+        .refresh-button:hover {
+            background: linear-gradient(135deg, #008800, #00aa00) !important;
+            transform: translateY(-3px) !important;
+            box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4) !important;
+        }
+
+        /* 🔹 SHORTCUTS LIST 🔹 */
+        .shortcuts-list-container {
+            width: 100%;
+            max-width: 800px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 10px;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+            min-height: 350px;
+            height: calc(100% - 60px);
+        }
+
+        .shortcut-item {
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .shortcut-item:hover {
+            border-color: #ff4500;
+            background: linear-gradient(135deg, 
+                rgba(102, 0, 0, 0.95), 
+                rgba(153, 0, 0, 0.95));
+        }
+
+        .shortcut-info {
+            flex: 1;
+            min-width: 220px;
+            margin-right: 20px;
+            margin-bottom: 12px;
+        }
+
+        .shortcut-name {
+            font-weight: 700;
+            color: #ffcc00;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .shortcut-desc {
+            color: #ff9966;
+            font-size: 12px;
+        }
+
+        .shortcut-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .shortcut-display {
+            padding: 8px 12px;
+            background: rgba(30, 0, 0, 0.8);
+            border: 1px solid #660000;
+            border-radius: 5px;
+            color: #ffcc00;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 0.5px;
+            min-width: 100px;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 🔹 PRZYCISKI SKRÓTÓW 🔹 */
+        .shortcut-set-btn, .shortcut-clear-btn {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 1px solid #ff3300;
+            border-radius: 5px;
+            color: #ffcc00;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            min-width: 70px;
+        }
+
+        .shortcut-set-btn:hover, .shortcut-clear-btn:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.3);
+        }
+
+        .shortcut-clear-btn {
+            min-width: 80px;
+        }
+
+        /* 🔹 SKRÓTY TOGGLE - DOMYŚLNIE WYŁĄCZONE 🔹 */
+        .shortcut-toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .shortcut-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .shortcut-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #330000;
+            border: 1px solid #660000;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .shortcut-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 2px;
+            background-color: #ff3300;
+            transition: .4s;
+            border-radius: 50%;
+            transform: translateX(3px);
+        }
+
+        .shortcut-toggle input:checked + .shortcut-toggle-slider {
+            background-color: #006600;
+            border-color: #00cc00;
+        }
+
+        .shortcut-toggle input:checked + .shortcut-toggle-slider:before {
+            transform: translateX(21px);
+            background-color: #00ff00;
+        }
+
+        .shortcut-toggle input:not(:checked) + .shortcut-toggle-slider {
+            background-color: #330000;
+            border-color: #660000;
+        }
+
+        .shortcut-toggle input:not(:checked) + .shortcut-toggle-slider:before {
+            background-color: #ff3300;
+        }
+
+        /* 🔹 LICENCJA - SCROLLOWANIE BEZ UCINANIA 🔹 */
+        .license-scroll-container {
+            width: 100%;
+            max-width: 800px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 10px;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+            height: auto;
+            min-height: 320px;
+        }
+
+        .license-container {
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            word-wrap: break-word;
+        }
+
+        .license-header {
+            color: #ffcc00;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ff3300;
+            padding-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .license-status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 13px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 51, 0, 0.3);
+        }
+
+        .license-status-item:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+        }
+
+        .license-status-label {
+            color: #ff9966;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 13px;
+            min-width: 120px;
+        }
+
+        .license-status-value {
+            font-weight: 600;
+            text-align: right;
+            color: #ffcc00;
+            max-width: 200px;
+            word-break: break-word;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .copy-icon {
+            cursor: pointer;
+            color: #ffcc00;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        .copy-icon:hover {
+            opacity: 1;
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .license-status-valid { 
+            color: #00ff00 !important; 
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+        }
+        .license-status-invalid { 
+            color: #ff3300 !important; 
+            text-shadow: 0 0 8px rgba(255, 51, 0, 0.6);
+        }
+        .license-status-connected { 
+            color: #00ff00 !important; 
+        }
+        .license-status-disconnected { 
+            color: #ff3300 !important; 
+        }
+        .license-status-warning { 
+            color: #ffcc00 !important; 
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.6);
+        }
+
+        /* 🔹 SETTINGS - NOWY SYSTEM ZMIANY CZCIONKI 🔹 */
+        .settings-item {
+            margin-bottom: 20px;
+            padding: 18px;
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+
+        .settings-label {
+            display: block;
+            color: #ffcc00;
+            font-size: 14px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* NOWY SYSTEM ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE */
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 12px;
+        }
+
+        .font-size-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 1px solid #ff3300;
+            border-radius: 6px;
+            color: #ffcc00;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            user-select: none;
+            padding: 0;
+        }
+
+        .font-size-btn:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            border-color: #ff6600;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.4);
+        }
+
+        .font-size-btn:active {
+            transform: translateY(0);
+        }
+
+        .font-size-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #330000, #660000);
+            border-color: #660000;
+        }
+
+        .font-size-btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .font-size-display {
+            min-width: 70px;
+            padding: 10px;
+            background: rgba(51, 0, 0, 0.8);
+            border: 1px solid #660000;
+            border-radius: 6px;
+            color: #ffcc00;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            transition: none !important;
+            animation: none !important;
+        }
+
+        .font-size-display.warning {
+            color: #ff3300;
+            border-color: #ff3300;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            color: #ffcc00;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .opacity-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: linear-gradient(to right, #330000, #660000);
+            border-radius: 5px;
+            border: 1px solid #660000;
+            outline: none;
+        }
+
+        .opacity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff3300;
+            cursor: pointer;
+            border: 2px solid #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
+        }
+
+        .opacity-slider::-webkit-slider-thumb:hover {
+            background: #ff6600;
+            transform: scale(1.1);
+        }
+
+        /* 🔹 PRZYCISK USTAW SKRÓT 🔹 */
+        #panelShortcutSetBtn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 1px solid #ff3300;
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        #panelShortcutSetBtn:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            border-color: #ff6600;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.4);
+        }
+
+        /* 🔹 EKSPORT/IMPORT - OBFUSKOWANY TEKST 🔹 */
+        .import-export-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        .import-export-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .import-export-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #660000, #990000);
+            border: 1px solid #ff3300;
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .import-export-btn:hover {
+            background: linear-gradient(135deg, #990000, #cc0000);
+            border-color: #ff6600;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.3);
+        }
+
+        .import-export-textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            background: rgba(26, 0, 0, 0.8);
+            border: 1px solid #660000;
+            border-radius: 6px;
+            color: #ffcc00;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            box-sizing: border-box;
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .import-export-textarea:focus {
+            border-color: #ff3300;
+            box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+        }
+
+        /* 🔹 INFO - SYMETRYCZNE OKIENKA, BEZ ROZCIĄGANIA 🔹 */
+        #info .sw-tab-content {
+            overflow: hidden !important;
+            position: relative !important;
+            height: 100% !important;
+        }
+
+        .info-section {
+            background: linear-gradient(135deg, 
+                rgba(51, 0, 0, 0.9), 
+                rgba(102, 0, 0, 0.9));
+            border: 1px solid #660000;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            text-align: left;
+            min-width: 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .info-section h4 {
+            color: #ff9966;
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #660000;
+            padding-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-section p {
+            color: #ffcc00;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 12px 0;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        .info-section p::before {
+            content: "•";
+            color: #ff6600;
+            font-size: 16px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .info-section p[style*="color:#00ff00"]::before {
+            color: #00ff00;
+        }
+
+        .info-section p[style*="color:#ff9966"]::before {
+            color: #ff9966;
+        }
+
+        /* 🔹 SCROLLBAR - DZIAŁAJĄCY NA WSZYSTKO 🔹 */
+        .scrollable-container {
+            width: 100% !important;
+            max-width: 800px !important;
+            flex: 1 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            margin-bottom: 10px !important;
+            padding-right: 10px !important;
+            scroll-behavior: smooth !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5) !important;
+            height: calc(100% - 60px) !important;
+            min-height: 300px !important;
+            position: relative !important;
+        }
+
+        #info .scrollable-container {
+            height: calc(100% - 30px) !important;
+            max-height: none !important;
+        }
+
+        .scrollable-container::-webkit-scrollbar,
+        .addon-list-container::-webkit-scrollbar,
+        .shortcuts-list-container::-webkit-scrollbar,
+        .license-scroll-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track,
+        .addon-list-container::-webkit-scrollbar-track,
+        .shortcuts-list-container::-webkit-scrollbar-track,
+        .license-scroll-container::-webkit-scrollbar-track {
+            background: rgba(51, 0, 0, 0.5);
+            border-radius: 8px;
+            border: 1px solid #660000;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb,
+        .addon-list-container::-webkit-scrollbar-thumb,
+        .shortcuts-list-container::-webkit-scrollbar-thumb,
+        .license-scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #ff3300, #ff6600);
+            border-radius: 8px;
+            border: 1px solid #ff9900;
+            transition: all 0.3s ease;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb:hover,
+        .addon-list-container::-webkit-scrollbar-thumb:hover,
+        .shortcuts-list-container::-webkit-scrollbar-thumb:hover,
+        .license-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #ff6600, #ff9900);
+            border-color: #ffcc00;
+            transform: scale(1.05);
+        }
+
+        /* 🔹 MESSAGES 🔹 */
+        .license-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .license-success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .license-error {
+            background: rgba(255, 51, 0, 0.1);
+            border: 1px solid #ff3300;
+            color: #ff3300;
+        }
+
+        .license-info {
+            background: rgba(255, 153, 0, 0.1);
+            border: 1px solid #ff9900;
+            color: #ff9900;
+        }
+
+        /* 🔹 RESET BUTTON 🔹 */
+        #swResetButton {
+            padding: 14px;
+            background: linear-gradient(135deg, 
+                rgba(102, 0, 0, 0.9), 
+                rgba(153, 0, 0, 0.9));
+            border: 1px solid #ff3300;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        #swResetButton:hover {
+            background: linear-gradient(135deg, 
+                rgba(153, 0, 0, 0.9), 
+                rgba(204, 0, 0, 0.9));
+            border-color: #ff6600;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(255, 51, 0, 0.4);
+        }
+
+        /* 🔹 SEARCH INPUT 🔹 */
+        #searchAddons {
+            width: 100%;
+            max-width: 800px;
+            padding: 12px 16px;
+            background: rgba(51, 0, 0, 0.8);
+            border: 1px solid #660000;
+            border-radius: 8px;
+            color: #ffcc00;
+            font-size: 13px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        #searchAddons:focus {
+            border-color: #ff3300;
+            box-shadow: 0 0 15px rgba(255, 51, 0, 0.5);
+            background: rgba(102, 0, 0, 0.9);
+        }
+
+        #searchAddons::placeholder {
+            color: #ff9966;
+            opacity: 0.8;
+        }
+
+        /* 🔹 PREMIUM BADGE 🔹 */
+        .premium-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff9900, #ffcc00);
+            color: #330000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            text-shadow: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 🔹 ACTIVE SCROLL STATE 🔹 */
+        .active-scroll {
+            cursor: grabbing !important;
+            user-select: none !important;
+        }
+
+        .active-scroll * {
+            pointer-events: none !important;
+        }
+
+        /* 🔹 RESPONSYWNOŚĆ 🔹 */
+        @media (max-width: 900px) {
+            #swAddonsPanel {
+                width: 90vw !important;
+                min-width: 320px;
+                max-width: 95vw;
+            }
+            
+            .refresh-button-container {
+                padding: 12px !important;
+            }
+            
+            .refresh-button {
+                padding: 12px !important;
+                font-size: 12px !important;
+            }
+            
+            .info-section {
+                padding: 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                width: calc(100% - 10px);
+            }
+            
+            .info-section h4 {
+                font-size: 14px;
+                padding: 8px;
+            }
+            
+            .info-section p {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+        }
+
+        @media (max-height: 600px) {
+            #addons {
+                padding-bottom: 80px;
+            }
+            
+            .refresh-button-container {
+                padding: 10px !important;
+            }
+            
+            .refresh-button {
+                padding: 10px !important;
+                font-size: 11px !important;
+            }
+        }
+
+        /* 🔹 ANIMACJE 🔹 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .addon, .shortcut-item, .license-container, .settings-item, .info-section {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* 🔹 FOCUS STATES 🔹 */
+        .font-size-btn:focus,
+        .filter-btn:focus,
+        .shortcut-set-btn:focus,
+        .shortcut-clear-btn:focus,
+        .import-export-btn:focus,
+        #panelShortcutSetBtn:focus,
+        #swResetButton:focus,
+        .refresh-button:focus {
+            outline: 2px solid #ffcc00;
+            outline-offset: 2px;
+        }
+    `;
+
+    // Wstrzyknięcie CSS
+    const style = document.createElement('style');
+    style.textContent = panelCSS;
+    document.head.appendChild(style);
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -117,10 +1460,6 @@
         }
     ];
 
-    // 🔹 URL do pliku licencji
-    const LICENSES_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/docs/licenses.json';
-    const ADMIN_ACCOUNT_ID = '7411461';
-
     // 🔹 Safe fallback dla Tampermonkey/Greasemonkey
     if (!window.synergyWraith) {
         window.synergyWraith = {
@@ -174,7 +1513,7 @@
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize - BLOKADA 10-16px
+    // 🔹 POPRAWIONE: Funkcja applyFontSize - NATYCHMIASTOWE DZIAŁANIE
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -182,23 +1521,20 @@
         const minSize = 10;
         const maxSize = 16;
         
-        // BLOKADA przed przekroczeniem zakresu
-        if (size < minSize) size = minSize;
-        if (size > maxSize) size = maxSize;
-        
+        // NATYCHMIASTOWA BLOKADA
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
+        
+        // Jeśli wartość się nie zmieniła, wyjdź
+        if (currentFontSize === clampedSize) return;
         
         // ZAPISZ NOWĄ WARTOŚĆ
         currentFontSize = clampedSize;
         SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
         
-        // USTAW CZCIONKĘ NA CAŁYM PANELU
+        // NATYCHMIASTOWA AKTUALIZACJA PANELU
         panel.style.fontSize = clampedSize + 'px';
         
-        // AKTUALIZUJ WSZYSTKIE ELEMENTY TEKSTOWE
-        updateAllTextElements(panel, clampedSize);
-        
-        // AKTUALIZUJ WYŚWIETLANĄ WARTOŚĆ
+        // NATYCHMIASTOWA AKTUALIZACJA WYŚWIETLANIA
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeValue) {
             fontSizeValue.textContent = clampedSize + 'px';
@@ -237,31 +1573,6 @@
         }
     }
 
-    // 🔹 NOWA: Funkcja do aktualizacji wszystkich elementów tekstowych
-    function updateAllTextElements(container, newSize) {
-        const textElements = container.querySelectorAll(
-            'div, span, p, h1, h2, h3, h4, h5, h6, label, button:not(.font-size-btn):not(.refresh-button)'
-        );
-        
-        textElements.forEach(el => {
-            const computed = window.getComputedStyle(el);
-            const currentSize = parseFloat(computed.fontSize);
-            
-            // Zachowaj proporcje dla większych elementów
-            if (el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3') {
-                el.style.fontSize = (newSize * 1.5) + 'px';
-            } else if (el.tagName === 'H4' || el.tagName === 'H5' || el.tagName === 'H6') {
-                el.style.fontSize = (newSize * 1.2) + 'px';
-            } else if (currentSize > 12) {
-                // Zachowaj większe czcionki
-                el.style.fontSize = (newSize * (currentSize / 13)) + 'px';
-            } else {
-                // Standardowe elementy
-                el.style.fontSize = newSize + 'px';
-            }
-        });
-    }
-
     // 🔹 POPRAWIONE: Funkcja applyOpacity
     function applyOpacity(opacity) {
         const panel = document.getElementById('swAddonsPanel');
@@ -280,7 +1591,7 @@
         }
     }
 
-    // 🔹 Tworzenie przycisku przełączania (Z IKONĄ 🎮)
+    // 🔹 POPRAWIONE: Tworzenie przycisku przełączania (Z IKONĄ Z GITHUB)
     function createToggleButton() {
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
@@ -288,15 +1599,15 @@
         const toggleBtn = document.createElement("div");
         toggleBtn.id = "swPanelToggle";
         toggleBtn.title = "Kliknij - otwórz/ukryj panel | Przeciągnij - zmień pozycję";
-        toggleBtn.innerHTML = '🎮'; // IKONA WIDGETU
+        toggleBtn.innerHTML = '';
         
         document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created with icon');
+        console.log('✅ Toggle button created with GitHub icon');
         
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu (Z WSZYSTKIMI POPRAWKAMI)
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -308,7 +1619,7 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6 Final');
+        console.log('✅ Panel created - v4.6.1 Fixed');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -509,7 +1820,7 @@
         `;
     }
 
-    // 🔹 NOWA: Setup scrollowania środkowym przyciskiem myszy
+    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy (DODANE INFO I SETTINGS)
     function setupMouseWheelSupport() {
         console.log('🖱️ Konfiguracja scrollowania myszą...');
         
@@ -520,163 +1831,111 @@
             '.license-scroll-container'
         ];
         
-        // Opóźnienie inicjalizacji, aby kontenery zdążyły się załadować
         setTimeout(() => {
             scrollContainers.forEach(selector => {
                 const containers = document.querySelectorAll(selector);
                 containers.forEach(container => {
-                    if (container && container.scrollHeight > container.clientHeight) {
-                        // 🔹 WŁĄCZ SCROLL
-                        container.style.overflowY = 'auto';
-                        container.style.overflowX = 'hidden';
-                        
-                        // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
-                        container.addEventListener('wheel', function(e) {
-                            // Jeśli kontener może scrollować, zatrzymaj propagację
-                            if (this.scrollHeight > this.clientHeight) {
-                                // Sprawdź, czy scrollujemy w pionie
-                                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                                    const isAtTop = this.scrollTop === 0;
-                                    const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
-                                    
-                                    // Jeśli nie jesteśmy na granicach, zatrzymaj event
-                                    if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
-                                        e.stopPropagation();
-                                    }
+                    if (!container) return;
+                    
+                    // WŁĄCZ SCROLL
+                    container.style.overflowY = 'auto';
+                    container.style.overflowX = 'hidden';
+                    
+                    // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
+                    container.addEventListener('wheel', function(e) {
+                        if (this.scrollHeight > this.clientHeight) {
+                            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                const isAtTop = this.scrollTop === 0;
+                                const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
+                                
+                                if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
                                 }
                             }
-                        }, { passive: false });
-                        
-                        // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
-                        container.addEventListener('mousedown', function(e) {
-                            if (e.button === 1) { // Środkowy przycisk
-                                e.preventDefault();
-                                
-                                // Zaznacz kontener jako aktywnie scrollowany
-                                this.classList.add('active-scroll');
-                                this.style.cursor = 'grabbing';
-                                
-                                const startY = e.clientY;
-                                const startScrollTop = this.scrollTop;
-                                
-                                const mouseMoveHandler = (moveEvent) => {
-                                    const deltaY = moveEvent.clientY - startY;
-                                    this.scrollTop = startScrollTop - deltaY * 2;
-                                    moveEvent.preventDefault();
-                                };
-                                
-                                const mouseUpHandler = () => {
-                                    document.removeEventListener('mousemove', mouseMoveHandler);
-                                    document.removeEventListener('mouseup', mouseUpHandler);
-                                    this.classList.remove('active-scroll');
-                                    this.style.cursor = '';
-                                };
-                                
-                                document.addEventListener('mousemove', mouseMoveHandler);
-                                document.addEventListener('mouseup', mouseUpHandler);
-                            }
-                        });
-                        
-                        console.log(`✅ Skonfigurowano scroll dla: ${selector}`);
-                    }
+                        }
+                    }, { passive: false });
+                    
+                    // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
+                    container.addEventListener('mousedown', function(e) {
+                        if (e.button === 1) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            this.classList.add('active-scroll');
+                            const originalCursor = this.style.cursor;
+                            this.style.cursor = 'grabbing';
+                            
+                            const startY = e.clientY;
+                            const startScrollTop = this.scrollTop;
+                            
+                            const mouseMoveHandler = (moveEvent) => {
+                                const deltaY = moveEvent.clientY - startY;
+                                this.scrollTop = startScrollTop - deltaY * 2;
+                                moveEvent.preventDefault();
+                                moveEvent.stopPropagation();
+                            };
+                            
+                            const mouseUpHandler = () => {
+                                document.removeEventListener('mousemove', mouseMoveHandler);
+                                document.removeEventListener('mouseup', mouseUpHandler);
+                                this.classList.remove('active-scroll');
+                                this.style.cursor = originalCursor;
+                            };
+                            
+                            document.addEventListener('mousemove', mouseMoveHandler);
+                            document.addEventListener('mouseup', mouseUpHandler);
+                        }
+                    });
+                    
+                    console.log(`✅ Skonfigurowano scroll dla: ${selector}`);
                 });
             });
-        }, 1000);
+        }, 1500);
     }
 
     // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla w dodatkach
     function forceAddonsScroll() {
         const addonsContainer = document.querySelector('.addon-list-container');
         if (addonsContainer) {
-            // Wymuś ponowne obliczenie layoutu
             addonsContainer.style.display = 'none';
             void addonsContainer.offsetHeight;
             addonsContainer.style.display = '';
             
-            // Wymuś włączenie scrolla
             addonsContainer.style.overflowY = 'auto';
             addonsContainer.style.overflowX = 'hidden';
             
-            // Sprawdź czy jest potrzeba scrolla
-            const needsScroll = addonsContainer.scrollHeight > addonsContainer.clientHeight;
             console.log('📜 Scroll dodatków:', {
                 scrollHeight: addonsContainer.scrollHeight,
                 clientHeight: addonsContainer.clientHeight,
-                needsScroll: needsScroll
+                needsScroll: addonsContainer.scrollHeight > addonsContainer.clientHeight
             });
-            
-            // Jeśli nie ma potrzeby scrolla, ukryj pasek (ale nie wyłączaj scrollowania)
-            if (!needsScroll) {
-                addonsContainer.style.paddingRight = '0';
-            }
         }
     }
 
-    // 🔹 NOWA: Funkcja dostosowania sekcji INFO
-    function adjustInfoSections() {
-        const infoSections = document.querySelectorAll('.info-section');
-        const panel = document.getElementById('swAddonsPanel');
-        
-        if (!panel || infoSections.length === 0) return;
-        
-        const panelWidth = panel.clientWidth;
-        const isNarrow = panelWidth < 600;
-        
-        infoSections.forEach(section => {
-            if (isNarrow) {
-                // Dla wąskiego panelu zmniejsz paddingi
-                section.style.padding = '15px';
-                section.style.margin = '10px 5px';
-                
-                // Upewnij się, że sekcje nie wychodzą poza panel
-                section.style.maxWidth = 'calc(100% - 10px)';
-                section.style.boxSizing = 'border-box';
-                
-                // Dostosuj tekst
-                const paragraphs = section.querySelectorAll('p');
-                paragraphs.forEach(p => {
-                    p.style.fontSize = '12px';
-                    p.style.lineHeight = '1.4';
-                });
-            } else {
-                // Dla szerokiego panelu przywróć domyślne wartości
-                section.style.padding = '20px';
-                section.style.margin = '0 auto 18px auto';
-                section.style.maxWidth = '800px';
-                
-                const paragraphs = section.querySelectorAll('p');
-                paragraphs.forEach(p => {
-                    p.style.fontSize = '';
-                    p.style.lineHeight = '';
-                });
-            }
-        });
-    }
-
-    // 🔹 NOWA: Funkcja dostosowania przycisku odświeżania
-    function adjustRefreshButton() {
+    // 🔹 NOWA: Funkcja wymuszenia pozycji przycisku zapisz
+    function fixSaveButtonPosition() {
+        const addonsTab = document.getElementById('addons');
         const refreshContainer = document.querySelector('.refresh-button-container');
-        const panel = document.getElementById('swAddonsPanel');
         
-        if (!refreshContainer || !panel) return;
+        if (!addonsTab || !refreshContainer) return;
         
-        const panelHeight = panel.clientHeight;
-        const panelScrollHeight = panel.scrollHeight;
+        addonsTab.style.position = 'relative';
+        addonsTab.style.minHeight = '400px';
         
-        // Jeśli panel jest za wysoki, przesuń przycisk do widocznego miejsca
-        if (panelScrollHeight > panelHeight) {
-            // Upewnij się, że przycisk jest widoczny
-            refreshContainer.style.position = 'relative';
-            refreshContainer.style.bottom = 'auto';
-            refreshContainer.style.marginTop = '15px';
-            
-            // Zapewnij, że nie jest przycięty
-            refreshContainer.style.overflow = 'visible';
-            refreshContainer.style.zIndex = '1000';
-        }
+        refreshContainer.style.position = 'absolute';
+        refreshContainer.style.bottom = '0';
+        refreshContainer.style.left = '0';
+        refreshContainer.style.right = '0';
+        refreshContainer.style.zIndex = '1000';
+        refreshContainer.style.display = 'block';
+        refreshContainer.style.visibility = 'visible';
+        refreshContainer.style.opacity = '1';
+        
+        console.log('✅ Przycisk zapisz przypięty do dołu zakładki');
     }
 
-    // 🔹 POPRAWIONE: Setup przeciągania PANELU (CAŁEGO)
+    // 🔹 POPRAWIONE: Setup przeciągania PANELU
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
         const header = document.getElementById('swPanelHeader');
@@ -687,9 +1946,7 @@
         let startX, startY;
         let initialLeft, initialTop;
 
-        // 🔹 Obszar chwytania: nagłówek + górna część panelu (90px)
         const startDrag = (e) => {
-            // Sprawdź czy kliknięto w obszar chwytania (nagłówek lub 30px pod)
             const rect = panel.getBoundingClientRect();
             const clickY = e.clientY - rect.top;
             
@@ -720,14 +1977,12 @@
             let newLeft = initialLeft + deltaX;
             let newTop = initialTop + deltaY;
             
-            // Ograniczenia - nie wychodź poza ekran
             const maxX = window.innerWidth - panel.offsetWidth;
             const maxY = window.innerHeight - panel.offsetHeight;
             
             newLeft = Math.max(0, Math.min(newLeft, maxX));
             newTop = Math.max(0, Math.min(newTop, maxY));
             
-            // Ustaw pozycję
             panel.style.left = newLeft + 'px';
             panel.style.top = newTop + 'px';
             
@@ -744,7 +1999,6 @@
             document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', stopDrag);
             
-            // Zapisz pozycję
             SW.GM_setValue(CONFIG.PANEL_POSITION, {
                 left: panel.style.left,
                 top: panel.style.top
@@ -755,7 +2009,7 @@
         panel.addEventListener('dragstart', (e) => e.preventDefault());
     }
 
-    // 🔹 Setup przeciągania przycisku (PŁYNNIEJSZE)
+    // 🔹 Setup przeciągania przycisku
     function setupToggleDrag(toggleBtn) {
         if (!toggleBtn) return;
         
@@ -763,7 +2017,6 @@
         let startX, startY;
         let initialLeft, initialTop;
         
-        // Ustaw początkowe pozycje z zapisanych
         const savedPos = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         if (savedPos) {
             toggleBtn.style.left = savedPos.left;
@@ -799,7 +2052,6 @@
                 let newLeft = initialLeft + deltaX;
                 let newTop = initialTop + deltaY;
                 
-                // Ograniczenia - nie wychodź poza ekran
                 const maxX = window.innerWidth - toggleBtn.offsetWidth;
                 const maxY = window.innerHeight - toggleBtn.offsetHeight;
                 
@@ -830,7 +2082,6 @@
                     
                     setTimeout(() => toggleBtn.classList.remove('saved'), 1500);
                 } else {
-                    // Kliknięcie - otwórz/zamknij panel
                     togglePanel();
                 }
             }
@@ -965,6 +2216,11 @@
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
                 }
+                
+                // Napraw pozycję przycisku po przełączeniu na addons
+                if (tabName === 'addons') {
+                    setTimeout(fixSaveButtonPosition, 50);
+                }
             });
         });
     }
@@ -1013,7 +2269,6 @@
                 return;
             }
             
-            // 🔹 Skróty dla dodatków (tylko jeśli włączone)
             Object.keys(addonShortcuts).forEach(addonId => {
                 const shortcut = addonShortcuts[addonId];
                 if (!shortcut || shortcutsEnabled[addonId] !== true) return;
@@ -1041,11 +2296,10 @@
         });
     }
 
-    // 🔹 POPRAWIONE: Ładowanie stanu skrótów - DOMYŚLNIE WYŁĄCZONE
+    // 🔹 Ładowanie stanu skrótów
     function loadShortcutsEnabledState() {
         shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
         
-        // 🔹 DLA NOWYCH SKRÓTÓW - DOMYŚLNIE WYŁĄCZONE
         Object.keys(addonShortcuts).forEach(addonId => {
             if (shortcutsEnabled[addonId] === undefined) {
                 shortcutsEnabled[addonId] = false;
@@ -1055,32 +2309,28 @@
         saveShortcutsEnabledState();
     }
 
-    // 🔹 NOWA: Uproszczony eksport ustawień (obfuskowany + auto-kopiowanie)
+    // 🔹 Uproszczony eksport ustawień
     function exportSettings() {
         try {
-            // 🔹 MINIMALNE DANE - BEZ SENSITIVE INFORMATION
             const settings = {
-                v: '4.6', // version
-                t: Date.now(), // timestamp
-                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), // addons
-                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), // shortcuts
-                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), // shortcuts enabled
-                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), // panel shortcut
-                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), // font size
-                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90) // opacity
+                v: '4.6',
+                t: Date.now(),
+                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
+                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
+                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}),
+                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'),
+                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13),
+                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90)
             };
             
-            // 🔹 OBFUSKACJA: Base64 + prosty szyfr
             const jsonString = JSON.stringify(settings);
             const base64 = btoa(unescape(encodeURIComponent(jsonString)));
             
-            // Odwróć string i zamień znaki dla dodatkowej obfuskacji
             let obfuscated = base64.split('').reverse().join('')
                 .replace(/=/g, '_')
                 .replace(/\+/g, '-')
                 .replace(/\//g, '.');
             
-            // Dodaj checksum dla weryfikacji
             const checksum = obfuscated.length.toString(36);
             obfuscated = checksum + ':' + obfuscated;
             
@@ -1088,7 +2338,6 @@
             if (textarea) {
                 textarea.value = obfuscated;
                 
-                // 🔹 AUTOMATYCZNE KOPIOWANIE DO SCHOWKA
                 textarea.select();
                 textarea.setSelectionRange(0, 99999);
                 
@@ -1110,7 +2359,7 @@
         }
     }
 
-    // 🔹 NOWA: Import obfuskowanych ustawień
+    // 🔹 Import obfuskowanych ustawień
     function importSettings() {
         const textarea = document.getElementById('settingsTextarea');
         if (!textarea || !textarea.value.trim()) {
@@ -1121,8 +2370,6 @@
         try {
             let obfuscated = textarea.value.trim();
             
-            // 🔹 DEKODOWANIE OBFUSKACJI
-            // Sprawdź checksum
             const parts = obfuscated.split(':');
             if (parts.length !== 2) {
                 throw new Error('Nieprawidłowy format danych');
@@ -1131,18 +2378,15 @@
             const checksum = parts[0];
             let data = parts[1];
             
-            // Przywróć oryginalne znaki
             data = data.replace(/_/g, '=')
                       .replace(/-/g, '+')
                       .replace(/\./g, '/')
                       .split('').reverse().join('');
             
-            // Sprawdź długość
             if (parseInt(checksum, 36) !== data.length) {
                 throw new Error('Dane uszkodzone - nieprawidłowa checksum');
             }
             
-            // Dekoduj Base64
             const decoded = decodeURIComponent(escape(atob(data)));
             const settings = JSON.parse(decoded);
             
@@ -1156,7 +2400,6 @@
                 }
             }
             
-            // 🔹 IMPORT DANYCH
             if (settings.a) SW.GM_setValue(CONFIG.FAVORITE_ADDONS, settings.a);
             if (settings.s) SW.GM_setValue(CONFIG.SHORTCUTS_CONFIG, settings.s);
             if (settings.se) SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, settings.se);
@@ -1195,7 +2438,7 @@
             });
         }
         
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI Z BLOKADĄ
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE
         const fontSizeDecrease = document.getElementById('fontSizeDecrease');
         const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
@@ -1266,13 +2509,14 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 WYMUSZENIE SCROLLA W DODATKACH PO ZAŁADOWANIU
+        // 🔹 WYMUSZENIE SCROLLA I POZYCJI PRZYCISKU
         setTimeout(() => {
             forceAddonsScroll();
             setupMouseWheelSupport();
+            fixSaveButtonPosition();
         }, 1500);
         
-        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU (RESIZE)
+        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
             let resizeTimeout;
@@ -1281,7 +2525,7 @@
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
                     forceAddonsScroll();
-                    adjustInfoSections();
+                    fixSaveButtonPosition();
                 }, 200);
             });
             
@@ -1296,7 +2540,6 @@
         
         listContainer.innerHTML = '';
         
-        // 🔹 FILTROWANIE DODATKÓW
         let filteredAddons = currentAddons.filter(addon => !addon.hidden);
         
         switch(currentFilter) {
@@ -1311,7 +2554,6 @@
                 break;
         }
         
-        // 🔹 WYSZUKIWANIE
         if (searchQuery) {
             filteredAddons = filteredAddons.filter(addon => 
                 addon.name.toLowerCase().includes(searchQuery) || 
@@ -1328,7 +2570,6 @@
             return;
         }
         
-        // 🔹 RENDEROWANIE
         filteredAddons.forEach(addon => {
             const div = document.createElement('div');
             div.className = 'addon';
@@ -1363,7 +2604,6 @@
             listContainer.appendChild(div);
         });
         
-        // 🔹 EVENT LISTENERS
         document.querySelectorAll('.favorite-btn:not(:disabled)').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -1380,22 +2620,22 @@
             });
         });
         
-        // 🔹 PO RENDEROWANIU WYMUŚ SCROLL
         setTimeout(() => {
             forceAddonsScroll();
-            adjustRefreshButton();
+            fixSaveButtonPosition();
         }, 100);
     }
 
-    // 🔹 Renderowanie skrótów (DOMYŚLNIE WYŁĄCZONE)
+    // 🔹 POPRAWIONE: Renderowanie skrótów (POKAZUJE WŁĄCZONE DODATKI)
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
         
         container.innerHTML = '';
         
+        // POKAZUJ TYLKO WŁĄCZONE DODATKI
         const enabledAddons = currentAddons.filter(addon => 
-            addon.enabled && !addon.locked && !addon.hidden
+            addon.enabled && !addon.hidden && !addon.locked
         );
         
         if (enabledAddons.length === 0) {
@@ -1409,7 +2649,7 @@
         
         enabledAddons.forEach(addon => {
             const shortcut = addonShortcuts[addon.id] || 'Brak skrótu';
-            const isEnabled = shortcutsEnabled[addonId] === true;
+            const isEnabled = shortcutsEnabled[addon.id] === true;
             
             const item = document.createElement('div');
             item.className = 'shortcut-item';
@@ -1437,7 +2677,6 @@
             container.appendChild(item);
         });
         
-        // 🔹 EVENT LISTENERS DLA SKRÓTÓW
         document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
@@ -1468,11 +2707,9 @@
         currentAddons[addonIndex].favorite = !currentAddons[addonIndex].favorite;
         saveAddonsState();
         
-        // Jeśli jesteśmy w filtrze ulubionych, odśwież
         if (currentFilter === 'favorites') {
             renderAddons();
         } else {
-            // Tylko zaktualizuj przycisk
             const btn = document.querySelector(`.favorite-btn[data-id="${addonId}"]`);
             if (btn) {
                 btn.classList.toggle('favorite');
@@ -1497,16 +2734,13 @@
             setTimeout(() => messageEl.style.display = 'none', 3000);
         }
         
-        // 🔹 SKRÓTY: Nowo włączony dodatek NIE MA automatycznie włączonego skrótu
         if (isEnabled) {
-            // Dla nowo włączonego dodatku upewnij się, że skrót jest wyłączony
             if (shortcutsEnabled[addonId] === undefined) {
                 shortcutsEnabled[addonId] = false;
                 saveShortcutsEnabledState();
             }
         }
         
-        // Jeśli jesteśmy w zakładce skrótów, odśwież
         if (document.getElementById('shortcuts').classList.contains('active')) {
             renderShortcuts();
         }
@@ -1595,7 +2829,6 @@
                 addonShortcuts[addonId] = shortcut;
                 saveAddonShortcuts();
                 
-                // 🔹 NOWY SKRÓT - DOMYŚLNIE WYŁĄCZONY
                 shortcutsEnabled[addonId] = false;
                 saveShortcutsEnabledState();
                 
@@ -1703,28 +2936,23 @@
 
     // 🔹 Ładowanie ustawień
     function loadSettings() {
-        // Czcionka
         const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 13));
         currentFontSize = savedFontSize;
         applyFontSize(savedFontSize);
         
-        // Przeźroczystość
         const savedOpacity = parseInt(SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90));
         applyOpacity(savedOpacity);
         
-        // Skrót panelu
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         panelShortcut = savedShortcut;
         const panelInput = document.getElementById('panelShortcutInput');
         if (panelInput) panelInput.value = panelShortcut;
         
-        // Inicjalizuj przyciski czcionki
         updateFontSizeButtons(currentFontSize);
     }
 
     // 🔹 Ładowanie zapisanego stanu
     function loadSavedState() {
-        // Przycisk toggle
         const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         const toggleBtn = document.getElementById('swPanelToggle');
         if (toggleBtn && savedBtnPosition) {
@@ -1732,7 +2960,6 @@
             toggleBtn.style.top = savedBtnPosition.top;
         }
         
-        // Pozycja panelu
         const savedPosition = SW.GM_getValue(CONFIG.PANEL_POSITION);
         const panel = document.getElementById('swAddonsPanel');
         if (panel && savedPosition) {
@@ -1740,7 +2967,6 @@
             panel.style.top = savedPosition.top;
         }
         
-        // Widoczność panelu
         const isVisible = SW.GM_getValue(CONFIG.PANEL_VISIBLE, false);
         if (panel) {
             panel.style.display = isVisible ? 'block' : 'none';
@@ -1753,7 +2979,6 @@
             SW.GM_deleteValue(CONFIG[key]);
         });
         
-        // Reset zmiennych
         currentAddons = ADDONS.map(addon => ({
             ...addon,
             enabled: addon.type === 'free' ? false : false,
@@ -1785,13 +3010,12 @@
     }
 
     // =========================================================================
-    // 🔹 SYSTEM KONTA I LICENCJI (SKRÓCONY)
+    // 🔹 SYSTEM KONTA I LICENCJI
     // =========================================================================
 
     async function initAccountAndLicense() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Symulacja pobrania ID konta
         const accountId = await getAccountId();
         console.log('👤 ID konta:', accountId);
         
@@ -1841,7 +3065,7 @@
 
     function checkIfAdmin(accountId) {
         if (!accountId) return false;
-        return accountId.toString() === ADMIN_ACCOUNT_ID;
+        return accountId.toString() === '7411461';
     }
 
     async function checkAndUpdateLicense(accountId) {
@@ -1914,7 +3138,6 @@
                 };
             }
 
-            // Dla uproszczenia - zawsze zwracamy brak licencji (możesz dodać prawdziwe sprawdzanie)
             return {
                 success: true,
                 hasLicense: false,
@@ -1952,6 +3175,8 @@
         });
         
         restoreAddonsState();
+        loadAddonShortcuts();
+        loadShortcutsEnabledState();
         
         if (document.getElementById('addon-list')) {
             renderAddons();
@@ -2018,43 +3243,33 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6...');
+        console.log('✅ Initializing Synergy Panel v4.6.1...');
         
-        // Poczekaj na załadowanie DOM
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Stwórz przycisk i panel
         const toggleBtn = createToggleButton();
         createMainPanel();
         
-        // Załaduj zapisany stan
         loadSavedState();
         
-        // Setup przeciągania
         if (toggleBtn) {
             setupToggleDrag(toggleBtn);
         }
         
-        // Inicjalizacja konta i licencji
         setTimeout(async () => {
             await initAccountAndLicense();
             
-            // Renderuj dodatki i skróty
             renderAddons();
             renderShortcuts();
             
-            // 🔹 WYMUSZENIE SCROLLA I DOSTOSOWANIE
             setTimeout(() => {
                 forceAddonsScroll();
                 setupMouseWheelSupport();
-                adjustInfoSections();
-                adjustRefreshButton();
+                fixSaveButtonPosition();
                 
-                // Inicjalizuj stan przycisków czcionki
                 updateFontSizeButtons(currentFontSize);
             }, 1000);
             
-            // Periodyczne sprawdzanie licencji
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
             }, 5 * 60 * 1000);
@@ -2062,7 +3277,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6...');
+    console.log('🎯 Starting Synergy Panel v4.6.1...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
