@@ -70,8 +70,8 @@
     position: fixed;
     top: 140px;
     left: 70px;
-    width: 720px; /* Zwiększone dla lepszego widoku */
-    height: 660px; /* Zwiększone */
+    width: 720px;
+    height: 660px;
     background: linear-gradient(135deg, 
         rgba(26, 0, 0, 0.98), 
         rgba(51, 0, 0, 0.98), 
@@ -131,7 +131,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 90px; /* Nagłówek + dodatkowy obszar */
+    height: 90px;
     cursor: move;
     z-index: 1000;
 }
@@ -206,7 +206,7 @@
     overflow: hidden;
     flex-direction: column;
     position: relative;
-    height: calc(100% - 106px); /* 60px nagłówek + 46px tabs */
+    height: calc(100% - 106px);
 }
 
 .tabcontent.active {
@@ -223,45 +223,43 @@
     overflow: hidden;
     position: relative;
     flex: 1;
+    min-height: 0;
 }
 
-/* 🔹 SCROLL CONTAINERS - DZIAŁAJĄCE ŚRODKOWYM PRZYCISKIEM MYSZY 🔹 */
-.scrollable-container {
-    width: 100%;
-    max-width: 800px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 10px;
-    padding-right: 10px;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
-    height: calc(100% - 60px); /* Automatyczna wysokość ze scrollowaniem */
-    min-height: 300px;
-}
-
-/* Wymuszenie scrollowania środkowym przyciskiem myszy */
-.scrollable-container,
-.addon-list-container,
-.shortcuts-list-container,
-.license-scroll-container {
-    overflow-y: scroll !important;
-    overflow-x: hidden !important;
-}
-
-/* 🔹 ADDONS LIST - WIEKSZA PRZESTRZEŃ, NIE ZASŁANIA 🔹 */
+/* 🔹 DODATKI - SCROLL DZIAŁAJĄCY, PRZYCISK NIE UCIĘTY 🔹 */
 .addon-list-container {
     width: 100%;
     max-width: 800px;
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto !important;
     overflow-x: hidden;
-    margin-bottom: 75px; /* WIĘCEJ MIEJSCA NA PRZYCISK */
+    margin-bottom: 10px;
     padding-right: 10px;
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
-    min-height: 350px;
+    height: auto;
+    min-height: 300px;
+    max-height: calc(100% - 180px);
+}
+
+/* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
+.addon-list-container::-webkit-scrollbar {
+    width: 12px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.addon-list-container::-webkit-scrollbar-track {
+    background: rgba(51, 0, 0, 0.5) !important;
+    border-radius: 8px !important;
+    border: 1px solid #660000 !important;
+}
+
+.addon-list-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ff3300, #ff6600) !important;
+    border-radius: 8px !important;
+    border: 1px solid #ff9900 !important;
 }
 
 .addon-list {
@@ -458,6 +456,48 @@
     transform: translateY(-2px);
 }
 
+/* 🔹 PRZYCISK ZAPISZ - NIE UCIĘTY 🔹 */
+.refresh-button-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    padding: 15px;
+    margin: 15px auto 0 auto;
+    background: linear-gradient(to top, 
+        rgba(26, 0, 0, 0.98),
+        rgba(51, 0, 0, 0.98));
+    border-top: 2px solid #660000;
+    z-index: 100;
+    box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8);
+    box-sizing: border-box;
+    border-radius: 0 0 8px 8px;
+}
+
+.refresh-button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #006600, #008800);
+    border: 1px solid #00cc00;
+    border-radius: 8px;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 0;
+}
+
+.refresh-button:hover {
+    background: linear-gradient(135deg, #008800, #00aa00);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4);
+}
+
 /* 🔹 SHORTCUTS LIST 🔹 */
 .shortcuts-list-container {
     width: 100%;
@@ -539,131 +579,93 @@
     white-space: nowrap;
 }
 
-/* 🔹 PRZYCISK ZAPISZ - SYMETRYCZNY, NIE WYCHODZI POZA 🔹 */
-.refresh-button-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(to top, 
-        rgba(26, 0, 0, 0.98),
-        rgba(51, 0, 0, 0.98));
-    border-top: 2px solid #660000;
-    z-index: 100;
-    box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8);
-    box-sizing: border-box;
-}
-
-.refresh-button {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 15px;
-    background: linear-gradient(135deg, #006600, #008800);
-    border: 1px solid #00cc00;
-    border-radius: 8px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: block;
-    box-sizing: border-box;
-    text-align: center;
-}
-
-.refresh-button:hover {
-    background: linear-gradient(135deg, #008800, #00aa00);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4);
-}
-
-/* 🔹 SCROLLBAR - DZIAŁAJĄCY NA WSZYSTKO 🔹 */
-.scrollable-container::-webkit-scrollbar,
-.addon-list-container::-webkit-scrollbar,
-.shortcuts-list-container::-webkit-scrollbar,
-.license-scroll-container::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-.scrollable-container::-webkit-scrollbar-track,
-.addon-list-container::-webkit-scrollbar-track,
-.shortcuts-list-container::-webkit-scrollbar-track,
-.license-scroll-container::-webkit-scrollbar-track {
-    background: rgba(51, 0, 0, 0.5);
-    border-radius: 8px;
-    border: 1px solid #660000;
-}
-
-.scrollable-container::-webkit-scrollbar-thumb,
-.addon-list-container::-webkit-scrollbar-thumb,
-.shortcuts-list-container::-webkit-scrollbar-thumb,
-.license-scroll-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff3300, #ff6600);
-    border-radius: 8px;
-    border: 1px solid #ff9900;
-    transition: all 0.3s ease;
-}
-
-.scrollable-container::-webkit-scrollbar-thumb:hover,
-.addon-list-container::-webkit-scrollbar-thumb:hover,
-.shortcuts-list-container::-webkit-scrollbar-thumb:hover,
-.license-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #ff6600, #ff9900);
-    border-color: #ffcc00;
-    transform: scale(1.05);
-}
-
-/* 🔹 MESSAGES 🔹 */
-.license-message {
-    padding: 12px 15px;
-    border-radius: 8px;
-    margin: 10px 0;
-    font-size: 12px;
-    display: none;
-    width: 100%;
-    max-width: 800px;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-.license-success {
-    background: rgba(0, 255, 0, 0.1);
-    border: 1px solid #00ff00;
-    color: #00ff00;
-}
-
-.license-error {
-    background: rgba(255, 51, 0, 0.1);
+/* 🔹 PRZYCISKI SKRÓTÓW 🔹 */
+.shortcut-set-btn, .shortcut-clear-btn {
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #660000, #990000);
     border: 1px solid #ff3300;
-    color: #ff3300;
-}
-
-.license-info {
-    background: rgba(255, 153, 0, 0.1);
-    border: 1px solid #ff9900;
-    color: #ff9900;
-}
-
-/* 🔹 PREMIUM BADGE 🔹 */
-.premium-badge {
-    display: inline-block;
-    background: linear-gradient(45deg, #ff9900, #ffcc00);
-    color: #330000;
-    font-size: 10px;
-    font-weight: bold;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin-right: 8px;
-    text-shadow: none;
+    border-radius: 5px;
+    color: #ffcc00;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    min-width: 70px;
 }
+
+.shortcut-set-btn:hover, .shortcut-clear-btn:hover {
+    background: linear-gradient(135deg, #990000, #cc0000);
+    color: #ffffff;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(255, 51, 0, 0.3);
+}
+
+.shortcut-clear-btn {
+    min-width: 80px;
+}
+
+/* 🔹 SKRÓTY TOGGLE - DOMYŚLNIE WYŁĄCZONE 🔹 */
+.shortcut-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+}
+
+.shortcut-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shortcut-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #330000;
+    border: 1px solid #660000;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.shortcut-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 2px;
+    background-color: #ff3300;
+    transition: .4s;
+    border-radius: 50%;
+    transform: translateX(3px);
+}
+
+.shortcut-toggle input:checked + .shortcut-toggle-slider {
+    background-color: #006600;
+    border-color: #00cc00;
+}
+
+.shortcut-toggle input:checked + .shortcut-toggle-slider:before {
+    transform: translateX(21px);
+    background-color: #00ff00;
+}
+
+.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider {
+    background-color: #330000;
+    border-color: #660000;
+}
+
+.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider:before {
+    background-color: #ff3300;
+}
+
 /* 🔹 LICENCJA - SCROLLOWANIE BEZ UCINANIA 🔹 */
 .license-scroll-container {
     width: 100%;
@@ -838,6 +840,18 @@
     transform: translateY(0);
 }
 
+.font-size-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #330000, #660000);
+    border-color: #660000;
+}
+
+.font-size-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .font-size-display {
     min-width: 70px;
     padding: 10px;
@@ -848,6 +862,18 @@
     font-size: 15px;
     font-weight: bold;
     text-align: center;
+}
+
+.font-size-display.warning {
+    color: #ff3300;
+    border-color: #ff3300;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
@@ -914,65 +940,6 @@
     border-color: #ff6600;
     transform: translateY(-3px);
     box-shadow: 0 6px 18px rgba(255, 51, 0, 0.4);
-}
-
-/* 🔹 SKRÓTY TOGGLE - DOMYŚLNIE WYŁĄCZONE 🔹 */
-.shortcut-toggle {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 26px;
-}
-
-.shortcut-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.shortcut-toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #330000; /* DOMYŚLNIE WYŁĄCZONY */
-    border: 1px solid #660000;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.shortcut-toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 2px;
-    background-color: #ff3300; /* DOMYŚLNIE WYŁĄCZONY */
-    transition: .4s;
-    border-radius: 50%;
-    transform: translateX(3px); /* DOMYŚLNIE WYŁĄCZONY */
-}
-
-.shortcut-toggle input:checked + .shortcut-toggle-slider {
-    background-color: #006600;
-    border-color: #00cc00;
-}
-
-.shortcut-toggle input:checked + .shortcut-toggle-slider:before {
-    transform: translateX(21px);
-    background-color: #00ff00;
-}
-
-.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider {
-    background-color: #330000;
-    border-color: #660000;
-}
-
-.shortcut-toggle input:not(:checked) + .shortcut-toggle-slider:before {
-    background-color: #ff3300;
 }
 
 /* 🔹 EKSPORT/IMPORT - OBFUSKOWANY TEKST 🔹 */
@@ -1047,12 +1014,15 @@
         rgba(102, 0, 0, 0.9));
     border: 1px solid #660000;
     border-radius: 10px;
-    padding: 22px;
+    padding: 20px;
     margin-bottom: 18px;
     width: 100%;
     max-width: 800px;
     box-sizing: border-box;
     text-align: left;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .info-section h4 {
@@ -1091,6 +1061,89 @@
 
 .info-section p[style*="color:#ff9966"]::before {
     color: #ff9966;
+}
+
+/* 🔹 SCROLLBAR - DZIAŁAJĄCY NA WSZYSTKO 🔹 */
+.scrollable-container {
+    width: 100%;
+    max-width: 800px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 10px;
+    padding-right: 10px;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
+    height: calc(100% - 60px);
+    min-height: 300px;
+}
+
+.scrollable-container::-webkit-scrollbar,
+.addon-list-container::-webkit-scrollbar,
+.shortcuts-list-container::-webkit-scrollbar,
+.license-scroll-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.scrollable-container::-webkit-scrollbar-track,
+.addon-list-container::-webkit-scrollbar-track,
+.shortcuts-list-container::-webkit-scrollbar-track,
+.license-scroll-container::-webkit-scrollbar-track {
+    background: rgba(51, 0, 0, 0.5);
+    border-radius: 8px;
+    border: 1px solid #660000;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb,
+.addon-list-container::-webkit-scrollbar-thumb,
+.shortcuts-list-container::-webkit-scrollbar-thumb,
+.license-scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ff3300, #ff6600);
+    border-radius: 8px;
+    border: 1px solid #ff9900;
+    transition: all 0.3s ease;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:hover,
+.addon-list-container::-webkit-scrollbar-thumb:hover,
+.shortcuts-list-container::-webkit-scrollbar-thumb:hover,
+.license-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #ff6600, #ff9900);
+    border-color: #ffcc00;
+    transform: scale(1.05);
+}
+
+/* 🔹 MESSAGES 🔹 */
+.license-message {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 12px;
+    display: none;
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.license-success {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    color: #00ff00;
+}
+
+.license-error {
+    background: rgba(255, 51, 0, 0.1);
+    border: 1px solid #ff3300;
+    color: #ff3300;
+}
+
+.license-info {
+    background: rgba(255, 153, 0, 0.1);
+    border: 1px solid #ff9900;
+    color: #ff9900;
 }
 
 /* 🔹 RESET BUTTON 🔹 */
@@ -1151,94 +1204,77 @@
     opacity: 0.8;
 }
 
-/* 🔹 PRZYCISKI SKRÓTÓW 🔹 */
-.shortcut-set-btn, .shortcut-clear-btn {
-    padding: 8px 14px;
-    background: linear-gradient(135deg, #660000, #990000);
-    border: 1px solid #ff3300;
-    border-radius: 5px;
-    color: #ffcc00;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+/* 🔹 PREMIUM BADGE 🔹 */
+.premium-badge {
+    display: inline-block;
+    background: linear-gradient(45deg, #ff9900, #ffcc00);
+    color: #330000;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+    text-shadow: none;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    white-space: nowrap;
-    min-width: 70px;
 }
 
-.shortcut-set-btn:hover, .shortcut-clear-btn:hover {
-    background: linear-gradient(135deg, #990000, #cc0000);
-    color: #ffffff;
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(255, 51, 0, 0.3);
+/* 🔹 FIX DLA SCROLLOWANIA ŚRODKOWYM PRZYCISKIEM 🔹 */
+.addon-list-container,
+.shortcuts-list-container,
+.scrollable-container,
+.license-scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
-.shortcut-clear-btn {
-    min-width: 80px;
+/* Obsługa scrollowania środkowym przyciskiem */
+.addon-list-container.active-scroll,
+.shortcuts-list-container.active-scroll,
+.scrollable-container.active-scroll,
+.license-scroll-container.active-scroll {
+    cursor: grabbing;
+    user-select: none;
 }
 
-/* 🔹 RESPONSIVE - DLA WSZYSTKIEGO 🔹 */
-@media (max-width: 850px) {
+/* 🔹 RESPONSYWNOŚĆ - POPRAWIONA DLA ŚCIŚNIĘTEGO PANELU 🔹 */
+@media (max-width: 900px) {
     #swAddonsPanel {
-        width: 95vw !important;
-        height: 85vh !important;
-        left: 2.5vw !important;
-        top: 7.5vh !important;
+        width: 90vw !important;
         min-width: 320px;
-        min-height: 450px;
-        font-size: 12px;
+        max-width: 95vw;
     }
     
-    .tablink {
-        font-size: 11px !important;
-        padding: 10px 8px !important;
-        min-width: 70px;
-        margin: 0 1px;
-    }
-    
-    .addon, .shortcut-item, .license-container, .settings-item, .info-section {
-        padding: 14px 16px;
-    }
-    
-    .addon-controls, .shortcut-controls {
-        gap: 8px;
-    }
-    
-    .shortcut-set-btn, .shortcut-clear-btn {
-        padding: 7px 10px;
-        font-size: 11px;
-        min-width: 60px;
-    }
-    
-    .shortcut-clear-btn {
-        min-width: 70px;
-    }
-    
-    .filter-btn {
-        padding: 8px 12px;
-        font-size: 11px;
-        min-width: 90px;
+    .info-section {
+        padding: 15px;
+        margin-left: 5px;
+        margin-right: 5px;
+        width: calc(100% - 10px);
     }
     
     .info-section h4 {
-        font-size: 15px;
+        font-size: 14px;
+        padding: 8px;
     }
     
     .info-section p {
         font-size: 12px;
+        line-height: 1.4;
+    }
+    
+    .addon-list-container {
+        max-height: calc(100% - 200px);
+    }
+    
+    .refresh-button-container {
+        padding: 12px;
+        margin-top: 10px;
     }
     
     .refresh-button {
-        font-size: 12px;
         padding: 12px;
-    }
-    
-    #swPanelHeader {
-        font-size: 22px;
-        padding: 14px;
-        height: 55px;
+        font-size: 12px;
     }
     
     .license-status-item {
@@ -1288,6 +1324,29 @@
     }
 }
 
+/* 🔹 POPRAWKI DLA MAŁYCH EKRANÓW 🔹 */
+@media (max-height: 700px) {
+    #swAddonsPanel {
+        height: 85vh !important;
+        max-height: 85vh;
+    }
+    
+    .addon-list-container {
+        max-height: calc(100% - 160px);
+    }
+    
+    .addon {
+        padding: 12px 14px;
+        min-height: 55px;
+        margin-bottom: 8px;
+    }
+    
+    .refresh-button {
+        padding: 10px;
+        font-size: 11px;
+    }
+}
+
 /* 🔹 ANIMACJE I DODATKOWE EFEKTY 🔹 */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -1311,33 +1370,6 @@
     outline-offset: 2px;
 }
 
-/* 🔹 LOADING STATE 🔹 */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-/* 🔹 TOOLTIP STYLES 🔹 */
-[title] {
-    position: relative;
-}
-
-[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #ffcc00;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    z-index: 10000;
-    border: 1px solid #660000;
-}
-
 /* 🔹 CUSTOM SCROLLBAR FOR FIREFOX 🔹 */
 @supports (scrollbar-width: thin) {
     .scrollable-container,
@@ -1347,56 +1379,4 @@
         scrollbar-width: thin;
         scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
     }
-}
-
-/* 🔹 PRINT STYLES 🔹 */
-@media print {
-    #swAddonsPanel {
-        display: none !important;
-    }
-    
-    #swPanelToggle {
-        display: none !important;
-    }
-}
-
-/* 🔹 HIGH CONTRAST MODE SUPPORT 🔹 */
-@media (prefers-contrast: high) {
-    #swAddonsPanel {
-        border: 3px solid #ff3300;
-    }
-    
-    .addon, .shortcut-item, .license-container, .settings-item, .info-section {
-        border: 2px solid #660000;
-    }
-    
-    .tablink.active {
-        border-bottom: 3px solid #ff3300;
-    }
-}
-
-/* 🔹 DARK MODE SUPPORT 🔹 */
-@media (prefers-color-scheme: dark) {
-    #swAddonsPanel {
-        background: linear-gradient(135deg, 
-            rgba(20, 0, 0, 0.98), 
-            rgba(40, 0, 0, 0.98), 
-            rgba(80, 0, 0, 0.98));
-    }
-    
-    .addon, .shortcut-item, .license-container, .settings-item, .info-section {
-        background: linear-gradient(135deg, 
-            rgba(40, 0, 0, 0.9), 
-            rgba(80, 0, 0, 0.9));
-    }
-}
-
-/* 🔹 PERFORMANCE OPTIMIZATIONS 🔹 */
-.addon-list-container,
-.shortcuts-list-container,
-.scrollable-container,
-.license-scroll-container {
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
 }

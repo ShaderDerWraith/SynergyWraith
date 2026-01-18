@@ -1,8 +1,8 @@
-// synergy.js - Główny kod panelu Synergy (v4.5 - Final Edition)
+// synergy.js - Główny kod panelu Synergy (v4.6 - Final Edition)
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.5 (Final Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6 (Final Edition)');
 
     // 🔹 Konfiguracja
     const CONFIG = {
@@ -174,13 +174,18 @@
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize - TERAZ DZIAŁA PRAWIDŁOWO
+    // 🔹 POPRAWIONE: Funkcja applyFontSize - BLOKADA 10-16px
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
         const minSize = 10;
         const maxSize = 16;
+        
+        // BLOKADA przed przekroczeniem zakresu
+        if (size < minSize) size = minSize;
+        if (size > maxSize) size = maxSize;
+        
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
         
         // ZAPISZ NOWĄ WARTOŚĆ
@@ -197,9 +202,39 @@
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeValue) {
             fontSizeValue.textContent = clampedSize + 'px';
+            
+            // WIZUALNA INDIKACJA BLOKADY
+            if (clampedSize === minSize || clampedSize === maxSize) {
+                fontSizeValue.classList.add('warning');
+                setTimeout(() => fontSizeValue.classList.remove('warning'), 1000);
+            } else {
+                fontSizeValue.classList.remove('warning');
+            }
         }
         
+        // AKTUALIZUJ STAN PRZYCISKÓW
+        updateFontSizeButtons(clampedSize);
+        
         console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
+    }
+
+    // 🔹 NOWA: Funkcja aktualizacji przycisków czcionki
+    function updateFontSizeButtons(currentSize) {
+        const minSize = 10;
+        const maxSize = 16;
+        
+        const decreaseBtn = document.getElementById('fontSizeDecrease');
+        const increaseBtn = document.getElementById('fontSizeIncrease');
+        
+        if (decreaseBtn) {
+            decreaseBtn.disabled = currentSize <= minSize;
+            decreaseBtn.title = currentSize <= minSize ? 'Minimalny rozmiar (10px)' : 'Zmniejsz czcionkę';
+        }
+        
+        if (increaseBtn) {
+            increaseBtn.disabled = currentSize >= maxSize;
+            increaseBtn.title = currentSize >= maxSize ? 'Maksymalny rozmiar (16px)' : 'Zwiększ czcionkę';
+        }
     }
 
     // 🔹 NOWA: Funkcja do aktualizacji wszystkich elementów tekstowych
@@ -273,21 +308,14 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.5 Final');
+        console.log('✅ Panel created - v4.6 Final');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
         loadSettings();
         setupPanelDrag();
-        setupMouseWheelSupport();
         
-        // 🔹 WCZYTAJ DODATKI I STAN
-        setTimeout(() => {
-            loadAddonShortcuts();
-            loadShortcutsEnabledState();
-            restoreAddonsState();
-            renderAddons();
-        }, 100);
+        return panel;
     }
 
     // 🔹 NOWA: Generowanie HTML panelu
@@ -483,6 +511,8 @@
 
     // 🔹 NOWA: Setup scrollowania środkowym przyciskiem myszy
     function setupMouseWheelSupport() {
+        console.log('🖱️ Konfiguracja scrollowania myszą...');
+        
         const scrollContainers = [
             '.addon-list-container',
             '.shortcuts-list-container',
@@ -495,39 +525,50 @@
             scrollContainers.forEach(selector => {
                 const containers = document.querySelectorAll(selector);
                 containers.forEach(container => {
-                    if (container) {
-                        // Włącz scrollowanie
-                        container.style.overflow = 'auto';
+                    if (container && container.scrollHeight > container.clientHeight) {
+                        // 🔹 WŁĄCZ SCROLL
+                        container.style.overflowY = 'auto';
+                        container.style.overflowX = 'hidden';
                         
-                        // Zapobiegaj propagacji scrolla do body
+                        // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
                         container.addEventListener('wheel', function(e) {
+                            // Jeśli kontener może scrollować, zatrzymaj propagację
                             if (this.scrollHeight > this.clientHeight) {
-                                e.stopPropagation();
+                                // Sprawdź, czy scrollujemy w pionie
+                                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                    const isAtTop = this.scrollTop === 0;
+                                    const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
+                                    
+                                    // Jeśli nie jesteśmy na granicach, zatrzymaj event
+                                    if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
+                                        e.stopPropagation();
+                                    }
+                                }
                             }
-                        }, { passive: true });
+                        }, { passive: false });
                         
-                        // Obsługa środkowego przycisku myszy
+                        // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
                         container.addEventListener('mousedown', function(e) {
                             if (e.button === 1) { // Środkowy przycisk
                                 e.preventDefault();
+                                
+                                // Zaznacz kontener jako aktywnie scrollowany
+                                this.classList.add('active-scroll');
                                 this.style.cursor = 'grabbing';
                                 
                                 const startY = e.clientY;
                                 const startScrollTop = this.scrollTop;
-                                const scrollHeight = this.scrollHeight;
-                                const clientHeight = this.clientHeight;
                                 
                                 const mouseMoveHandler = (moveEvent) => {
-                                    if (scrollHeight > clientHeight) {
-                                        const deltaY = moveEvent.clientY - startY;
-                                        this.scrollTop = startScrollTop - deltaY;
-                                        moveEvent.preventDefault();
-                                    }
+                                    const deltaY = moveEvent.clientY - startY;
+                                    this.scrollTop = startScrollTop - deltaY * 2;
+                                    moveEvent.preventDefault();
                                 };
                                 
                                 const mouseUpHandler = () => {
                                     document.removeEventListener('mousemove', mouseMoveHandler);
                                     document.removeEventListener('mouseup', mouseUpHandler);
+                                    this.classList.remove('active-scroll');
                                     this.style.cursor = '';
                                 };
                                 
@@ -535,235 +576,107 @@
                                 document.addEventListener('mouseup', mouseUpHandler);
                             }
                         });
+                        
+                        console.log(`✅ Skonfigurowano scroll dla: ${selector}`);
                     }
                 });
             });
-        }, 500);
+        }, 1000);
     }
 
-    // 🔹 POPRAWIONE: Ładowanie stanu skrótów - DOMYŚLNIE WYŁĄCZONE
-    function loadShortcutsEnabledState() {
-        shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
+    // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla w dodatkach
+    function forceAddonsScroll() {
+        const addonsContainer = document.querySelector('.addon-list-container');
+        if (addonsContainer) {
+            // Wymuś ponowne obliczenie layoutu
+            addonsContainer.style.display = 'none';
+            void addonsContainer.offsetHeight;
+            addonsContainer.style.display = '';
+            
+            // Wymuś włączenie scrolla
+            addonsContainer.style.overflowY = 'auto';
+            addonsContainer.style.overflowX = 'hidden';
+            
+            // Sprawdź czy jest potrzeba scrolla
+            const needsScroll = addonsContainer.scrollHeight > addonsContainer.clientHeight;
+            console.log('📜 Scroll dodatków:', {
+                scrollHeight: addonsContainer.scrollHeight,
+                clientHeight: addonsContainer.clientHeight,
+                needsScroll: needsScroll
+            });
+            
+            // Jeśli nie ma potrzeby scrolla, ukryj pasek (ale nie wyłączaj scrollowania)
+            if (!needsScroll) {
+                addonsContainer.style.paddingRight = '0';
+            }
+        }
+    }
+
+    // 🔹 NOWA: Funkcja dostosowania sekcji INFO
+    function adjustInfoSections() {
+        const infoSections = document.querySelectorAll('.info-section');
+        const panel = document.getElementById('swAddonsPanel');
         
-        // 🔹 DLA NOWYCH SKRÓTÓW - DOMYŚLNIE WYŁĄCZONE
-        Object.keys(addonShortcuts).forEach(addonId => {
-            if (shortcutsEnabled[addonId] === undefined) {
-                shortcutsEnabled[addonId] = false;
+        if (!panel || infoSections.length === 0) return;
+        
+        const panelWidth = panel.clientWidth;
+        const isNarrow = panelWidth < 600;
+        
+        infoSections.forEach(section => {
+            if (isNarrow) {
+                // Dla wąskiego panelu zmniejsz paddingi
+                section.style.padding = '15px';
+                section.style.margin = '10px 5px';
+                
+                // Upewnij się, że sekcje nie wychodzą poza panel
+                section.style.maxWidth = 'calc(100% - 10px)';
+                section.style.boxSizing = 'border-box';
+                
+                // Dostosuj tekst
+                const paragraphs = section.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.style.fontSize = '12px';
+                    p.style.lineHeight = '1.4';
+                });
+            } else {
+                // Dla szerokiego panelu przywróć domyślne wartości
+                section.style.padding = '20px';
+                section.style.margin = '0 auto 18px auto';
+                section.style.maxWidth = '800px';
+                
+                const paragraphs = section.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    p.style.fontSize = '';
+                    p.style.lineHeight = '';
+                });
             }
         });
-        
-        saveShortcutsEnabledState();
     }
 
-    // 🔹 NOWA: Uproszczony eksport ustawień (obfuskowany + auto-kopiowanie)
-    function exportSettings() {
-        try {
-            // 🔹 MINIMALNE DANE - BEZ SENSITIVE INFORMATION
-            const settings = {
-                v: '4.5', // version
-                t: Date.now(), // timestamp
-                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), // addons
-                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), // shortcuts
-                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), // shortcuts enabled
-                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), // panel shortcut
-                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), // font size
-                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90) // opacity
-                // NIE EKSPORTUJEMY: license data, account id, admin info
-            };
+    // 🔹 NOWA: Funkcja dostosowania przycisku odświeżania
+    function adjustRefreshButton() {
+        const refreshContainer = document.querySelector('.refresh-button-container');
+        const panel = document.getElementById('swAddonsPanel');
+        
+        if (!refreshContainer || !panel) return;
+        
+        const panelHeight = panel.clientHeight;
+        const panelScrollHeight = panel.scrollHeight;
+        
+        // Jeśli panel jest za wysoki, przesuń przycisk do widocznego miejsca
+        if (panelScrollHeight > panelHeight) {
+            // Upewnij się, że przycisk jest widoczny
+            refreshContainer.style.position = 'relative';
+            refreshContainer.style.bottom = 'auto';
+            refreshContainer.style.marginTop = '15px';
             
-            // 🔹 OBFUSKACJA: Base64 + prosty szyfr
-            const jsonString = JSON.stringify(settings);
-            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
-            
-            // Odwróć string i zamień znaki dla dodatkowej obfuskacji
-            let obfuscated = base64.split('').reverse().join('')
-                .replace(/=/g, '_')
-                .replace(/\+/g, '-')
-                .replace(/\//g, '.');
-            
-            // Dodaj checksum dla weryfikacji
-            const checksum = obfuscated.length.toString(36);
-            obfuscated = checksum + ':' + obfuscated;
-            
-            const textarea = document.getElementById('settingsTextarea');
-            if (textarea) {
-                textarea.value = obfuscated;
-                
-                // 🔹 AUTOMATYCZNE KOPIOWANIE DO SCHOWKA
-                textarea.select();
-                textarea.setSelectionRange(0, 99999);
-                
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        showLicenseMessage('✅ Ustawienia wyeksportowane i skopiowane do schowka!', 'success');
-                    } else {
-                        showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
-                    }
-                } catch (err) {
-                    showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
-                }
-            }
-            
-        } catch (error) {
-            console.error('❌ Błąd eksportu:', error);
-            showLicenseMessage('❌ Błąd eksportu ustawień', 'error');
+            // Zapewnij, że nie jest przycięty
+            refreshContainer.style.overflow = 'visible';
+            refreshContainer.style.zIndex = '1000';
         }
     }
 
-    // 🔹 NOWA: Import obfuskowanych ustawień
-    function importSettings() {
-        const textarea = document.getElementById('settingsTextarea');
-        if (!textarea || !textarea.value.trim()) {
-            showLicenseMessage('❌ Brak danych do importu', 'error');
-            return;
-        }
-        
-        try {
-            let obfuscated = textarea.value.trim();
-            
-            // 🔹 DEKODOWANIE OBFUSKACJI
-            // Sprawdź checksum
-            const parts = obfuscated.split(':');
-            if (parts.length !== 2) {
-                throw new Error('Nieprawidłowy format danych');
-            }
-            
-            const checksum = parts[0];
-            let data = parts[1];
-            
-            // Przywróć oryginalne znaki
-            data = data.replace(/_/g, '=')
-                      .replace(/-/g, '+')
-                      .replace(/\./g, '/')
-                      .split('').reverse().join('');
-            
-            // Sprawdź długość
-            if (parseInt(checksum, 36) !== data.length) {
-                throw new Error('Dane uszkodzone - nieprawidłowa checksum');
-            }
-            
-            // Dekoduj Base64
-            const decoded = decodeURIComponent(escape(atob(data)));
-            const settings = JSON.parse(decoded);
-            
-            if (!settings.v) {
-                throw new Error('Brak informacji o wersji');
-            }
-            
-            if (settings.v !== '4.5') {
-                if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
-                    return;
-                }
-            }
-            
-            // 🔹 IMPORT DANYCH
-            if (settings.a) SW.GM_setValue(CONFIG.FAVORITE_ADDONS, settings.a);
-            if (settings.s) SW.GM_setValue(CONFIG.SHORTCUTS_CONFIG, settings.s);
-            if (settings.se) SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, settings.se);
-            if (settings.p) SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, settings.p);
-            if (settings.f) SW.GM_setValue(CONFIG.FONT_SIZE, settings.f);
-            if (settings.o) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, settings.o);
-            
-            showLicenseMessage('✅ Ustawienia zaimportowane! Odświeżanie...', 'success');
-            setTimeout(() => location.reload(), 2000);
-            
-        } catch (error) {
-            console.error('❌ Błąd importu:', error);
-            showLicenseMessage('❌ Nieprawidłowy format danych importu', 'error');
-        }
-    }
-
-    // 🔹 Inicjalizacja event listenerów
-    function initializeEventListeners() {
-        // Przycisk zapisz i odśwież
-        const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
-        if (saveRestartBtn) {
-            saveRestartBtn.addEventListener('click', () => {
-                saveAddonsState();
-                showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success');
-                setTimeout(() => location.reload(), 1500);
-            });
-        }
-        
-        // Reset ustawień
-        const resetBtn = document.getElementById('swResetButton');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
-                    resetAllSettings();
-                }
-            });
-        }
-        
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI
-        const fontSizeDecrease = document.getElementById('fontSizeDecrease');
-        const fontSizeIncrease = document.getElementById('fontSizeIncrease');
-        
-        if (fontSizeDecrease) {
-            fontSizeDecrease.addEventListener('click', function() {
-                applyFontSize(currentFontSize - 1);
-            });
-        }
-        
-        if (fontSizeIncrease) {
-            fontSizeIncrease.addEventListener('click', function() {
-                applyFontSize(currentFontSize + 1);
-            });
-        }
-        
-        // 🔹 SUWAK PRZEŹROCZYSTOŚCI
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityValue = document.getElementById('opacityValue');
-        if (opacitySlider && opacityValue) {
-            opacitySlider.addEventListener('input', function() {
-                const opacity = parseInt(this.value);
-                opacityValue.textContent = opacity + '%';
-                applyOpacity(opacity);
-            });
-        }
-        
-        // 🔹 FILTRY DODATKÓW
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                renderAddons();
-            });
-        });
-        
-        // 🔹 EKSPORT/IMPORT USTAWIEN
-        const exportBtn = document.getElementById('exportSettingsBtn');
-        const importBtn = document.getElementById('importSettingsBtn');
-        
-        if (exportBtn) {
-            exportBtn.addEventListener('click', exportSettings);
-        }
-        
-        if (importBtn) {
-            importBtn.addEventListener('click', importSettings);
-        }
-        
-        // Wyszukiwanie dodatków
-        const searchInput = document.getElementById('searchAddons');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                searchQuery = this.value.toLowerCase();
-                renderAddons();
-            });
-        }
-        
-        // 🔹 SKRÓT PANELU
-        setupPanelShortcutInput();
-        
-        // 🔹 ZAKŁADKI
-        setupTabs();
-        
-        // 🔹 GLOBALNE SKRÓTY
-        setupGlobalShortcuts();
-    }
-    // 🔹 Setup przeciągania PANELU (CAŁEGO)
+    // 🔹 POPRAWIONE: Setup przeciągania PANELU (CAŁEGO)
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
         const header = document.getElementById('swPanelHeader');
@@ -780,7 +693,7 @@
             const rect = panel.getBoundingClientRect();
             const clickY = e.clientY - rect.top;
             
-            if (clickY <= 90) { // Nagłówek + dodatkowy obszar
+            if (clickY <= 90) {
                 isDragging = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -838,10 +751,7 @@
             });
         }
 
-        // 🔹 Event listeners dla myszy
         panel.addEventListener('mousedown', startDrag);
-        
-        // 🔹 Zapobiegaj domyślnemu zachowaniu przeciągania
         panel.addEventListener('dragstart', (e) => e.preventDefault());
     }
 
@@ -864,7 +774,7 @@
         }
 
         toggleBtn.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return; // Tylko lewy przycisk
+            if (e.button !== 0) return;
             
             isDragging = false;
             startX = e.clientX;
@@ -878,7 +788,7 @@
                 isDragging = true;
                 toggleBtn.classList.add('dragging');
                 toggleBtn.style.cursor = 'grabbing';
-            }, 100); // Opóźnienie, aby odróżnić kliknięcie od przeciągania
+            }, 100);
             
             function onMouseMove(e) {
                 if (!isDragging) return;
@@ -1131,6 +1041,254 @@
         });
     }
 
+    // 🔹 POPRAWIONE: Ładowanie stanu skrótów - DOMYŚLNIE WYŁĄCZONE
+    function loadShortcutsEnabledState() {
+        shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
+        
+        // 🔹 DLA NOWYCH SKRÓTÓW - DOMYŚLNIE WYŁĄCZONE
+        Object.keys(addonShortcuts).forEach(addonId => {
+            if (shortcutsEnabled[addonId] === undefined) {
+                shortcutsEnabled[addonId] = false;
+            }
+        });
+        
+        saveShortcutsEnabledState();
+    }
+
+    // 🔹 NOWA: Uproszczony eksport ustawień (obfuskowany + auto-kopiowanie)
+    function exportSettings() {
+        try {
+            // 🔹 MINIMALNE DANE - BEZ SENSITIVE INFORMATION
+            const settings = {
+                v: '4.6', // version
+                t: Date.now(), // timestamp
+                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), // addons
+                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), // shortcuts
+                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), // shortcuts enabled
+                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), // panel shortcut
+                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), // font size
+                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90) // opacity
+            };
+            
+            // 🔹 OBFUSKACJA: Base64 + prosty szyfr
+            const jsonString = JSON.stringify(settings);
+            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+            
+            // Odwróć string i zamień znaki dla dodatkowej obfuskacji
+            let obfuscated = base64.split('').reverse().join('')
+                .replace(/=/g, '_')
+                .replace(/\+/g, '-')
+                .replace(/\//g, '.');
+            
+            // Dodaj checksum dla weryfikacji
+            const checksum = obfuscated.length.toString(36);
+            obfuscated = checksum + ':' + obfuscated;
+            
+            const textarea = document.getElementById('settingsTextarea');
+            if (textarea) {
+                textarea.value = obfuscated;
+                
+                // 🔹 AUTOMATYCZNE KOPIOWANIE DO SCHOWKA
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showLicenseMessage('✅ Ustawienia wyeksportowane i skopiowane do schowka!', 'success');
+                    } else {
+                        showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
+                    }
+                } catch (err) {
+                    showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Błąd eksportu:', error);
+            showLicenseMessage('❌ Błąd eksportu ustawień', 'error');
+        }
+    }
+
+    // 🔹 NOWA: Import obfuskowanych ustawień
+    function importSettings() {
+        const textarea = document.getElementById('settingsTextarea');
+        if (!textarea || !textarea.value.trim()) {
+            showLicenseMessage('❌ Brak danych do importu', 'error');
+            return;
+        }
+        
+        try {
+            let obfuscated = textarea.value.trim();
+            
+            // 🔹 DEKODOWANIE OBFUSKACJI
+            // Sprawdź checksum
+            const parts = obfuscated.split(':');
+            if (parts.length !== 2) {
+                throw new Error('Nieprawidłowy format danych');
+            }
+            
+            const checksum = parts[0];
+            let data = parts[1];
+            
+            // Przywróć oryginalne znaki
+            data = data.replace(/_/g, '=')
+                      .replace(/-/g, '+')
+                      .replace(/\./g, '/')
+                      .split('').reverse().join('');
+            
+            // Sprawdź długość
+            if (parseInt(checksum, 36) !== data.length) {
+                throw new Error('Dane uszkodzone - nieprawidłowa checksum');
+            }
+            
+            // Dekoduj Base64
+            const decoded = decodeURIComponent(escape(atob(data)));
+            const settings = JSON.parse(decoded);
+            
+            if (!settings.v) {
+                throw new Error('Brak informacji o wersji');
+            }
+            
+            if (settings.v !== '4.6') {
+                if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
+                    return;
+                }
+            }
+            
+            // 🔹 IMPORT DANYCH
+            if (settings.a) SW.GM_setValue(CONFIG.FAVORITE_ADDONS, settings.a);
+            if (settings.s) SW.GM_setValue(CONFIG.SHORTCUTS_CONFIG, settings.s);
+            if (settings.se) SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, settings.se);
+            if (settings.p) SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, settings.p);
+            if (settings.f) SW.GM_setValue(CONFIG.FONT_SIZE, settings.f);
+            if (settings.o) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, settings.o);
+            
+            showLicenseMessage('✅ Ustawienia zaimportowane! Odświeżanie...', 'success');
+            setTimeout(() => location.reload(), 2000);
+            
+        } catch (error) {
+            console.error('❌ Błąd importu:', error);
+            showLicenseMessage('❌ Nieprawidłowy format danych importu', 'error');
+        }
+    }
+
+    // 🔹 Inicjalizacja event listenerów
+    function initializeEventListeners() {
+        // Przycisk zapisz i odśwież
+        const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
+        if (saveRestartBtn) {
+            saveRestartBtn.addEventListener('click', () => {
+                saveAddonsState();
+                showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success');
+                setTimeout(() => location.reload(), 1500);
+            });
+        }
+        
+        // Reset ustawień
+        const resetBtn = document.getElementById('swResetButton');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    resetAllSettings();
+                }
+            });
+        }
+        
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI Z BLOKADĄ
+        const fontSizeDecrease = document.getElementById('fontSizeDecrease');
+        const fontSizeIncrease = document.getElementById('fontSizeIncrease');
+        
+        if (fontSizeDecrease) {
+            fontSizeDecrease.addEventListener('click', function() {
+                if (!this.disabled) {
+                    applyFontSize(currentFontSize - 1);
+                }
+            });
+        }
+        
+        if (fontSizeIncrease) {
+            fontSizeIncrease.addEventListener('click', function() {
+                if (!this.disabled) {
+                    applyFontSize(currentFontSize + 1);
+                }
+            });
+        }
+        
+        // 🔹 SUWAK PRZEŹROCZYSTOŚCI
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.addEventListener('input', function() {
+                const opacity = parseInt(this.value);
+                opacityValue.textContent = opacity + '%';
+                applyOpacity(opacity);
+            });
+        }
+        
+        // 🔹 FILTRY DODATKÓW
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.filter;
+                renderAddons();
+            });
+        });
+        
+        // 🔹 EKSPORT/IMPORT USTAWIEN
+        const exportBtn = document.getElementById('exportSettingsBtn');
+        const importBtn = document.getElementById('importSettingsBtn');
+        
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportSettings);
+        }
+        
+        if (importBtn) {
+            importBtn.addEventListener('click', importSettings);
+        }
+        
+        // Wyszukiwanie dodatków
+        const searchInput = document.getElementById('searchAddons');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.toLowerCase();
+                renderAddons();
+            });
+        }
+        
+        // 🔹 SKRÓT PANELU
+        setupPanelShortcutInput();
+        
+        // 🔹 ZAKŁADKI
+        setupTabs();
+        
+        // 🔹 GLOBALNE SKRÓTY
+        setupGlobalShortcuts();
+        
+        // 🔹 WYMUSZENIE SCROLLA W DODATKACH PO ZAŁADOWANIU
+        setTimeout(() => {
+            forceAddonsScroll();
+            setupMouseWheelSupport();
+        }, 1500);
+        
+        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU (RESIZE)
+        const panel = document.getElementById('swAddonsPanel');
+        if (panel) {
+            let resizeTimeout;
+            
+            const resizeObserver = new ResizeObserver(() => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    forceAddonsScroll();
+                    adjustInfoSections();
+                }, 200);
+            });
+            
+            resizeObserver.observe(panel);
+        }
+    }
+
     // 🔹 Renderowanie dodatków z FILTRAMI
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
@@ -1221,6 +1379,12 @@
                 if (addonId) toggleAddon(addonId, this.checked);
             });
         });
+        
+        // 🔹 PO RENDEROWANIU WYMUŚ SCROLL
+        setTimeout(() => {
+            forceAddonsScroll();
+            adjustRefreshButton();
+        }, 100);
     }
 
     // 🔹 Renderowanie skrótów (DOMYŚLNIE WYŁĄCZONE)
@@ -1245,7 +1409,7 @@
         
         enabledAddons.forEach(addon => {
             const shortcut = addonShortcuts[addon.id] || 'Brak skrótu';
-            const isEnabled = shortcutsEnabled[addon.id] === true; // DOMYŚLNIE FALSE
+            const isEnabled = shortcutsEnabled[addonId] === true;
             
             const item = document.createElement('div');
             item.className = 'shortcut-item';
@@ -1553,6 +1717,9 @@
         panelShortcut = savedShortcut;
         const panelInput = document.getElementById('panelShortcutInput');
         if (panelInput) panelInput.value = panelShortcut;
+        
+        // Inicjalizuj przyciski czcionki
+        updateFontSizeButtons(currentFontSize);
     }
 
     // 🔹 Ładowanie zapisanego stanu
@@ -1851,7 +2018,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.5...');
+        console.log('✅ Initializing Synergy Panel v4.6...');
         
         // Poczekaj na załadowanie DOM
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -1876,6 +2043,17 @@
             renderAddons();
             renderShortcuts();
             
+            // 🔹 WYMUSZENIE SCROLLA I DOSTOSOWANIE
+            setTimeout(() => {
+                forceAddonsScroll();
+                setupMouseWheelSupport();
+                adjustInfoSections();
+                adjustRefreshButton();
+                
+                // Inicjalizuj stan przycisków czcionki
+                updateFontSizeButtons(currentFontSize);
+            }, 1000);
+            
             // Periodyczne sprawdzanie licencji
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
@@ -1884,7 +2062,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.5...');
+    console.log('🎯 Starting Synergy Panel v4.6...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
