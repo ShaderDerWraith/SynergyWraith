@@ -5,7 +5,7 @@
     left: 70px;
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #660000, #990000);
+    background: url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg') center/cover no-repeat;
     border: 2px solid #ff3300;
     border-radius: 50%;
     cursor: grab;
@@ -24,11 +24,7 @@
     padding: 0;
     margin: 0;
     line-height: 1;
-}
-
-#swPanelToggle::before {
-    content: "🎮"; /* Ikona widgetu */
-    font-size: 24px;
+    background-color: transparent !important;
 }
 
 #swPanelToggle.dragging {
@@ -456,46 +452,51 @@
     transform: translateY(-2px);
 }
 
-/* 🔹 PRZYCISK ZAPISZ - NIE UCIĘTY 🔹 */
-.refresh-button-container {
+/* 🔹 PRZYCISK ZAPISZ - ZAWSZE WIDOCZNY, PRZYPIEJTY DO DOŁU 🔹 */
+#addons {
     position: relative;
-    width: 100%;
-    max-width: 800px;
-    padding: 15px;
-    margin: 15px auto 0 auto;
+    min-height: 100%;
+}
+
+.refresh-button-container {
+    margin-top: auto !important;
+    padding: 15px !important;
     background: linear-gradient(to top, 
         rgba(26, 0, 0, 0.98),
-        rgba(51, 0, 0, 0.98));
-    border-top: 2px solid #660000;
-    z-index: 100;
-    box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8);
-    box-sizing: border-box;
-    border-radius: 0 0 8px 8px;
+        rgba(51, 0, 0, 0.98)) !important;
+    border-top: 2px solid #660000 !important;
+    z-index: 1000 !important;
+    box-sizing: border-box !important;
+    border-radius: 0 0 8px 8px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
 }
 
 .refresh-button {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #006600, #008800);
-    border: 1px solid #00cc00;
-    border-radius: 8px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 13px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: block;
-    box-sizing: border-box;
-    text-align: center;
-    margin: 0;
+    width: 100% !important;
+    padding: 14px !important;
+    background: linear-gradient(135deg, #006600, #008800) !important;
+    border: 1px solid #00cc00 !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    transition: all 0.3s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    margin: 0 !important;
 }
 
 .refresh-button:hover {
-    background: linear-gradient(135deg, #008800, #00aa00);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4);
+    background: linear-gradient(135deg, #008800, #00aa00) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4) !important;
 }
 
 /* 🔹 SHORTCUTS LIST 🔹 */
@@ -510,6 +511,7 @@
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
     min-height: 350px;
+    height: calc(100% - 60px);
 }
 
 .shortcut-item {
@@ -802,7 +804,7 @@
     text-align: center;
 }
 
-/* NOWY SYSTEM ZMIANY CZCIONKI - PRZYCISKI GÓRA/DÓŁ */
+/* NOWY SYSTEM ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE */
 .font-size-controls {
     display: flex;
     align-items: center;
@@ -862,6 +864,8 @@
     font-size: 15px;
     font-weight: bold;
     text-align: center;
+    transition: none !important;
+    animation: none !important;
 }
 
 .font-size-display.warning {
@@ -1008,6 +1012,12 @@
 }
 
 /* 🔹 INFO - SYMETRYCZNE OKIENKA, BEZ ROZCIĄGANIA 🔹 */
+#info .sw-tab-content {
+    overflow: hidden !important;
+    position: relative !important;
+    height: 100% !important;
+}
+
 .info-section {
     background: linear-gradient(135deg, 
         rgba(51, 0, 0, 0.9), 
@@ -1065,18 +1075,24 @@
 
 /* 🔹 SCROLLBAR - DZIAŁAJĄCY NA WSZYSTKO 🔹 */
 .scrollable-container {
-    width: 100%;
-    max-width: 800px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 10px;
-    padding-right: 10px;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
-    height: calc(100% - 60px);
-    min-height: 300px;
+    width: 100% !important;
+    max-width: 800px !important;
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    margin-bottom: 10px !important;
+    padding-right: 10px !important;
+    scroll-behavior: smooth !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5) !important;
+    height: calc(100% - 60px) !important;
+    min-height: 300px !important;
+    position: relative !important;
+}
+
+#info .scrollable-container {
+    height: calc(100% - 30px) !important;
+    max-height: none !important;
 }
 
 .scrollable-container::-webkit-scrollbar,
@@ -1219,31 +1235,31 @@
     letter-spacing: 0.5px;
 }
 
-/* 🔹 FIX DLA SCROLLOWANIA ŚRODKOWYM PRZYCISKIEM 🔹 */
-.addon-list-container,
-.shortcuts-list-container,
-.scrollable-container,
-.license-scroll-container {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+/* 🔹 ACTIVE SCROLL STATE 🔹 */
+.active-scroll {
+    cursor: grabbing !important;
+    user-select: none !important;
 }
 
-/* Obsługa scrollowania środkowym przyciskiem */
-.addon-list-container.active-scroll,
-.shortcuts-list-container.active-scroll,
-.scrollable-container.active-scroll,
-.license-scroll-container.active-scroll {
-    cursor: grabbing;
-    user-select: none;
+.active-scroll * {
+    pointer-events: none !important;
 }
 
-/* 🔹 RESPONSYWNOŚĆ - POPRAWIONA DLA ŚCIŚNIĘTEGO PANELU 🔹 */
+/* 🔹 RESPONSYWNOŚĆ 🔹 */
 @media (max-width: 900px) {
     #swAddonsPanel {
         width: 90vw !important;
         min-width: 320px;
         max-width: 95vw;
+    }
+    
+    .refresh-button-container {
+        padding: 12px !important;
+    }
+    
+    .refresh-button {
+        padding: 12px !important;
+        font-size: 12px !important;
     }
     
     .info-section {
@@ -1262,92 +1278,24 @@
         font-size: 12px;
         line-height: 1.4;
     }
-    
-    .addon-list-container {
-        max-height: calc(100% - 200px);
+}
+
+@media (max-height: 600px) {
+    #addons {
+        padding-bottom: 80px;
     }
     
     .refresh-button-container {
-        padding: 12px;
-        margin-top: 10px;
+        padding: 10px !important;
     }
     
     .refresh-button {
-        padding: 12px;
-        font-size: 12px;
-    }
-    
-    .license-status-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .license-status-value {
-        margin-left: 0;
-        text-align: left;
-        justify-content: flex-start;
-        max-width: 100%;
+        padding: 10px !important;
+        font-size: 11px !important;
     }
 }
 
-@media (max-width: 500px) {
-    #swAddonsPanel {
-        min-width: 300px;
-        min-height: 400px;
-    }
-    
-    .tablink {
-        font-size: 10px !important;
-        padding: 8px 4px !important;
-        min-width: 60px;
-    }
-    
-    .addon-filters {
-        gap: 8px;
-    }
-    
-    .filter-btn {
-        min-width: 70px;
-        padding: 6px 8px;
-        font-size: 10px;
-    }
-    
-    .shortcut-info {
-        min-width: 100%;
-        margin-right: 0;
-    }
-    
-    .shortcut-controls {
-        justify-content: space-between;
-        width: 100%;
-    }
-}
-
-/* 🔹 POPRAWKI DLA MAŁYCH EKRANÓW 🔹 */
-@media (max-height: 700px) {
-    #swAddonsPanel {
-        height: 85vh !important;
-        max-height: 85vh;
-    }
-    
-    .addon-list-container {
-        max-height: calc(100% - 160px);
-    }
-    
-    .addon {
-        padding: 12px 14px;
-        min-height: 55px;
-        margin-bottom: 8px;
-    }
-    
-    .refresh-button {
-        padding: 10px;
-        font-size: 11px;
-    }
-}
-
-/* 🔹 ANIMACJE I DODATKOWE EFEKTY 🔹 */
+/* 🔹 ANIMACJE 🔹 */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -1357,7 +1305,7 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-/* 🔹 FOCUS STATES DLA DOSTĘPNOŚCI 🔹 */
+/* 🔹 FOCUS STATES 🔹 */
 .font-size-btn:focus,
 .filter-btn:focus,
 .shortcut-set-btn:focus,
@@ -1368,15 +1316,4 @@
 .refresh-button:focus {
     outline: 2px solid #ffcc00;
     outline-offset: 2px;
-}
-
-/* 🔹 CUSTOM SCROLLBAR FOR FIREFOX 🔹 */
-@supports (scrollbar-width: thin) {
-    .scrollable-container,
-    .addon-list-container,
-    .shortcuts-list-container,
-    .license-scroll-container {
-        scrollbar-width: thin;
-        scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
-    }
 }

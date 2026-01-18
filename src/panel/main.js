@@ -43,6 +43,7 @@
             padding: 0;
             margin: 0;
             line-height: 1;
+            background-color: transparent !important;
         }
 
         #swPanelToggle.dragging {
@@ -474,27 +475,22 @@
         #addons {
             position: relative;
             min-height: 100%;
-            padding-bottom: 90px;
         }
 
         .refresh-button-container {
-            position: absolute !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
+            margin-top: auto !important;
             padding: 15px !important;
             background: linear-gradient(to top, 
                 rgba(26, 0, 0, 0.98),
                 rgba(51, 0, 0, 0.98)) !important;
             border-top: 2px solid #660000 !important;
             z-index: 1000 !important;
-            box-shadow: 0 -6px 25px rgba(0, 0, 0, 0.8) !important;
             box-sizing: border-box !important;
             border-radius: 0 0 8px 8px !important;
-            margin-top: auto !important;
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
+            width: 100% !important;
         }
 
         .refresh-button {
@@ -1513,7 +1509,7 @@
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize - NATYCHMIASTOWE DZIAŁANIE
+    // 🔹 POPRAWIONE: Funkcja applyFontSize - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
     function applyFontSize(size) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -1521,8 +1517,10 @@
         const minSize = 10;
         const maxSize = 16;
         
-        // NATYCHMIASTOWA BLOKADA
-        const clampedSize = Math.max(minSize, Math.min(maxSize, size));
+        // NATYCHMIASTOWA BLOKADA - BEZ POŚREDNICH WARTOŚCI
+        let clampedSize = size;
+        if (size < minSize) clampedSize = minSize;
+        if (size > maxSize) clampedSize = maxSize;
         
         // Jeśli wartość się nie zmieniła, wyjdź
         if (currentFontSize === clampedSize) return;
@@ -1770,7 +1768,7 @@
                                       placeholder="Dane pojawią się tutaj po eksporcie..."></textarea>
                         </div>
                         
-                        <div style="margin-top:20px; padding-top:15px; border-top:1px solid #660000; width:100%; max-width:600px;">
+                        <div style="margin:20px auto 0 auto; padding-top:15px; border-top:1px solid #660000; width:100%; max-width:600px; text-align:center;">
                             <button id="swResetButton">🔄 Resetuj ustawienia</button>
                         </div>
                     </div>
@@ -1820,7 +1818,7 @@
         `;
     }
 
-    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy (DODANE INFO I SETTINGS)
+    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy
     function setupMouseWheelSupport() {
         console.log('🖱️ Konfiguracja scrollowania myszą...');
         
@@ -1856,7 +1854,7 @@
                         }
                     }, { passive: false });
                     
-                    // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
+                    // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY - DLA WSZYSTKICH KONTENERÓW
                     container.addEventListener('mousedown', function(e) {
                         if (e.button === 1) {
                             e.preventDefault();
@@ -1891,7 +1889,7 @@
                     console.log(`✅ Skonfigurowano scroll dla: ${selector}`);
                 });
             });
-        }, 1500);
+        }, 100);
     }
 
     // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla w dodatkach
@@ -1911,28 +1909,6 @@
                 needsScroll: addonsContainer.scrollHeight > addonsContainer.clientHeight
             });
         }
-    }
-
-    // 🔹 NOWA: Funkcja wymuszenia pozycji przycisku zapisz
-    function fixSaveButtonPosition() {
-        const addonsTab = document.getElementById('addons');
-        const refreshContainer = document.querySelector('.refresh-button-container');
-        
-        if (!addonsTab || !refreshContainer) return;
-        
-        addonsTab.style.position = 'relative';
-        addonsTab.style.minHeight = '400px';
-        
-        refreshContainer.style.position = 'absolute';
-        refreshContainer.style.bottom = '0';
-        refreshContainer.style.left = '0';
-        refreshContainer.style.right = '0';
-        refreshContainer.style.zIndex = '1000';
-        refreshContainer.style.display = 'block';
-        refreshContainer.style.visibility = 'visible';
-        refreshContainer.style.opacity = '1';
-        
-        console.log('✅ Przycisk zapisz przypięty do dołu zakładki');
     }
 
     // 🔹 POPRAWIONE: Setup przeciągania PANELU
@@ -2217,10 +2193,13 @@
                     setTimeout(renderShortcuts, 100);
                 }
                 
-                // Napraw pozycję przycisku po przełączeniu na addons
-                if (tabName === 'addons') {
-                    setTimeout(fixSaveButtonPosition, 50);
-                }
+                // Inicjalizuj scroll dla nowo otwartej zakładki
+                setTimeout(() => {
+                    setupMouseWheelSupport();
+                    if (tabName === 'addons') {
+                        forceAddonsScroll();
+                    }
+                }, 50);
             });
         });
     }
@@ -2438,7 +2417,7 @@
             });
         }
         
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
         const fontSizeDecrease = document.getElementById('fontSizeDecrease');
         const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
@@ -2509,28 +2488,11 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 WYMUSZENIE SCROLLA I POZYCJI PRZYCISKU
+        // 🔹 WYMUSZENIE SCROLLA
         setTimeout(() => {
             forceAddonsScroll();
             setupMouseWheelSupport();
-            fixSaveButtonPosition();
-        }, 1500);
-        
-        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU
-        const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            let resizeTimeout;
-            
-            const resizeObserver = new ResizeObserver(() => {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    forceAddonsScroll();
-                    fixSaveButtonPosition();
-                }, 200);
-            });
-            
-            resizeObserver.observe(panel);
-        }
+        }, 100);
     }
 
     // 🔹 Renderowanie dodatków z FILTRAMI
@@ -2622,7 +2584,6 @@
         
         setTimeout(() => {
             forceAddonsScroll();
-            fixSaveButtonPosition();
         }, 100);
     }
 
@@ -3265,10 +3226,9 @@
             setTimeout(() => {
                 forceAddonsScroll();
                 setupMouseWheelSupport();
-                fixSaveButtonPosition();
                 
                 updateFontSizeButtons(currentFontSize);
-            }, 1000);
+            }, 100);
             
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
