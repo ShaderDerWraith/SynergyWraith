@@ -254,7 +254,7 @@
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
             min-height: 200px;
-            max-height: 350px;
+            max-height: calc(100% - 180px);
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -471,7 +471,7 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ - ZAWSZE WIDOCZNY, PRZYPIEJTY DO DOŁU 🔹 */
+        /* 🔹 PRZYCISK ZAPISZ - ZAWSZE NA DOLE PANELU 🔹 */
         #addons {
             position: relative;
             min-height: 100%;
@@ -492,7 +492,7 @@
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
-            position: relative !important;
+            position: absolute !important;
             bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
@@ -1903,25 +1903,6 @@
         }, 500);
     }
 
-    // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla w dodatkach
-    function forceAddonsScroll() {
-        const addonsContainer = document.querySelector('.addon-list-container');
-        if (addonsContainer) {
-            addonsContainer.style.display = 'none';
-            void addonsContainer.offsetHeight;
-            addonsContainer.style.display = '';
-            
-            addonsContainer.style.overflowY = 'auto';
-            addonsContainer.style.overflowX = 'hidden';
-            
-            console.log('📜 Scroll dodatków:', {
-                scrollHeight: addonsContainer.scrollHeight,
-                clientHeight: addonsContainer.clientHeight,
-                needsScroll: addonsContainer.scrollHeight > addonsContainer.clientHeight
-            });
-        }
-    }
-
     // 🔹 POPRAWIONE: Setup przeciągania PANELU
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
@@ -2207,9 +2188,6 @@
                 // Inicjalizuj scroll dla nowo otwartej zakładki
                 setTimeout(() => {
                     setupMouseWheelSupport();
-                    if (tabName === 'addons') {
-                        forceAddonsScroll();
-                    }
                 }, 50);
             });
         });
@@ -2499,9 +2477,8 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 WYMUSZENIE SCROLLA
+        // 🔹 SCROLL MYSZĄ
         setTimeout(() => {
-            forceAddonsScroll();
             setupMouseWheelSupport();
         }, 500);
     }
@@ -2592,10 +2569,6 @@
                 if (addonId) toggleAddon(addonId, this.checked);
             });
         });
-        
-        setTimeout(() => {
-            forceAddonsScroll();
-        }, 100);
     }
 
     // 🔹 POPRAWIONE: Renderowanie skrótów (POKAZUJE WŁĄCZONE DODATKI)
@@ -3248,9 +3221,7 @@
             renderShortcuts();
             
             setTimeout(() => {
-                forceAddonsScroll();
                 setupMouseWheelSupport();
-                
                 updateFontSizeButtons(currentFontSize);
             }, 500);
             

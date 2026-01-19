@@ -234,7 +234,7 @@
     scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
     height: auto;
-    min-height: 300px;
+    min-height: 200px;
     max-height: calc(100% - 180px);
 }
 
@@ -452,10 +452,11 @@
     transform: translateY(-2px);
 }
 
-/* 🔹 PRZYCISK ZAPISZ - ZAWSZE WIDOCZNY, PRZYPIEJTY DO DOŁU 🔹 */
+/* 🔹 PRZYCISK ZAPISZ - ZAWSZE NA DOLE PANELU 🔹 */
 #addons {
     position: relative;
     min-height: 100%;
+    padding-bottom: 0;
 }
 
 .refresh-button-container {
@@ -472,6 +473,10 @@
     visibility: visible !important;
     opacity: 1 !important;
     width: 100% !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
 }
 
 .refresh-button {
@@ -1281,8 +1286,8 @@
 }
 
 @media (max-height: 600px) {
-    #addons {
-        padding-bottom: 80px;
+    .addon-list-container {
+        max-height: 250px !important;
     }
     
     .refresh-button-container {
