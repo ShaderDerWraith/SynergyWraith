@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Synergy Panel v4.6 - Final Edition (Fixed)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.1
+// @version      4.6.2
 // @description  Zaawansowany panel dodatków do gry z systemem licencji
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.1 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.2 (Fixed Edition)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -253,8 +253,8 @@
             scrollbar-width: thin;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
-            min-height: 300px;
-            max-height: calc(100% - 180px);
+            min-height: 200px;
+            max-height: 350px;
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -475,6 +475,7 @@
         #addons {
             position: relative;
             min-height: 100%;
+            padding-bottom: 0;
         }
 
         .refresh-button-container {
@@ -491,6 +492,10 @@
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
+            position: relative !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
         }
 
         .refresh-button {
@@ -1300,8 +1305,8 @@
         }
 
         @media (max-height: 600px) {
-            #addons {
-                padding-bottom: 80px;
+            .addon-list-container {
+                max-height: 250px !important;
             }
             
             .refresh-button-container {
@@ -1509,25 +1514,23 @@
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
-    function applyFontSize(size) {
+    // 🔹 POPRAWIONE: Funkcja applyFontSize - NATYCHMIASTOWE DZIAŁANIE Z ZAPISEM
+    function applyFontSize(size, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
         const minSize = 10;
         const maxSize = 16;
         
-        // NATYCHMIASTOWA BLOKADA - BEZ POŚREDNICH WARTOŚCI
-        let clampedSize = size;
-        if (size < minSize) clampedSize = minSize;
-        if (size > maxSize) clampedSize = maxSize;
-        
-        // Jeśli wartość się nie zmieniła, wyjdź
-        if (currentFontSize === clampedSize) return;
+        // NATYCHMIASTOWA BLOKADA
+        const clampedSize = Math.max(minSize, Math.min(maxSize, size));
         
         // ZAPISZ NOWĄ WARTOŚĆ
         currentFontSize = clampedSize;
-        SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
+        
+        if (!skipSave) {
+            SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
+        }
         
         // NATYCHMIASTOWA AKTUALIZACJA PANELU
         panel.style.fontSize = clampedSize + 'px';
@@ -1572,7 +1575,7 @@
     }
 
     // 🔹 POPRAWIONE: Funkcja applyOpacity
-    function applyOpacity(opacity) {
+    function applyOpacity(opacity, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
             const minOpacity = 30;
@@ -1580,7 +1583,10 @@
             const clampedOpacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
             
             panel.style.opacity = clampedOpacity / 100;
-            SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clampedOpacity);
+            
+            if (!skipSave) {
+                SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clampedOpacity);
+            }
             
             const opacityValueEl = document.getElementById('opacityValue');
             if (opacityValueEl) {
@@ -1617,7 +1623,7 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.1 Fixed');
+        console.log('✅ Panel created - v4.6.2 Fixed');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -1818,78 +1824,83 @@
         `;
     }
 
-    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy
+    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy (DZIAŁAJĄCY)
     function setupMouseWheelSupport() {
         console.log('🖱️ Konfiguracja scrollowania myszą...');
         
-        const scrollContainers = [
-            '.addon-list-container',
-            '.shortcuts-list-container',
-            '.scrollable-container',
-            '.license-scroll-container'
-        ];
-        
-        setTimeout(() => {
-            scrollContainers.forEach(selector => {
-                const containers = document.querySelectorAll(selector);
-                containers.forEach(container => {
-                    if (!container) return;
-                    
-                    // WŁĄCZ SCROLL
-                    container.style.overflowY = 'auto';
-                    container.style.overflowX = 'hidden';
-                    
-                    // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
-                    container.addEventListener('wheel', function(e) {
-                        if (this.scrollHeight > this.clientHeight) {
-                            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                                const isAtTop = this.scrollTop === 0;
-                                const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
-                                
-                                if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                }
-                            }
-                        }
-                    }, { passive: false });
-                    
-                    // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY - DLA WSZYSTKICH KONTENERÓW
-                    container.addEventListener('mousedown', function(e) {
-                        if (e.button === 1) {
-                            e.preventDefault();
+        const setupScrollForElement = (element) => {
+            if (!element) return;
+            
+            // WŁĄCZ SCROLL
+            element.style.overflowY = 'auto';
+            element.style.overflowX = 'hidden';
+            
+            // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
+            element.addEventListener('wheel', function(e) {
+                if (this.scrollHeight > this.clientHeight) {
+                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                        const isAtTop = this.scrollTop === 0;
+                        const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
+                        
+                        if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
                             e.stopPropagation();
-                            
-                            this.classList.add('active-scroll');
-                            const originalCursor = this.style.cursor;
-                            this.style.cursor = 'grabbing';
-                            
-                            const startY = e.clientY;
-                            const startScrollTop = this.scrollTop;
-                            
-                            const mouseMoveHandler = (moveEvent) => {
-                                const deltaY = moveEvent.clientY - startY;
-                                this.scrollTop = startScrollTop - deltaY * 2;
-                                moveEvent.preventDefault();
-                                moveEvent.stopPropagation();
-                            };
-                            
-                            const mouseUpHandler = () => {
-                                document.removeEventListener('mousemove', mouseMoveHandler);
-                                document.removeEventListener('mouseup', mouseUpHandler);
-                                this.classList.remove('active-scroll');
-                                this.style.cursor = originalCursor;
-                            };
-                            
-                            document.addEventListener('mousemove', mouseMoveHandler);
-                            document.addEventListener('mouseup', mouseUpHandler);
+                            e.preventDefault();
                         }
-                    });
+                    }
+                }
+            }, { passive: false });
+            
+            // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
+            element.addEventListener('mousedown', function(e) {
+                if (e.button === 1) { // Środkowy przycisk myszy
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    console.log(`✅ Skonfigurowano scroll dla: ${selector}`);
-                });
+                    this.classList.add('active-scroll');
+                    const originalCursor = this.style.cursor;
+                    this.style.cursor = 'grabbing';
+                    
+                    const startY = e.clientY;
+                    const startScrollTop = this.scrollTop;
+                    
+                    const mouseMoveHandler = (moveEvent) => {
+                        const deltaY = moveEvent.clientY - startY;
+                        this.scrollTop = startScrollTop - deltaY * 2;
+                        moveEvent.preventDefault();
+                        moveEvent.stopPropagation();
+                    };
+                    
+                    const mouseUpHandler = () => {
+                        document.removeEventListener('mousemove', mouseMoveHandler);
+                        document.removeEventListener('mouseup', mouseUpHandler);
+                        this.classList.remove('active-scroll');
+                        this.style.cursor = originalCursor;
+                    };
+                    
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                }
             });
-        }, 100);
+            
+            console.log('✅ Skonfigurowano scroll dla elementu:', element.className || element.id);
+        };
+        
+        // Ustaw dla wszystkich kontenerów z scrollowaniem
+        setTimeout(() => {
+            const scrollableElements = [
+                document.querySelector('.addon-list-container'),
+                document.querySelector('.shortcuts-list-container'),
+                document.querySelector('.license-scroll-container'),
+                document.querySelector('.scrollable-container')
+            ];
+            
+            scrollableElements.forEach(setupScrollForElement);
+            
+            // Dodatkowo dla wszystkich elementów z klasą .scrollable-container
+            document.querySelectorAll('.scrollable-container').forEach(setupScrollForElement);
+            
+            console.log('✅ Konfiguracja scrollowania zakończona');
+        }, 500);
     }
 
     // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla w dodatkach
@@ -2492,7 +2503,7 @@
         setTimeout(() => {
             forceAddonsScroll();
             setupMouseWheelSupport();
-        }, 100);
+        }, 500);
     }
 
     // 🔹 Renderowanie dodatków z FILTRAMI
@@ -2895,19 +2906,32 @@
         return messageEl;
     }
 
-    // 🔹 Ładowanie ustawień
+    // 🔹 POPRAWIONE: Ładowanie ustawień z ZAPISEM wartości
     function loadSettings() {
         const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 13));
         currentFontSize = savedFontSize;
-        applyFontSize(savedFontSize);
+        
+        // Zastosuj czcionkę natychmiast (skipSave=true żeby nie zapisywać ponownie)
+        applyFontSize(savedFontSize, true);
         
         const savedOpacity = parseInt(SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90));
-        applyOpacity(savedOpacity);
+        applyOpacity(savedOpacity, true);
         
         const savedShortcut = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         panelShortcut = savedShortcut;
         const panelInput = document.getElementById('panelShortcutInput');
         if (panelInput) panelInput.value = panelShortcut;
+        
+        // Ustaw wartości w inputach
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        if (fontSizeValue) fontSizeValue.textContent = savedFontSize + 'px';
+        
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.value = savedOpacity;
+            opacityValue.textContent = savedOpacity + '%';
+        }
         
         updateFontSizeButtons(currentFontSize);
     }
@@ -3204,7 +3228,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.1...');
+        console.log('✅ Initializing Synergy Panel v4.6.2...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3228,7 +3252,7 @@
                 setupMouseWheelSupport();
                 
                 updateFontSizeButtons(currentFontSize);
-            }, 100);
+            }, 500);
             
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
@@ -3237,7 +3261,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.1...');
+    console.log('🎯 Starting Synergy Panel v4.6.2...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
