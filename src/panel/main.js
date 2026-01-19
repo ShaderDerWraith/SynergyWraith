@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Synergy Panel v4.6 - Final Edition (Fixed)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.3
+// @version      4.6.4
 // @description  Zaawansowany panel dodatków do gry z systemem licencji
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.3 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.4 (Improved Scrolling Edition)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -245,7 +245,7 @@
         .addon-list-container {
             width: 100%;
             max-width: 800px;
-            flex: 1;
+            flex: 1 1 auto !important; /* FLEX-GROW FLEX-SHRINK FLEX-BASIS */
             overflow-y: auto !important;
             overflow-x: hidden;
             margin-bottom: 10px;
@@ -253,8 +253,11 @@
             scrollbar-width: thin;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
-            min-height: 200px;
-            max-height: 350px !important;
+            min-height: 0 !important; /* WYMUSZENIE MOŻLIWOŚCI KURCZENIA */
+            max-height: none !important; /* USUNIĘCIE STAŁEJ WYSOKOŚCI */
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -279,6 +282,8 @@
 
         .addon-list {
             width: 100%;
+            flex: 1;
+            min-height: 0;
         }
 
         .addon {
@@ -439,6 +444,7 @@
             max-width: 800px;
             justify-content: center;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
         .filter-btn {
@@ -476,6 +482,14 @@
             position: relative;
             min-height: 100%;
             padding-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #addons .sw-tab-content {
+            padding-bottom: 80px !important; /* WIĘCEJ MIEJSCA NA PRZYCISK */
         }
 
         .refresh-button-container {
@@ -496,6 +510,7 @@
             bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
+            flex-shrink: 0;
         }
 
         .refresh-button {
@@ -1231,6 +1246,7 @@
             outline: none;
             transition: all 0.3s ease;
             margin-bottom: 15px;
+            flex-shrink: 0;
         }
 
         #searchAddons:focus {
@@ -1265,6 +1281,8 @@
                 width: 90vw !important;
                 min-width: 320px;
                 max-width: 95vw;
+                height: 80vh !important;
+                min-height: 400px;
             }
             
             .refresh-button-container {
@@ -1292,11 +1310,22 @@
                 font-size: 12px;
                 line-height: 1.4;
             }
+            
+            .addon-list-container {
+                max-height: none !important;
+                flex: 1 1 auto !important;
+            }
         }
 
         @media (max-height: 600px) {
+            #swAddonsPanel {
+                height: 70vh !important;
+                min-height: 350px;
+            }
+            
             .addon-list-container {
-                max-height: 250px !important;
+                min-height: 150px !important;
+                max-height: none !important;
             }
             
             .refresh-button-container {
@@ -1330,6 +1359,18 @@
         .refresh-button:focus {
             outline: 2px solid #ffcc00;
             outline-offset: 2px;
+        }
+        
+        /* 🔹 POPRAWKI DLA SCROLLOWANIA PRZY SKALOWANIU 🔹 */
+        #addons .sw-tab-content {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+            flex: 1 !important;
+        }
+        
+        #addons .sw-tab-content > *:not(.addon-list-container):not(.refresh-button-container) {
+            flex-shrink: 0 !important;
         }
     `;
 
@@ -1613,7 +1654,7 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.3 Fixed');
+        console.log('✅ Panel created - v4.6.4 Improved Scrolling');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -1642,7 +1683,7 @@
             <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
+                    <div style="width:100%; max-width:800px; margin:0 auto 15px auto; flex-shrink: 0;">
                         <input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." 
                                style="width:100%; padding:12px 15px; background:rgba(51,0,0,0.8); 
                                       border:1px solid #660000; border-radius:6px; color:#ffcc00; 
@@ -1838,6 +1879,45 @@
         `;
     }
 
+    // 🔹 NOWA: Funkcja poprawiająca scrollowanie w zakładce dodatków
+    function improveAddonsScrolling() {
+        console.log('🔄 Poprawianie scrollowania w zakładce dodatków...');
+        
+        const addonsTab = document.getElementById('addons');
+        if (!addonsTab) return;
+        
+        // Upewnij się, że kontener z listą dodatków ma odpowiednie właściwości flex
+        const addonListContainer = addonsTab.querySelector('.addon-list-container');
+        const addonList = addonsTab.querySelector('#addon-list');
+        
+        if (addonListContainer && addonList) {
+            // Wymusz właściwości flex
+            addonListContainer.style.flex = '1 1 auto';
+            addonListContainer.style.minHeight = '0';
+            addonListContainer.style.maxHeight = 'none';
+            
+            addonList.style.flex = '1';
+            addonList.style.minHeight = '0';
+            
+            console.log('✅ Poprawiono właściwości scrollowania dla dodatków');
+        }
+        
+        // Dodaj obsługę resize okna
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                if (addonListContainer) {
+                    addonListContainer.style.maxHeight = 'none';
+                    addonListContainer.style.flex = '1 1 auto';
+                    
+                    // Wymuś przeliczenie layoutu
+                    addonListContainer.style.display = 'none';
+                    void addonListContainer.offsetHeight;
+                    addonListContainer.style.display = '';
+                }
+            }, 100);
+        });
+    }
+
     // 🔹 UPROSZCZONE: Funkcja scrollowania jak na normalnej stronie
     function setupNormalScrolling() {
         console.log('🖱️ Konfiguracja normalnego scrollowania...');
@@ -1912,9 +1992,11 @@
                 container.style.overflowY = 'auto';
                 container.style.overflowX = 'hidden';
                 
-                // Wymuś odpowiednią wysokość
+                // Dla addon-list-container usuń max-height
                 if (selector === '.addon-list-container') {
-                    container.style.maxHeight = '350px';
+                    container.style.maxHeight = 'none';
+                    container.style.flex = '1 1 auto';
+                    container.style.minHeight = '0';
                 }
             }
         });
@@ -2202,10 +2284,17 @@
                     setTimeout(renderShortcuts, 100);
                 }
                 
-                // Inicjalizuj scroll dla nowo otwartej zakładki
-                setTimeout(() => {
-                    forceScrollVisibility();
-                }, 50);
+                if (tabName === 'addons') {
+                    setTimeout(() => {
+                        improveAddonsScrolling();
+                        forceScrollVisibility();
+                    }, 50);
+                } else {
+                    // Inicjalizuj scroll dla nowo otwartej zakładki
+                    setTimeout(() => {
+                        forceScrollVisibility();
+                    }, 50);
+                }
             });
         });
     }
@@ -2494,8 +2583,10 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 WYMUSZENIE SCROLLA
+        // 🔹 POPRAW SCROLLOWANIE W DODATKACH
         setTimeout(() => {
+            improveAddonsScrolling();
+            setupNormalScrolling();
             forceScrollVisibility();
         }, 1000);
     }
@@ -2588,6 +2679,7 @@
         });
         
         setTimeout(() => {
+            improveAddonsScrolling();
             forceScrollVisibility();
         }, 100);
     }
@@ -3222,7 +3314,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.3...');
+        console.log('✅ Initializing Synergy Panel v4.6.4...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3238,6 +3330,7 @@
         // 🔹 Ustaw normalne scrollowanie
         setTimeout(() => {
             setupNormalScrolling();
+            improveAddonsScrolling();
         }, 300);
         
         setTimeout(async () => {
@@ -3249,7 +3342,16 @@
             setTimeout(() => {
                 forceScrollVisibility();
                 updateFontSizeButtons(currentFontSize);
+                improveAddonsScrolling();
             }, 500);
+            
+            // Obsługa zmiany rozmiaru okna
+            window.addEventListener('resize', function() {
+                setTimeout(() => {
+                    improveAddonsScrolling();
+                    forceScrollVisibility();
+                }, 100);
+            });
             
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
@@ -3258,7 +3360,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.3...');
+    console.log('🎯 Starting Synergy Panel v4.6.4...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
