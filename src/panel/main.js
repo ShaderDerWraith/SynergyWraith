@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Synergy Panel v4.6 - Final Edition (Fixed)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.2
+// @version      4.6.3
 // @description  Zaawansowany panel dodatków do gry z systemem licencji
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.2 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.3 (Fixed Edition)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -254,7 +254,7 @@
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
             min-height: 200px;
-            max-height: calc(100% - 180px);
+            max-height: 350px !important;
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -1623,7 +1623,7 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.2 Fixed');
+        console.log('✅ Panel created - v4.6.3 Fixed');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -1804,7 +1804,31 @@
                                 <p>• Automatyczne odświeżanie statusu</p>
                             </div>
                             
-                            <div class="info-section">
+                            <div class="info-section {
+        color: #ffcc00;
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 12px 0;
+        padding-left: 10px;
+        position: relative;
+    }
+
+    .info-section p::before {
+        content: "•";
+        color: #ff6600;
+        font-size: 16px;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .info-section p[style*="color:#00ff00"]::before {
+        color: #00ff00;
+    }
+
+    .info-section p[style*="color:#ff9966"]::before {
+        color: #ff9966;
+    }">
                                 <h4>Nowe Funkcje</h4>
                                 <p>• Eksport/Import ustawień</p>
                                 <p>• Filtry dodatków</p>
@@ -1901,6 +1925,35 @@
             
             console.log('✅ Konfiguracja scrollowania zakończona');
         }, 500);
+    }
+
+    // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla
+    function forceScrollVisibility() {
+        const containers = [
+            '.addon-list-container',
+            '.shortcuts-list-container',
+            '.license-scroll-container',
+            '.scrollable-container'
+        ];
+        
+        containers.forEach(selector => {
+            const container = document.querySelector(selector);
+            if (container) {
+                // Wymuś ponowne obliczenie layoutu
+                container.style.display = 'none';
+                void container.offsetHeight;
+                container.style.display = '';
+                
+                // Wymuś widoczność scrolla
+                container.style.overflowY = 'auto';
+                container.style.overflowX = 'hidden';
+                
+                // Wymuś odpowiednią wysokość
+                if (selector === '.addon-list-container') {
+                    container.style.maxHeight = '350px';
+                }
+            }
+        });
     }
 
     // 🔹 POPRAWIONE: Setup przeciągania PANELU
@@ -2188,6 +2241,7 @@
                 // Inicjalizuj scroll dla nowo otwartej zakładki
                 setTimeout(() => {
                     setupMouseWheelSupport();
+                    forceScrollVisibility();
                 }, 50);
             });
         });
@@ -2477,10 +2531,11 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 SCROLL MYSZĄ
+        // 🔹 WYMUSZENIE SCROLLA
         setTimeout(() => {
             setupMouseWheelSupport();
-        }, 500);
+            forceScrollVisibility();
+        }, 1000);
     }
 
     // 🔹 Renderowanie dodatków z FILTRAMI
@@ -2569,6 +2624,10 @@
                 if (addonId) toggleAddon(addonId, this.checked);
             });
         });
+        
+        setTimeout(() => {
+            forceScrollVisibility();
+        }, 100);
     }
 
     // 🔹 POPRAWIONE: Renderowanie skrótów (POKAZUJE WŁĄCZONE DODATKI)
@@ -3201,7 +3260,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.2...');
+        console.log('✅ Initializing Synergy Panel v4.6.3...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3222,6 +3281,7 @@
             
             setTimeout(() => {
                 setupMouseWheelSupport();
+                forceScrollVisibility();
                 updateFontSizeButtons(currentFontSize);
             }, 500);
             
@@ -3232,7 +3292,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.2...');
+    console.log('🎯 Starting Synergy Panel v4.6.3...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
