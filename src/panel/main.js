@@ -1259,16 +1259,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* 🔹 ACTIVE SCROLL STATE 🔹 */
-        .active-scroll {
-            cursor: grabbing !important;
-            user-select: none !important;
-        }
-
-        .active-scroll * {
-            pointer-events: none !important;
-        }
-
         /* 🔹 RESPONSYWNOŚĆ 🔹 */
         @media (max-width: 900px) {
             #swAddonsPanel {
@@ -1848,65 +1838,39 @@
         `;
     }
 
-    // 🔹 NOWA: Funkcja scrollowania środkowym przyciskiem myszy (DZIAŁAJĄCA)
-    function setupMouseWheelSupport() {
-        console.log('🖱️ Konfiguracja scrollowania myszą...');
+    // 🔹 UPROSZCZONE: Funkcja scrollowania jak na normalnej stronie
+    function setupNormalScrolling() {
+        console.log('🖱️ Konfiguracja normalnego scrollowania...');
         
         const setupScrollForElement = (element) => {
             if (!element) return;
             
-            // WŁĄCZ SCROLL
+            // WŁĄCZ NORMALNY SCROLL
             element.style.overflowY = 'auto';
             element.style.overflowX = 'hidden';
             
-            // 🔹 ZAPOBIEGAJ DOMYŚLNEMU SCROLLOWANIU STRONY
+            // 🔹 POZWÓŁ NA NORMALNE SCROLLOWANIE KÓŁKIEM MYSZY
+            // Przeglądarka automatycznie obsłuży scrollowanie wewnątrz kontenera
+            // gdy kursor jest nad nim
+            
+            // 🔹 ZAPOBIEGAJ TYLKO PRZENOSZENIU SCROLLOWANIA NA STRONĘ GDY KONTENER MOŻE SCROLLOWAĆ
             element.addEventListener('wheel', function(e) {
+                // Jeśli kontener może scrollować w danym kierunku, nie pozwól na scrollowanie strony
                 if (this.scrollHeight > this.clientHeight) {
-                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                        const isAtTop = this.scrollTop === 0;
-                        const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 1;
-                        
-                        if (!(isAtTop && e.deltaY < 0) && !(isAtBottom && e.deltaY > 0)) {
-                            e.stopPropagation();
-                            e.preventDefault();
-                        }
+                    const isAtTop = this.scrollTop === 0;
+                    const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight;
+                    
+                    // Jeśli scrollujemy w górę, a nie jesteśmy na górze kontenera
+                    if (e.deltaY < 0 && !isAtTop) {
+                        e.stopPropagation();
                     }
+                    // Jeśli scrollujemy w dół, a nie jesteśmy na dole kontenera
+                    else if (e.deltaY > 0 && !isAtBottom) {
+                        e.stopPropagation();
+                    }
+                    // W przeciwnym razie pozwól na scrollowanie strony
                 }
             }, { passive: false });
-            
-            // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
-            element.addEventListener('mousedown', function(e) {
-                if (e.button === 1) { // Środkowy przycisk myszy
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    this.classList.add('active-scroll');
-                    const originalCursor = this.style.cursor;
-                    this.style.cursor = 'grabbing';
-                    
-                    const startY = e.clientY;
-                    const startScrollTop = this.scrollTop;
-                    
-                    const mouseMoveHandler = (moveEvent) => {
-                        const deltaY = moveEvent.clientY - startY;
-                        this.scrollTop = startScrollTop - deltaY * 2;
-                        moveEvent.preventDefault();
-                        moveEvent.stopPropagation();
-                    };
-                    
-                    const mouseUpHandler = () => {
-                        document.removeEventListener('mousemove', mouseMoveHandler);
-                        document.removeEventListener('mouseup', mouseUpHandler);
-                        this.classList.remove('active-scroll');
-                        this.style.cursor = originalCursor;
-                    };
-                    
-                    document.addEventListener('mousemove', mouseMoveHandler);
-                    document.addEventListener('mouseup', mouseUpHandler);
-                }
-            });
-            
-            console.log('✅ Skonfigurowano scroll dla elementu:', element.className || element.id);
         };
         
         // Ustaw dla wszystkich kontenerów z scrollowaniem
@@ -1923,7 +1887,7 @@
             // Dodatkowo dla wszystkich elementów z klasą .scrollable-container
             document.querySelectorAll('.scrollable-container').forEach(setupScrollForElement);
             
-            console.log('✅ Konfiguracja scrollowania zakończona');
+            console.log('✅ Konfiguracja normalnego scrollowania zakończona');
         }, 500);
     }
 
@@ -2240,7 +2204,6 @@
                 
                 // Inicjalizuj scroll dla nowo otwartej zakładki
                 setTimeout(() => {
-                    setupMouseWheelSupport();
                     forceScrollVisibility();
                 }, 50);
             });
@@ -2533,7 +2496,6 @@
         
         // 🔹 WYMUSZENIE SCROLLA
         setTimeout(() => {
-            setupMouseWheelSupport();
             forceScrollVisibility();
         }, 1000);
     }
@@ -3273,9 +3235,9 @@
             setupToggleDrag(toggleBtn);
         }
         
-        // 🔹 Ustaw obsługę scrollowania myszą
+        // 🔹 Ustaw normalne scrollowanie
         setTimeout(() => {
-            setupMouseWheelSupport();
+            setupNormalScrolling();
         }, 300);
         
         setTimeout(async () => {
