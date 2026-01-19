@@ -489,7 +489,8 @@
         }
 
         #addons .sw-tab-content {
-            padding-bottom: 10px !important; /* MNIEJSZY PADDING NA DOLE */
+            padding-bottom: 0 !important; /* USUNIĘCIE PADDINGU NA DOLE */
+            overflow: visible !important; /* WYMUSZENIE WIDOCZNOŚCI PRZYCISKU */
         }
 
         .refresh-button-container {
@@ -509,6 +510,8 @@
             position: relative !important; /* ZMIENIONE: relative zamiast absolute */
             margin-top: 15px !important; /* ZWIĘKSZONY MARGINES GÓRNY */
             margin-bottom: 0 !important; /* BRAK MARGINESU DOLNEGO */
+            min-height: 85px !important; /* WYMUSZENIE MINIMALNEJ WYSOKOŚCI */
+            overflow: visible !important; /* ZAPEWNIENIE, ŻE NIC NIE UCIEKA */
         }
 
         .refresh-button {
@@ -530,6 +533,8 @@
             margin: 0 !important;
             min-height: 50px !important; /* MINIMALNA WYSOKOŚĆ */
             line-height: 1.2 !important;
+            position: relative !important; /* ZAPEWNIENIE WŁAŚCIWEGO POZYCJONOWANIA */
+            z-index: 1001 !important; /* WYŻSZY Z-INDEX */
         }
 
         .refresh-button:hover {
@@ -1287,11 +1292,13 @@
             
             .refresh-button-container {
                 padding: 12px !important;
+                min-height: 75px !important;
             }
             
             .refresh-button {
                 padding: 12px !important;
                 font-size: 12px !important;
+                min-height: 45px !important;
             }
             
             .info-section {
@@ -1330,11 +1337,13 @@
             
             .refresh-button-container {
                 padding: 10px !important;
+                min-height: 70px !important;
             }
             
             .refresh-button {
                 padding: 10px !important;
                 font-size: 11px !important;
+                min-height: 40px !important;
             }
         }
 
