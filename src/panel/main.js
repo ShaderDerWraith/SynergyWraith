@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Synergy Panel v4.7 - Final Edition (Fixed)
+// @name         Synergy Panel v4.6 - Final Edition (Fixed)
 // @namespace    http://tampermonkey.net/
-// @version      4.7.0
+// @version      4.6.3
 // @description  Zaawansowany panel dodatków do gry z systemem licencji
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.7.0 (Fixed Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.3 (Fixed Edition)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -80,7 +80,7 @@
             }
         }
 
-        /* 🔹 MAIN PANEL - ZAPISYWANY ROZMIAR 🔹 */
+        /* 🔹 MAIN PANEL - WIĘKSZY, BEZ WERSJI 🔹 */
         #swAddonsPanel {
             position: fixed;
             top: 140px;
@@ -102,10 +102,10 @@
             display: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            min-width: 500px;
-            min-height: 400px;
-            max-width: 90vw;
-            max-height: 90vh;
+            min-width: 600px;
+            min-height: 500px;
+            max-width: 1200px;
+            max-height: 900px;
             resize: both;
             font-size: 13px;
             cursor: default;
@@ -113,20 +113,6 @@
 
         #swAddonsPanel.dragging {
             cursor: grabbing;
-        }
-
-        /* 🔹 HANDLE DO RESIZE 🔹 */
-        #swAddonsPanel::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            right: 2px;
-            width: 15px;
-            height: 15px;
-            background: linear-gradient(135deg, #ff3300, #ff6600);
-            cursor: nwse-resize;
-            border-radius: 0 0 10px 0;
-            z-index: 1000;
         }
 
         /* 🔹 NAGŁÓWEK - TYLKO "SYNERGY" 🔹 */
@@ -255,7 +241,7 @@
             min-height: 0;
         }
 
-        /* 🔹 DODATKI - NOWY SYSTEM Z PRZYCISKIEM NA DOLE 🔹 */
+        /* 🔹 DODATKI - SCROLL DZIAŁAJĄCY, PRZYCISK NIE UCIĘTY 🔹 */
         .addon-list-container {
             width: 100%;
             max-width: 800px;
@@ -268,7 +254,7 @@
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
             min-height: 200px;
-            max-height: none !important;
+            max-height: 350px !important;
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -485,12 +471,15 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 NOWY SYSTEM PRZYCISKU ZAPISZ - ZAWSZE WIDOCZNY 🔹 */
-        .tab-button-container {
-            position: absolute !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
+        /* 🔹 PRZYCISK ZAPISZ - ZAWSZE NA DOLE PANELU 🔹 */
+        #addons {
+            position: relative;
+            min-height: 100%;
+            padding-bottom: 0;
+        }
+
+        .refresh-button-container {
+            margin-top: auto !important;
             padding: 15px !important;
             background: linear-gradient(to top, 
                 rgba(26, 0, 0, 0.98),
@@ -498,15 +487,15 @@
             border-top: 2px solid #660000 !important;
             z-index: 1000 !important;
             box-sizing: border-box !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-        }
-
-        .tab-button-inner {
+            border-radius: 0 0 8px 8px !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
             width: 100% !important;
-            max-width: 800px !important;
-            margin: 0 auto !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
         }
 
         .refresh-button {
@@ -1288,6 +1277,15 @@
                 max-width: 95vw;
             }
             
+            .refresh-button-container {
+                padding: 12px !important;
+            }
+            
+            .refresh-button {
+                padding: 12px !important;
+                font-size: 12px !important;
+            }
+            
             .info-section {
                 padding: 15px;
                 margin-left: 5px;
@@ -1309,6 +1307,15 @@
         @media (max-height: 600px) {
             .addon-list-container {
                 max-height: 250px !important;
+            }
+            
+            .refresh-button-container {
+                padding: 10px !important;
+            }
+            
+            .refresh-button {
+                padding: 10px !important;
+                font-size: 11px !important;
             }
         }
 
@@ -1341,7 +1348,7 @@
     style.textContent = panelCSS;
     document.head.appendChild(style);
 
-    // 🔹 Konfiguracja - DODANE ZAPISYWANIE ROZMIARU
+    // 🔹 Konfiguracja
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
@@ -1356,9 +1363,7 @@
         LICENSE_DATA: "sw_license_data",
         ADMIN_ACCESS: "sw_admin_access",
         SHORTCUTS_CONFIG: "sw_shortcuts_config",
-        SHORTCUTS_ENABLED: "sw_shortcuts_enabled",
-        PANEL_WIDTH: "sw_panel_width",      // DODANE
-        PANEL_HEIGHT: "sw_panel_height"     // DODANE
+        SHORTCUTS_ENABLED: "sw_shortcuts_enabled"
     };
 
     // 🔹 Lista dostępnych dodatków
@@ -1606,7 +1611,7 @@
         return toggleBtn;
     }
 
-    // 🔹 Tworzenie głównego panelu z zapisanym rozmiarem
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1614,21 +1619,11 @@
         const panel = document.createElement("div");
         panel.id = "swAddonsPanel";
         
-        // 🔹 ŁADOWANIE ZAPISANEGO ROZMIARU
-        const savedWidth = SW.GM_getValue(CONFIG.PANEL_WIDTH, "720px");
-        const savedHeight = SW.GM_getValue(CONFIG.PANEL_HEIGHT, "660px");
-        
-        panel.style.width = savedWidth;
-        panel.style.height = savedHeight;
-        
         // 🔹 GENEROWANIE HTML PANELU
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.7.0 Fixed with size:', savedWidth, savedHeight);
-        
-        // 🔹 SETUP OBSERWATORA ROZMIARU
-        setupPanelResizeObserver(panel);
+        console.log('✅ Panel created - v4.6.3 Fixed');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -1638,88 +1633,7 @@
         return panel;
     }
 
-    // 🔹 NOWA: Setup obserwatora zmiany rozmiaru panelu
-    function setupPanelResizeObserver(panel) {
-        if (!panel) return;
-        
-        let resizeTimeout;
-        let isResizing = false;
-        
-        // Obsługa ręcznego resize przez użytkownika
-        panel.addEventListener('mousedown', function(e) {
-            if (e.target === panel || e.offsetX > panel.offsetWidth - 20 && e.offsetY > panel.offsetHeight - 20) {
-                isResizing = true;
-                const startX = e.clientX;
-                const startY = e.clientY;
-                const startWidth = parseInt(document.defaultView.getComputedStyle(panel).width, 10);
-                const startHeight = parseInt(document.defaultView.getComputedStyle(panel).height, 10);
-                
-                function onMouseMove(e) {
-                    if (!isResizing) return;
-                    
-                    const width = startWidth + e.clientX - startX;
-                    const height = startHeight + e.clientY - startY;
-                    
-                    // Ograniczenia minimalnego i maksymalnego rozmiaru
-                    const minWidth = 500;
-                    const minHeight = 400;
-                    const maxWidth = window.innerWidth * 0.9;
-                    const maxHeight = window.innerHeight * 0.9;
-                    
-                    panel.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
-                    panel.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
-                    
-                    clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(() => {
-                        savePanelSize();
-                    }, 100);
-                }
-                
-                function onMouseUp() {
-                    isResizing = false;
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                    savePanelSize();
-                }
-                
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            }
-        });
-        
-        // Obserwator dla zmian CSS resize
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                if (entry.target === panel) {
-                    clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(() => {
-                        savePanelSize();
-                    }, 500);
-                }
-            }
-        });
-        
-        resizeObserver.observe(panel);
-        
-        // Zapis przy zamykaniu strony
-        window.addEventListener('beforeunload', savePanelSize);
-    }
-
-    // 🔹 NOWA: Funkcja zapisywania rozmiaru panelu
-    function savePanelSize() {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        const width = panel.style.width || getComputedStyle(panel).width;
-        const height = panel.style.height || getComputedStyle(panel).height;
-        
-        SW.GM_setValue(CONFIG.PANEL_WIDTH, width);
-        SW.GM_setValue(CONFIG.PANEL_HEIGHT, height);
-        
-        console.log('💾 Zapisano rozmiar panelu:', width, height);
-    }
-
-    // 🔹 NOWA: Generowanie HTML panelu z poprawioną strukturą
+    // 🔹 NOWA: Generowanie HTML panelu
     function generatePanelHTML() {
         return `
             <div id="swPanelHeader">
@@ -1735,7 +1649,7 @@
                 <button class="tablink" data-tab="info">Info</button>
             </div>
 
-            <!-- ZAKŁADKA DODATKI - NOWA STRUKTURA Z PRZYCISKIEM NA DOLE -->
+            <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
@@ -1756,11 +1670,8 @@
                         <div class="addon-list" id="addon-list"></div>
                     </div>
                     
-                    <!-- PRZYCISK ZAWSZE NA DOLE -->
-                    <div class="tab-button-container">
-                        <div class="tab-button-inner">
-                            <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
-                        </div>
+                    <div class="refresh-button-container">
+                        <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
                     
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
@@ -1814,6 +1725,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div id="swLicenseMessage" class="license-message"></div>
                 </div>
             </div>
 
@@ -1891,17 +1804,41 @@
                                 <p>• Automatyczne odświeżanie statusu</p>
                             </div>
                             
-                            <div class="info-section">
-                                <h4>Nowe Funkcje v4.7</h4>
-                                <p>• Przycisk zawsze widoczny na dole</p>
-                                <p>• Scrollowanie w każdej zakładce</p>
-                                <p>• Zapamiętywanie rozmiaru panelu</p>
+                            <div class="info-section {
+        color: #ffcc00;
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 12px 0;
+        padding-left: 10px;
+        position: relative;
+    }
+
+    .info-section p::before {
+        content: "•";
+        color: #ff6600;
+        font-size: 16px;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .info-section p[style*="color:#00ff00"]::before {
+        color: #00ff00;
+    }
+
+    .info-section p[style*="color:#ff9966"]::before {
+        color: #ff9966;
+    }">
+                                <h4>Nowe Funkcje</h4>
                                 <p>• Eksport/Import ustawień</p>
+                                <p>• Filtry dodatków</p>
+                                <p>• Skróty domyślnie wyłączone</p>
+                                <p>• Płynne przesuwanie panelu</p>
                             </div>
                             
                             <div style="color:#ff9966; font-size:11px; margin-top:25px; padding:15px; 
                                         background:rgba(51,0,0,0.5); border-radius:6px;">
-                                <p style="margin:5px 0;">© 2024 Synergy Panel v4.7.0</p>
+                                <p style="margin:5px 0;">© 2024 Synergy Panel</p>
                                 <p style="margin:5px 0;">System licencji GitHub RAW</p>
                             </div>
                         </div>
@@ -1911,9 +1848,9 @@
         `;
     }
 
-    // 🔹 ULEPSZONA: Setup scrollowania dla WSZYSTKICH zakładek
+    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy (DZIAŁAJĄCY)
     function setupMouseWheelSupport() {
-        console.log('🖱️ Konfiguracja scrollowania myszą dla wszystkich zakładek...');
+        console.log('🖱️ Konfiguracja scrollowania myszą...');
         
         const setupScrollForElement = (element) => {
             if (!element) return;
@@ -1937,50 +1874,83 @@
                 }
             }, { passive: false });
             
-            console.log('✅ Skonfigurowano scroll dla:', element.className || element.id);
+            // 🔹 OBSŁUGA ŚRODKOWEGO PRZYCISKU MYSZY
+            element.addEventListener('mousedown', function(e) {
+                if (e.button === 1) { // Środkowy przycisk myszy
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    this.classList.add('active-scroll');
+                    const originalCursor = this.style.cursor;
+                    this.style.cursor = 'grabbing';
+                    
+                    const startY = e.clientY;
+                    const startScrollTop = this.scrollTop;
+                    
+                    const mouseMoveHandler = (moveEvent) => {
+                        const deltaY = moveEvent.clientY - startY;
+                        this.scrollTop = startScrollTop - deltaY * 2;
+                        moveEvent.preventDefault();
+                        moveEvent.stopPropagation();
+                    };
+                    
+                    const mouseUpHandler = () => {
+                        document.removeEventListener('mousemove', mouseMoveHandler);
+                        document.removeEventListener('mouseup', mouseUpHandler);
+                        this.classList.remove('active-scroll');
+                        this.style.cursor = originalCursor;
+                    };
+                    
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                }
+            });
+            
+            console.log('✅ Skonfigurowano scroll dla elementu:', element.className || element.id);
         };
         
-        // Ustaw dla wszystkich kontenerów z scrollowaniem we WSZYSTKICH zakładkach
-        const scrollableSelectors = [
-            '.addon-list-container',
-            '.shortcuts-list-container',
-            '.license-scroll-container',
-            '.scrollable-container',
-            '#addons .sw-tab-content',
-            '#shortcuts .sw-tab-content',
-            '#license .sw-tab-content',
-            '#settings .sw-tab-content',
-            '#info .sw-tab-content'
-        ];
-        
-        scrollableSelectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(setupScrollForElement);
-        });
-        
-        console.log('✅ Konfiguracja scrollowania zakończona dla wszystkich zakładek');
+        // Ustaw dla wszystkich kontenerów z scrollowaniem
+        setTimeout(() => {
+            const scrollableElements = [
+                document.querySelector('.addon-list-container'),
+                document.querySelector('.shortcuts-list-container'),
+                document.querySelector('.license-scroll-container'),
+                document.querySelector('.scrollable-container')
+            ];
+            
+            scrollableElements.forEach(setupScrollForElement);
+            
+            // Dodatkowo dla wszystkich elementów z klasą .scrollable-container
+            document.querySelectorAll('.scrollable-container').forEach(setupScrollForElement);
+            
+            console.log('✅ Konfiguracja scrollowania zakończona');
+        }, 500);
     }
 
-    // 🔹 ULEPSZONA: Funkcja wymuszenia widoczności scrolla
+    // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla
     function forceScrollVisibility() {
         const containers = [
             '.addon-list-container',
             '.shortcuts-list-container',
             '.license-scroll-container',
-            '.scrollable-container',
-            '#addons',
-            '#shortcuts',
-            '#license',
-            '#settings',
-            '#info'
+            '.scrollable-container'
         ];
         
         containers.forEach(selector => {
             const container = document.querySelector(selector);
             if (container) {
-                // Wymuś odpowiednią wysokość dla kontenera z dodatkami
-                if (selector === '#addons' || selector === '.addon-list-container') {
-                    container.style.overflowY = 'auto';
-                    container.style.overflowX = 'hidden';
+                // Wymuś ponowne obliczenie layoutu
+                container.style.display = 'none';
+                void container.offsetHeight;
+                container.style.display = '';
+                
+                // Wymuś widoczność scrolla
+                container.style.overflowY = 'auto';
+                container.style.overflowX = 'hidden';
+                
+                // Wymuś odpowiednią wysokość
+                if (selector === '.addon-list-container') {
+                    container.style.maxHeight = '350px';
                 }
             }
         });
@@ -2149,14 +2119,6 @@
             const isVisible = panel.style.display === 'block';
             panel.style.display = isVisible ? 'none' : 'block';
             SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
-            
-            // Po otwarciu panelu, zainicjuj scroll
-            if (!isVisible) {
-                setTimeout(() => {
-                    setupMouseWheelSupport();
-                    forceScrollVisibility();
-                }, 100);
-            }
         }
     }
 
@@ -2263,7 +2225,7 @@
         });
     }
 
-    // 🔹 Setup zakładek z scrollowaniem
+    // 🔹 Setup zakładek
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
         tabs.forEach(tab => {
@@ -2373,16 +2335,14 @@
     function exportSettings() {
         try {
             const settings = {
-                v: '4.7',
+                v: '4.6',
                 t: Date.now(),
                 a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
                 s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
                 se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}),
                 p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'),
                 f: SW.GM_getValue(CONFIG.FONT_SIZE, 13),
-                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90),
-                w: SW.GM_getValue(CONFIG.PANEL_WIDTH, "720px"),   // DODANE
-                h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, "660px")   // DODANE
+                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90)
             };
             
             const jsonString = JSON.stringify(settings);
@@ -2421,7 +2381,7 @@
         }
     }
 
-    // 🔹 Import obfuskowanych ustawień z rozmiarem panelu
+    // 🔹 Import obfuskowanych ustawień
     function importSettings() {
         const textarea = document.getElementById('settingsTextarea');
         if (!textarea || !textarea.value.trim()) {
@@ -2456,7 +2416,7 @@
                 throw new Error('Brak informacji o wersji');
             }
             
-            if (settings.v !== '4.7') {
+            if (settings.v !== '4.6') {
                 if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
                     return;
                 }
@@ -2468,8 +2428,6 @@
             if (settings.p) SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, settings.p);
             if (settings.f) SW.GM_setValue(CONFIG.FONT_SIZE, settings.f);
             if (settings.o) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, settings.o);
-            if (settings.w) SW.GM_setValue(CONFIG.PANEL_WIDTH, settings.w);   // DODANE
-            if (settings.h) SW.GM_setValue(CONFIG.PANEL_HEIGHT, settings.h);  // DODANE
             
             showLicenseMessage('✅ Ustawienia zaimportowane! Odświeżanie...', 'success');
             setTimeout(() => location.reload(), 2000);
@@ -2492,17 +2450,17 @@
             });
         }
         
-        // Reset ustawień (z rozmiarem panelu)
+        // Reset ustawień
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?\n(Rozmiar panelu również zostanie zresetowany)')) {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
                     resetAllSettings();
                 }
             });
         }
         
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
         const fontSizeDecrease = document.getElementById('fontSizeDecrease');
         const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
@@ -3032,7 +2990,7 @@
         }
     }
 
-    // 🔹 Reset wszystkich ustawień (z rozmiarem panelu)
+    // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         Object.keys(CONFIG).forEach(key => {
             SW.GM_deleteValue(CONFIG[key]);
@@ -3288,7 +3246,7 @@
     }
 
     function showLicenseMessage(message, type = 'info') {
-        const messageEl = document.getElementById('swLicenseMessage') || createLicenseMessageElement();
+        const messageEl = document.getElementById('swLicenseMessage');
         if (messageEl) {
             messageEl.textContent = message;
             messageEl.className = `license-message license-${type}`;
@@ -3297,29 +3255,12 @@
         }
     }
 
-    function createLicenseMessageElement() {
-        const licenseTab = document.getElementById('license');
-        if (!licenseTab) return null;
-        
-        const messageEl = document.createElement('div');
-        messageEl.id = 'swLicenseMessage';
-        messageEl.className = 'license-message';
-        messageEl.style.display = 'none';
-        
-        const content = licenseTab.querySelector('.sw-tab-content');
-        if (content) {
-            content.appendChild(messageEl);
-        }
-        
-        return messageEl;
-    }
-
     // =========================================================================
     // 🔹 INICJALIZACJA PANELU
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.7.0...');
+        console.log('✅ Initializing Synergy Panel v4.6.3...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3351,7 +3292,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.7.0...');
+    console.log('🎯 Starting Synergy Panel v4.6.3...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
