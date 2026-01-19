@@ -477,7 +477,7 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: NIE UCIĘTY, ZAWSZE WIDOCZNY 🔹 */
+        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: NIE UCIĘTY, ZAWSZE WIDOCZNY, WYŻEJ 🔹 */
         #addons {
             position: relative;
             min-height: 100%;
@@ -489,7 +489,7 @@
         }
 
         #addons .sw-tab-content {
-            padding-bottom: 15px !important; /* NORMALNY PADDING */
+            padding-bottom: 10px !important; /* MNIEJSZY PADDING NA DOLE */
         }
 
         .refresh-button-container {
@@ -506,22 +506,21 @@
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
-            /* USUNIĘTE: position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important; */
-            flex-shrink: 0;
             position: relative !important; /* ZMIENIONE: relative zamiast absolute */
-            margin-top: 10px !important;
+            margin-top: 15px !important; /* ZWIĘKSZONY MARGINES GÓRNY */
+            margin-bottom: 0 !important; /* BRAK MARGINESU DOLNEGO */
         }
 
         .refresh-button {
             width: 100% !important;
-            padding: 14px !important;
+            padding: 16px !important; /* ZWIĘKSZONY PADDING */
             background: linear-gradient(135deg, #006600, #008800) !important;
             border: 1px solid #00cc00 !important;
             border-radius: 8px !important;
             color: #ffffff !important;
             cursor: pointer !important;
             font-weight: 700 !important;
-            font-size: 13px !important;
+            font-size: 14px !important; /* ZWIĘKSZONY ROZMIAR CZCIONKI */
             transition: all 0.3s ease !important;
             text-transform: uppercase !important;
             letter-spacing: 1px !important;
@@ -529,6 +528,8 @@
             box-sizing: border-box !important;
             text-align: center !important;
             margin: 0 !important;
+            min-height: 50px !important; /* MINIMALNA WYSOKOŚĆ */
+            line-height: 1.2 !important;
         }
 
         .refresh-button:hover {
@@ -1834,31 +1835,7 @@
                                 <p>• Automatyczne odświeżanie statusu</p>
                             </div>
                             
-                            <div class="info-section {
-        color: #ffcc00;
-        font-size: 13px;
-        line-height: 1.6;
-        margin: 12px 0;
-        padding-left: 10px;
-        position: relative;
-    }
-
-    .info-section p::before {
-        content: "•";
-        color: #ff6600;
-        font-size: 16px;
-        position: absolute;
-        left: 0;
-        top: 0;
-    }
-
-    .info-section p[style*="color:#00ff00"]::before {
-        color: #00ff00;
-    }
-
-    .info-section p[style*="color:#ff9966"]::before {
-        color: #ff9966;
-    }">
+                            <div class="info-section">
                                 <h4>Nowe Funkcje</h4>
                                 <p>• Eksport/Import ustawień</p>
                                 <p>• Filtry dodatków</p>
