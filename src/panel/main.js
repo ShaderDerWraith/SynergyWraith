@@ -1848,7 +1848,7 @@
         `;
     }
 
-    // 🔹 POPRAWIONE: Setup scrollowania środkowym przyciskiem myszy (DZIAŁAJĄCY)
+    // 🔹 NOWA: Funkcja scrollowania środkowym przyciskiem myszy (DZIAŁAJĄCA)
     function setupMouseWheelSupport() {
         console.log('🖱️ Konfiguracja scrollowania myszą...');
         
@@ -3273,6 +3273,11 @@
             setupToggleDrag(toggleBtn);
         }
         
+        // 🔹 Ustaw obsługę scrollowania myszą
+        setTimeout(() => {
+            setupMouseWheelSupport();
+        }, 300);
+        
         setTimeout(async () => {
             await initAccountAndLicense();
             
@@ -3280,7 +3285,6 @@
             renderShortcuts();
             
             setTimeout(() => {
-                setupMouseWheelSupport();
                 forceScrollVisibility();
                 updateFontSizeButtons(currentFontSize);
             }, 500);
