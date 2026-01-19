@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Synergy Panel v4.6 - Final Edition (Fixed)
+// @name         Synergy Panel v4.6 - Final Edition (Fixed Button)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.4
+// @version      4.6.5
 // @description  Zaawansowany panel dodatków do gry z systemem licencji
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.4 (Improved Scrolling Edition)');
+    console.log('🚀 Synergy Panel loaded - v4.6.5 (Fixed Button Edition)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -477,7 +477,7 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: NIE UCIĘTY, ZAWSZE WIDOCZNY, WYŻEJ 🔹 */
+        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: NIE UCIĘTY, ZAWSZE WIDOCZNY, WYŻEJ O 1.5x 🔹 */
         #addons {
             position: relative;
             min-height: 100%;
@@ -495,52 +495,61 @@
 
         .refresh-button-container {
             margin-top: auto !important;
-            padding: 15px !important;
+            padding: 20px !important; /* ZWIĘKSZONY PADDING */
             background: linear-gradient(to top, 
                 rgba(26, 0, 0, 0.98),
                 rgba(51, 0, 0, 0.98)) !important;
-            border-top: 2px solid #660000 !important;
+            border-top: 3px solid #660000 !important; /* GRUBSZE OBRAMOWANIE */
+            border-bottom: 3px solid #660000 !important; /* DODATKOWE OBRAMOWANIE NA DOLE */
             z-index: 1000 !important;
             box-sizing: border-box !important;
-            border-radius: 0 0 8px 8px !important;
+            border-radius: 8px !important; /* ZAOKRĄGLONE ROGI */
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
-            position: relative !important; /* ZMIENIONE: relative zamiast absolute */
-            margin-top: 15px !important; /* ZWIĘKSZONY MARGINES GÓRNY */
-            margin-bottom: 0 !important; /* BRAK MARGINESU DOLNEGO */
-            min-height: 85px !important; /* WYMUSZENIE MINIMALNEJ WYSOKOŚCI */
-            overflow: visible !important; /* ZAPEWNIENIE, ŻE NIC NIE UCIEKA */
+            position: relative !important;
+            margin-top: 30px !important; /* ZWIĘKSZONY MARGINES GÓRNY O 1.5x (z 20px do 30px) */
+            margin-bottom: 0 !important;
+            min-height: 100px !important; /* ZWIĘKSZONA MINIMALNA WYSOKOŚĆ */
+            overflow: visible !important;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5) !important; /* CIENIE DLA WYRÓŻNIENIA */
         }
 
         .refresh-button {
             width: 100% !important;
-            padding: 16px !important; /* ZWIĘKSZONY PADDING */
+            padding: 18px !important; /* ZWIĘKSZONY PADDING */
             background: linear-gradient(135deg, #006600, #008800) !important;
-            border: 1px solid #00cc00 !important;
-            border-radius: 8px !important;
+            border: 2px solid #00cc00 !important; /* GRUBSZE OBRAMOWANIE */
+            border-radius: 10px !important; /* WIĘKSZE ZAOKRĄGLENIE */
             color: #ffffff !important;
             cursor: pointer !important;
             font-weight: 700 !important;
-            font-size: 14px !important; /* ZWIĘKSZONY ROZMIAR CZCIONKI */
+            font-size: 16px !important; /* ZWIĘKSZONY ROZMIAR CZCIONKI */
             transition: all 0.3s ease !important;
             text-transform: uppercase !important;
-            letter-spacing: 1px !important;
+            letter-spacing: 1.5px !important; /* WIĘKSZE ODSTĘPY MIĘDZY LITERAMI */
             display: block !important;
             box-sizing: border-box !important;
             text-align: center !important;
             margin: 0 !important;
-            min-height: 50px !important; /* MINIMALNA WYSOKOŚĆ */
-            line-height: 1.2 !important;
-            position: relative !important; /* ZAPEWNIENIE WŁAŚCIWEGO POZYCJONOWANIA */
-            z-index: 1001 !important; /* WYŻSZY Z-INDEX */
+            min-height: 60px !important; /* ZWIĘKSZONA MINIMALNA WYSOKOŚĆ */
+            line-height: 1.3 !important;
+            position: relative !important;
+            z-index: 1001 !important;
+            box-shadow: 0 4px 15px rgba(0, 100, 0, 0.6) !important; /* WYRÓŻNIAJĄCY CIENIE */
         }
 
         .refresh-button:hover {
             background: linear-gradient(135deg, #008800, #00aa00) !important;
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4) !important;
+            box-shadow: 0 8px 25px rgba(0, 255, 0, 0.5) !important; /* WZMOCNIONE CIENIE POD HOVER */
+            border: 2px solid #00ff00 !important;
+        }
+
+        .refresh-button:active {
+            transform: translateY(1px) !important;
+            box-shadow: 0 2px 10px rgba(0, 255, 0, 0.4) !important;
         }
 
         /* 🔹 SHORTCUTS LIST 🔹 */
@@ -1291,14 +1300,15 @@
             }
             
             .refresh-button-container {
-                padding: 12px !important;
-                min-height: 75px !important;
+                padding: 15px !important;
+                min-height: 90px !important;
+                margin-top: 25px !important;
             }
             
             .refresh-button {
-                padding: 12px !important;
-                font-size: 12px !important;
-                min-height: 45px !important;
+                padding: 15px !important;
+                font-size: 14px !important;
+                min-height: 55px !important;
             }
             
             .info-section {
@@ -1336,14 +1346,15 @@
             }
             
             .refresh-button-container {
-                padding: 10px !important;
-                min-height: 70px !important;
+                padding: 12px !important;
+                min-height: 80px !important;
+                margin-top: 20px !important;
             }
             
             .refresh-button {
-                padding: 10px !important;
-                font-size: 11px !important;
-                min-height: 40px !important;
+                padding: 12px !important;
+                font-size: 13px !important;
+                min-height: 50px !important;
             }
         }
 
@@ -1663,7 +1674,7 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.4 Improved Scrolling');
+        console.log('✅ Panel created - v4.6.5 Fixed Button');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
@@ -3299,7 +3310,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.4...');
+        console.log('✅ Initializing Synergy Panel v4.6.5...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3345,7 +3356,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.4...');
+    console.log('🎯 Starting Synergy Panel v4.6.5...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
