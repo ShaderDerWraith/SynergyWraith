@@ -477,7 +477,7 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ - ZAWSZE NA DOLE PANELU 🔹 */
+        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: NIE UCIĘTY, ZAWSZE WIDOCZNY 🔹 */
         #addons {
             position: relative;
             min-height: 100%;
@@ -489,7 +489,7 @@
         }
 
         #addons .sw-tab-content {
-            padding-bottom: 80px !important; /* WIĘCEJ MIEJSCA NA PRZYCISK */
+            padding-bottom: 15px !important; /* NORMALNY PADDING */
         }
 
         .refresh-button-container {
@@ -506,11 +506,10 @@
             visibility: visible !important;
             opacity: 1 !important;
             width: 100% !important;
-            position: absolute !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
+            /* USUNIĘTE: position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important; */
             flex-shrink: 0;
+            position: relative !important; /* ZMIENIONE: relative zamiast absolute */
+            margin-top: 10px !important;
         }
 
         .refresh-button {
