@@ -245,7 +245,7 @@
         .addon-list-container {
             width: 100%;
             max-width: 800px;
-            flex: 1 1 auto !important; /* FLEX-GROW FLEX-SHRINK FLEX-BASIS */
+            flex: 1 1 auto !important;
             overflow-y: auto !important;
             overflow-x: hidden;
             margin-bottom: 10px;
@@ -253,14 +253,13 @@
             scrollbar-width: thin;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
-            min-height: 0 !important; /* WYMUSZENIE MOŻLIWOŚCI KURCZENIA */
-            max-height: none !important; /* USUNIĘCIE STAŁEJ WYSOKOŚCI */
+            min-height: 0 !important;
+            max-height: none !important;
             position: relative;
             display: flex;
             flex-direction: column;
         }
 
-        /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
         .addon-list-container::-webkit-scrollbar {
             width: 12px !important;
             display: block !important;
@@ -477,83 +476,66 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ - POPRAWIONE: PRZESUNIĘTY WYŻEJ, NIE ZASŁANIA LISTY 🔹 */
-        #addons {
-            position: relative;
-            min-height: 100%;
-            padding-bottom: 0;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-        }
-
-        #addons .sw-tab-content {
-            padding-bottom: 0 !important;
-            overflow: visible !important;
-            position: relative;
-            height: 100%;
-        }
-
+        /* 🔹 NOWY KONTENER PRZYCISKU - MNIEJSZY I WYŚRODKOWANY 🔹 */
         .refresh-button-container {
-            margin-top: 20px !important; /* PRZESUNIĘCIE WYŻEJ - KLUCZOWA ZMIANA */
-            padding: 15px !important;
+            margin-top: 15px !important;
+            padding: 10px !important;
             background: linear-gradient(to top, 
-                rgba(26, 0, 0, 0.98),
-                rgba(51, 0, 0, 0.98)) !important;
-            border-top: 2px solid #660000 !important;
-            border-bottom: 2px solid #660000 !important;
-            z-index: 10 !important;
-            box-sizing: border-box !important;
-            border-radius: 8px !important;
+                rgba(26, 0, 0, 0.95),
+                rgba(51, 0, 0, 0.95)) !important;
+            border-top: 1px solid #660000 !important;
+            border-bottom: 1px solid #660000 !important;
+            border-radius: 6px !important;
             display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
             width: 100% !important;
-            max-width: 800px !important;
-            position: relative !important; /* ZMIENIONE: relative zamiast absolute */
+            max-width: 650px !important; /* ZMNIEJSZONE Z 800px */
             margin-left: auto !important;
             margin-right: auto !important;
-            margin-bottom: 10px !important;
-            order: 100 !important; /* WYMUSZENIE KOLEJNOŚCI NA SAMYM DOLE */
-            flex-shrink: 0 !important; /* ZAPOBIEGANIE KURCZENIU */
-            align-self: flex-end !important; /* WYRÓWNANIE DO DOŁU */
+            margin-bottom: 5px !important;
+            order: 100 !important;
+            flex-shrink: 0 !important;
+            align-self: center !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
+            z-index: 10 !important;
         }
 
+        /* 🔹 NOWY PRZYCISK - MNIEJSZY I WYŚRODKOWANY 🔹 */
         .refresh-button {
-            width: 100% !important;
-            padding: 16px !important;
+            width: 80% !important; /* ZMNIEJSZONE Z 100% */
+            padding: 12px 20px !important; /* ZMNIEJSZONE Z 16px */
             background: linear-gradient(135deg, #006600, #008800) !important;
             border: 2px solid #00cc00 !important;
-            border-radius: 10px !important;
+            border-radius: 8px !important;
             color: #ffffff !important;
             cursor: pointer !important;
             font-weight: 700 !important;
-            font-size: 16px !important;
+            font-size: 14px !important; /* ZMNIEJSZONE Z 16px */
             transition: all 0.3s ease !important;
             text-transform: uppercase !important;
-            letter-spacing: 1.5px !important;
-            display: block !important;
+            letter-spacing: 1px !important; /* ZMNIEJSZONE Z 1.5px */
+            display: inline-block !important; /* ZMIENIONE Z block */
             box-sizing: border-box !important;
             text-align: center !important;
-            margin: 0 !important;
-            min-height: 60px !important;
+            margin: 0 auto !important;
+            min-height: 45px !important; /* ZMNIEJSZONE Z 60px */
             line-height: 1.3 !important;
             position: relative !important;
             z-index: 11 !important;
-            box-shadow: 0 4px 15px rgba(0, 100, 0, 0.6) !important;
+            box-shadow: 0 3px 12px rgba(0, 100, 0, 0.6) !important;
         }
 
         .refresh-button:hover {
             background: linear-gradient(135deg, #008800, #00aa00) !important;
-            transform: translateY(-3px) !important;
-            box-shadow: 0 8px 25px rgba(0, 255, 0, 0.5) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.5) !important;
             border: 2px solid #00ff00 !important;
+            width: 85% !important; /* LEKKIE POWIĘKSZENIE PRZY HOVER */
         }
 
         .refresh-button:active {
             transform: translateY(1px) !important;
-            box-shadow: 0 2px 10px rgba(0, 255, 0, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(0, 255, 0, 0.4) !important;
         }
 
         /* 🔹 SHORTCUTS LIST 🔹 */
@@ -1293,7 +1275,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* 🔹 RESPONSYWNOŚĆ 🔹 */
+        /* 🔹 RESPONSYWNOŚĆ - DOSTOSOWANE DLA MNIEJSZEGO PRZYCISKU 🔹 */
         @media (max-width: 900px) {
             #swAddonsPanel {
                 width: 90vw !important;
@@ -1304,14 +1286,21 @@
             }
             
             .refresh-button-container {
-                padding: 12px !important;
-                margin-top: 15px !important;
+                padding: 8px !important;
+                margin-top: 12px !important;
+                max-width: 550px !important;
             }
             
             .refresh-button {
-                padding: 14px !important;
-                font-size: 14px !important;
-                min-height: 50px !important;
+                padding: 10px 16px !important;
+                font-size: 13px !important;
+                min-height: 40px !important;
+                width: 85% !important;
+                letter-spacing: 0.8px !important;
+            }
+            
+            .refresh-button:hover {
+                width: 90% !important;
             }
             
             .info-section {
@@ -1349,14 +1338,21 @@
             }
             
             .refresh-button-container {
-                padding: 10px !important;
-                margin-top: 12px !important;
+                padding: 6px !important;
+                margin-top: 10px !important;
+                max-width: 500px !important;
             }
             
             .refresh-button {
-                padding: 12px !important;
-                font-size: 13px !important;
-                min-height: 45px !important;
+                padding: 8px 14px !important;
+                font-size: 12px !important;
+                min-height: 35px !important;
+                width: 90% !important;
+                letter-spacing: 0.6px !important;
+            }
+            
+            .refresh-button:hover {
+                width: 95% !important;
             }
         }
 
@@ -1723,6 +1719,7 @@
                         <div class="addon-list" id="addon-list"></div>
                     </div>
                     
+                    <!-- MNIEJSZY KONTENER PRZYCISKU -->
                     <div class="refresh-button-container">
                         <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
@@ -2490,7 +2487,7 @@
 
     // 🔹 Inicjalizacja event listenerów
     function initializeEventListeners() {
-        // Przycisk zapisz i odśwież
+        // Przycisk zapisz i odśwież - MNIEJSZY I WYŚRODKOWANY
         const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
         if (saveRestartBtn) {
             saveRestartBtn.addEventListener('click', () => {
