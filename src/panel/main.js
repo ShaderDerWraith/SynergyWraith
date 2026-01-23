@@ -80,7 +80,7 @@
             }
         }
 
-        /* 🔹 MAIN PANEL - WIĘKSZY, BEZ WERSJI 🔹 */
+        /* 🔹 MAIN PANEL - POPRAWIONY UCHWYT ZMIANY ROZMIARU 🔹 */
         #swAddonsPanel {
             position: fixed;
             top: 140px;
@@ -109,6 +109,18 @@
             resize: both;
             font-size: 13px;
             cursor: default;
+        }
+
+        /* Stylizacja uchwytu zmiany rozmiaru */
+        #swAddonsPanel::-webkit-resizer {
+            background-color: #ff3300;
+            border-radius: 4px;
+            border: 2px solid #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 51, 0, 0.8);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 12px;
         }
 
         #swAddonsPanel.dragging {
@@ -245,21 +257,20 @@
         .addon-list-container {
             width: 100%;
             max-width: 800px;
-            flex: 1 1 auto !important;
+            flex: 1;
             overflow-y: auto !important;
             overflow-x: hidden;
             margin-bottom: 10px;
             padding-right: 10px;
+            padding-bottom: 20px;
             scrollbar-width: thin;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
-            min-height: 0 !important;
-            max-height: none !important;
-            position: relative;
-            display: flex;
-            flex-direction: column;
+            min-height: 200px;
+            max-height: calc(100% - 180px);
         }
 
+        /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
         .addon-list-container::-webkit-scrollbar {
             width: 12px !important;
             display: block !important;
@@ -281,8 +292,6 @@
 
         .addon-list {
             width: 100%;
-            flex: 1;
-            min-height: 0;
         }
 
         .addon {
@@ -443,7 +452,6 @@
             max-width: 800px;
             justify-content: center;
             flex-wrap: wrap;
-            flex-shrink: 0;
         }
 
         .filter-btn {
@@ -476,66 +484,31 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 NOWY KONTENER PRZYCISKU - MNIEJSZY I WYŚRODKOWANY 🔹 */
-        .refresh-button-container {
-            margin-top: 15px !important;
-            padding: 10px !important;
-            background: linear-gradient(to top, 
-                rgba(26, 0, 0, 0.95),
-                rgba(51, 0, 0, 0.95)) !important;
-            border-top: 1px solid #660000 !important;
-            border-bottom: 1px solid #660000 !important;
-            border-radius: 6px !important;
-            display: block !important;
-            width: 100% !important;
-            max-width: 650px !important; /* ZMNIEJSZONE Z 800px */
-            margin-left: auto !important;
-            margin-right: auto !important;
-            margin-bottom: 5px !important;
-            order: 100 !important;
-            flex-shrink: 0 !important;
-            align-self: center !important;
-            text-align: center !important;
-            box-sizing: border-box !important;
-            z-index: 10 !important;
+        /* 🔹 PRZYCISK ZAPISZ I ODSWIEŻ - STATYCZNY NA DOLE 🔹 */
+        #swSaveAndRestartButton {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #006600, #008800);
+            border: 1px solid #00cc00;
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: block;
+            box-sizing: border-box;
+            text-align: center;
         }
 
-        /* 🔹 NOWY PRZYCISK - MNIEJSZY I WYŚRODKOWANY 🔹 */
-        .refresh-button {
-            width: 80% !important; /* ZMNIEJSZONE Z 100% */
-            padding: 12px 20px !important; /* ZMNIEJSZONE Z 16px */
-            background: linear-gradient(135deg, #006600, #008800) !important;
-            border: 2px solid #00cc00 !important;
-            border-radius: 8px !important;
-            color: #ffffff !important;
-            cursor: pointer !important;
-            font-weight: 700 !important;
-            font-size: 14px !important; /* ZMNIEJSZONE Z 16px */
-            transition: all 0.3s ease !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1px !important; /* ZMNIEJSZONE Z 1.5px */
-            display: inline-block !important; /* ZMIENIONE Z block */
-            box-sizing: border-box !important;
-            text-align: center !important;
-            margin: 0 auto !important;
-            min-height: 45px !important; /* ZMNIEJSZONE Z 60px */
-            line-height: 1.3 !important;
-            position: relative !important;
-            z-index: 11 !important;
-            box-shadow: 0 3px 12px rgba(0, 100, 0, 0.6) !important;
-        }
-
-        .refresh-button:hover {
-            background: linear-gradient(135deg, #008800, #00aa00) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.5) !important;
-            border: 2px solid #00ff00 !important;
-            width: 85% !important; /* LEKKIE POWIĘKSZENIE PRZY HOVER */
-        }
-
-        .refresh-button:active {
-            transform: translateY(1px) !important;
-            box-shadow: 0 2px 8px rgba(0, 255, 0, 0.4) !important;
+        #swSaveAndRestartButton:hover {
+            background: linear-gradient(135deg, #008800, #00aa00);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4);
         }
 
         /* 🔹 SHORTCUTS LIST 🔹 */
@@ -547,6 +520,7 @@
             overflow-x: hidden;
             margin-bottom: 10px;
             padding-right: 10px;
+            padding-bottom: 20px;
             scrollbar-width: thin;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             min-height: 350px;
@@ -1037,7 +1011,7 @@
             color: #ffcc00;
             font-size: 11px;
             font-family: 'Courier New', monospace;
-            resize: vertical;
+            resize: none;
             box-sizing: border-box;
             outline: none;
             white-space: pre-wrap;
@@ -1201,7 +1175,7 @@
             color: #ff9900;
         }
 
-        /* 🔹 RESET BUTTON 🔹 */
+        /* 🔹 RESET BUTTON - POPRAWIONE WYŚWIETLANIE 🔹 */
         #swResetButton {
             padding: 14px;
             background: linear-gradient(135deg, 
@@ -1218,7 +1192,7 @@
             letter-spacing: 1px;
             width: 100%;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 20px auto 10px auto;
             display: block;
             box-sizing: border-box;
         }
@@ -1246,7 +1220,6 @@
             outline: none;
             transition: all 0.3s ease;
             margin-bottom: 15px;
-            flex-shrink: 0;
         }
 
         #searchAddons:focus {
@@ -1275,32 +1248,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* 🔹 RESPONSYWNOŚĆ - DOSTOSOWANE DLA MNIEJSZEGO PRZYCISKU 🔹 */
+        /* 🔹 RESPONSYWNOŚĆ 🔹 */
         @media (max-width: 900px) {
             #swAddonsPanel {
                 width: 90vw !important;
                 min-width: 320px;
                 max-width: 95vw;
-                height: 80vh !important;
-                min-height: 400px;
-            }
-            
-            .refresh-button-container {
-                padding: 8px !important;
-                margin-top: 12px !important;
-                max-width: 550px !important;
-            }
-            
-            .refresh-button {
-                padding: 10px 16px !important;
-                font-size: 13px !important;
-                min-height: 40px !important;
-                width: 85% !important;
-                letter-spacing: 0.8px !important;
-            }
-            
-            .refresh-button:hover {
-                width: 90% !important;
             }
             
             .info-section {
@@ -1319,40 +1272,11 @@
                 font-size: 12px;
                 line-height: 1.4;
             }
-            
-            .addon-list-container {
-                max-height: none !important;
-                flex: 1 1 auto !important;
-            }
         }
 
         @media (max-height: 600px) {
-            #swAddonsPanel {
-                height: 70vh !important;
-                min-height: 350px;
-            }
-            
             .addon-list-container {
-                min-height: 150px !important;
-                max-height: none !important;
-            }
-            
-            .refresh-button-container {
-                padding: 6px !important;
-                margin-top: 10px !important;
-                max-width: 500px !important;
-            }
-            
-            .refresh-button {
-                padding: 8px 14px !important;
-                font-size: 12px !important;
-                min-height: 35px !important;
-                width: 90% !important;
-                letter-spacing: 0.6px !important;
-            }
-            
-            .refresh-button:hover {
-                width: 95% !important;
+                max-height: 250px !important;
             }
         }
 
@@ -1374,21 +1298,9 @@
         .import-export-btn:focus,
         #panelShortcutSetBtn:focus,
         #swResetButton:focus,
-        .refresh-button:focus {
+        #swSaveAndRestartButton:focus {
             outline: 2px solid #ffcc00;
             outline-offset: 2px;
-        }
-        
-        /* 🔹 POPRAWKI DLA SCROLLOWANIA PRZY SKALOWANIU 🔹 */
-        #addons .sw-tab-content {
-            display: flex !important;
-            flex-direction: column !important;
-            min-height: 0 !important;
-            flex: 1 !important;
-        }
-        
-        #addons .sw-tab-content > *:not(.addon-list-container):not(.refresh-button-container) {
-            flex-shrink: 0 !important;
         }
     `;
 
@@ -1568,7 +1480,7 @@
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        const minSize = 10;
+        const minSize = 8;
         const maxSize = 16;
         
         // NATYCHMIASTOWA BLOKADA
@@ -1606,7 +1518,7 @@
 
     // 🔹 NOWA: Funkcja aktualizacji przycisków czcionki
     function updateFontSizeButtons(currentSize) {
-        const minSize = 10;
+        const minSize = 8;
         const maxSize = 16;
         
         const decreaseBtn = document.getElementById('fontSizeDecrease');
@@ -1614,7 +1526,7 @@
         
         if (decreaseBtn) {
             decreaseBtn.disabled = currentSize <= minSize;
-            decreaseBtn.title = currentSize <= minSize ? 'Minimalny rozmiar (10px)' : 'Zmniejsz czcionkę';
+            decreaseBtn.title = currentSize <= minSize ? 'Minimalny rozmiar (8px)' : 'Zmniejsz czcionkę';
         }
         
         if (increaseBtn) {
@@ -1701,7 +1613,7 @@
             <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div style="width:100%; max-width:800px; margin:0 auto 15px auto; flex-shrink: 0;">
+                    <div style="width:100%; max-width:800px; margin:0 auto 15px auto;">
                         <input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." 
                                style="width:100%; padding:12px 15px; background:rgba(51,0,0,0.8); 
                                       border:1px solid #660000; border-radius:6px; color:#ffcc00; 
@@ -1719,9 +1631,9 @@
                         <div class="addon-list" id="addon-list"></div>
                     </div>
                     
-                    <!-- MNIEJSZY KONTENER PRZYCISKU -->
-                    <div class="refresh-button-container">
-                        <button class="refresh-button" id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
+                    <!-- STATYCZNY PRZYCISK ZAPISZ I ODSWIEŻ -->
+                    <div style="width:100%; max-width:800px; margin:20px auto 10px auto; padding-top:15px; border-top:1px solid #660000; text-align:center;">
+                        <button id="swSaveAndRestartButton" style="width:100%; padding:14px; background:linear-gradient(135deg, #006600, #008800); border:1px solid #00cc00; border-radius:8px; color:#ffffff; cursor:pointer; font-weight:700; font-size:13px; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:1px;">💾 Zapisz i odśwież grę</button>
                     </div>
                     
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
@@ -1791,7 +1703,7 @@
                                 <div class="font-size-display" id="fontSizeValue">13px</div>
                                 <button class="font-size-btn" id="fontSizeIncrease">+</button>
                             </div>
-                            <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">Kliknij +/- aby zmienić (10-16px)</small>
+                            <small style="color:#ff9966; font-size:11px; display:block; text-align:center;">Kliknij +/- aby zmienić (8-16px)</small>
                         </div>
                         
                         <div class="settings-item">
@@ -1874,130 +1786,101 @@
         `;
     }
 
-    // 🔹 NOWA: Funkcja poprawiająca scrollowanie w zakładce dodatków
-    function improveAddonsScrolling() {
-        console.log('🔄 Poprawianie scrollowania w zakładce dodatków...');
-        
-        const addonsTab = document.getElementById('addons');
-        if (!addonsTab) return;
-        
-        // Upewnij się, że kontener z listą dodatków ma odpowiednie właściwości flex
-        const addonListContainer = addonsTab.querySelector('.addon-list-container');
-        const addonList = addonsTab.querySelector('#addon-list');
-        
-        if (addonListContainer && addonList) {
-            // Wymusz właściwości flex
-            addonListContainer.style.flex = '1 1 auto';
-            addonListContainer.style.minHeight = '0';
-            addonListContainer.style.maxHeight = 'none';
-            
-            addonList.style.flex = '1';
-            addonList.style.minHeight = '0';
-            
-            console.log('✅ Poprawiono właściwości scrollowania dla dodatków');
+    // 🔹 Inicjalizacja event listenerów
+    function initializeEventListeners() {
+        // Przycisk zapisz i odśwież
+        const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
+        if (saveRestartBtn) {
+            saveRestartBtn.addEventListener('click', () => {
+                saveAddonsState();
+                showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success');
+                setTimeout(() => location.reload(), 1500);
+            });
         }
         
-        // Dodaj obsługę resize okna
-        window.addEventListener('resize', function() {
-            setTimeout(() => {
-                if (addonListContainer) {
-                    addonListContainer.style.maxHeight = 'none';
-                    addonListContainer.style.flex = '1 1 auto';
-                    
-                    // Wymuś przeliczenie layoutu
-                    addonListContainer.style.display = 'none';
-                    void addonListContainer.offsetHeight;
-                    addonListContainer.style.display = '';
+        // Reset ustawień
+        const resetBtn = document.getElementById('swResetButton');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
+                    resetAllSettings();
                 }
-            }, 100);
+            });
+        }
+        
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
+        const fontSizeDecrease = document.getElementById('fontSizeDecrease');
+        const fontSizeIncrease = document.getElementById('fontSizeIncrease');
+        
+        if (fontSizeDecrease) {
+            fontSizeDecrease.addEventListener('click', function() {
+                if (!this.disabled) {
+                    applyFontSize(currentFontSize - 1);
+                }
+            });
+        }
+        
+        if (fontSizeIncrease) {
+            fontSizeIncrease.addEventListener('click', function() {
+                if (!this.disabled) {
+                    applyFontSize(currentFontSize + 1);
+                }
+            });
+        }
+        
+        // 🔹 SUWAK PRZEŹROCZYSTOŚCI
+        const opacitySlider = document.getElementById('opacitySlider');
+        const opacityValue = document.getElementById('opacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.addEventListener('input', function() {
+                const opacity = parseInt(this.value);
+                opacityValue.textContent = opacity + '%';
+                applyOpacity(opacity);
+            });
+        }
+        
+        // 🔹 FILTRY DODATKÓW
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.filter;
+                renderAddons();
+            });
         });
+        
+        // 🔹 EKSPORT/IMPORT USTAWIEN
+        const exportBtn = document.getElementById('exportSettingsBtn');
+        const importBtn = document.getElementById('importSettingsBtn');
+        
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportSettings);
+        }
+        
+        if (importBtn) {
+            importBtn.addEventListener('click', importSettings);
+        }
+        
+        // Wyszukiwanie dodatków
+        const searchInput = document.getElementById('searchAddons');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.toLowerCase();
+                renderAddons();
+            });
+        }
+        
+        // 🔹 SKRÓT PANELU
+        setupPanelShortcutInput();
+        
+        // 🔹 ZAKŁADKI
+        setupTabs();
+        
+        // 🔹 GLOBALNE SKRÓTY
+        setupGlobalShortcuts();
     }
 
-    // 🔹 UPROSZCZONE: Funkcja scrollowania jak na normalnej stronie
-    function setupNormalScrolling() {
-        console.log('🖱️ Konfiguracja normalnego scrollowania...');
-        
-        const setupScrollForElement = (element) => {
-            if (!element) return;
-            
-            // WŁĄCZ NORMALNY SCROLL
-            element.style.overflowY = 'auto';
-            element.style.overflowX = 'hidden';
-            
-            // 🔹 POZWÓŁ NA NORMALNE SCROLLOWANIE KÓŁKIEM MYSZY
-            // Przeglądarka automatycznie obsłuży scrollowanie wewnątrz kontenera
-            // gdy kursor jest nad nim
-            
-            // 🔹 ZAPOBIEGAJ TYLKO PRZENOSZENIU SCROLLOWANIA NA STRONĘ GDY KONTENER MOŻE SCROLLOWAĆ
-            element.addEventListener('wheel', function(e) {
-                // Jeśli kontener może scrollować w danym kierunku, nie pozwól na scrollowanie strony
-                if (this.scrollHeight > this.clientHeight) {
-                    const isAtTop = this.scrollTop === 0;
-                    const isAtBottom = this.scrollTop + this.clientHeight >= this.scrollHeight;
-                    
-                    // Jeśli scrollujemy w górę, a nie jesteśmy na górze kontenera
-                    if (e.deltaY < 0 && !isAtTop) {
-                        e.stopPropagation();
-                    }
-                    // Jeśli scrollujemy w dół, a nie jesteśmy na dole kontenera
-                    else if (e.deltaY > 0 && !isAtBottom) {
-                        e.stopPropagation();
-                    }
-                    // W przeciwnym razie pozwól na scrollowanie strony
-                }
-            }, { passive: false });
-        };
-        
-        // Ustaw dla wszystkich kontenerów z scrollowaniem
-        setTimeout(() => {
-            const scrollableElements = [
-                document.querySelector('.addon-list-container'),
-                document.querySelector('.shortcuts-list-container'),
-                document.querySelector('.license-scroll-container'),
-                document.querySelector('.scrollable-container')
-            ];
-            
-            scrollableElements.forEach(setupScrollForElement);
-            
-            // Dodatkowo dla wszystkich elementów z klasą .scrollable-container
-            document.querySelectorAll('.scrollable-container').forEach(setupScrollForElement);
-            
-            console.log('✅ Konfiguracja normalnego scrollowania zakończona');
-        }, 500);
-    }
-
-    // 🔹 NOWA: Funkcja wymuszenia widoczności scrolla
-    function forceScrollVisibility() {
-        const containers = [
-            '.addon-list-container',
-            '.shortcuts-list-container',
-            '.license-scroll-container',
-            '.scrollable-container'
-        ];
-        
-        containers.forEach(selector => {
-            const container = document.querySelector(selector);
-            if (container) {
-                // Wymuś ponowne obliczenie layoutu
-                container.style.display = 'none';
-                void container.offsetHeight;
-                container.style.display = '';
-                
-                // Wymuś widoczność scrolla
-                container.style.overflowY = 'auto';
-                container.style.overflowX = 'hidden';
-                
-                // Dla addon-list-container usuń max-height
-                if (selector === '.addon-list-container') {
-                    container.style.maxHeight = 'none';
-                    container.style.flex = '1 1 auto';
-                    container.style.minHeight = '0';
-                }
-            }
-        });
-    }
-
-    // 🔹 POPRAWIONE: Setup przeciągania PANELU
+    // 🔹 Setup przeciągania PANELU
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
         const header = document.getElementById('swPanelHeader');
@@ -2278,18 +2161,6 @@
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
                 }
-                
-                if (tabName === 'addons') {
-                    setTimeout(() => {
-                        improveAddonsScrolling();
-                        forceScrollVisibility();
-                    }, 50);
-                } else {
-                    // Inicjalizuj scroll dla nowo otwartej zakładki
-                    setTimeout(() => {
-                        forceScrollVisibility();
-                    }, 50);
-                }
             });
         });
     }
@@ -2363,227 +2234,6 @@
                 }
             });
         });
-    }
-
-    // 🔹 Ładowanie stanu skrótów
-    function loadShortcutsEnabledState() {
-        shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
-        
-        Object.keys(addonShortcuts).forEach(addonId => {
-            if (shortcutsEnabled[addonId] === undefined) {
-                shortcutsEnabled[addonId] = false;
-            }
-        });
-        
-        saveShortcutsEnabledState();
-    }
-
-    // 🔹 Uproszczony eksport ustawień
-    function exportSettings() {
-        try {
-            const settings = {
-                v: '4.6',
-                t: Date.now(),
-                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
-                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
-                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}),
-                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'),
-                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13),
-                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90)
-            };
-            
-            const jsonString = JSON.stringify(settings);
-            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
-            
-            let obfuscated = base64.split('').reverse().join('')
-                .replace(/=/g, '_')
-                .replace(/\+/g, '-')
-                .replace(/\//g, '.');
-            
-            const checksum = obfuscated.length.toString(36);
-            obfuscated = checksum + ':' + obfuscated;
-            
-            const textarea = document.getElementById('settingsTextarea');
-            if (textarea) {
-                textarea.value = obfuscated;
-                
-                textarea.select();
-                textarea.setSelectionRange(0, 99999);
-                
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        showLicenseMessage('✅ Ustawienia wyeksportowane i skopiowane do schowka!', 'success');
-                    } else {
-                        showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
-                    }
-                } catch (err) {
-                    showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
-                }
-            }
-            
-        } catch (error) {
-            console.error('❌ Błąd eksportu:', error);
-            showLicenseMessage('❌ Błąd eksportu ustawień', 'error');
-        }
-    }
-
-    // 🔹 Import obfuskowanych ustawień
-    function importSettings() {
-        const textarea = document.getElementById('settingsTextarea');
-        if (!textarea || !textarea.value.trim()) {
-            showLicenseMessage('❌ Brak danych do importu', 'error');
-            return;
-        }
-        
-        try {
-            let obfuscated = textarea.value.trim();
-            
-            const parts = obfuscated.split(':');
-            if (parts.length !== 2) {
-                throw new Error('Nieprawidłowy format danych');
-            }
-            
-            const checksum = parts[0];
-            let data = parts[1];
-            
-            data = data.replace(/_/g, '=')
-                      .replace(/-/g, '+')
-                      .replace(/\./g, '/')
-                      .split('').reverse().join('');
-            
-            if (parseInt(checksum, 36) !== data.length) {
-                throw new Error('Dane uszkodzone - nieprawidłowa checksum');
-            }
-            
-            const decoded = decodeURIComponent(escape(atob(data)));
-            const settings = JSON.parse(decoded);
-            
-            if (!settings.v) {
-                throw new Error('Brak informacji o wersji');
-            }
-            
-            if (settings.v !== '4.6') {
-                if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
-                    return;
-                }
-            }
-            
-            if (settings.a) SW.GM_setValue(CONFIG.FAVORITE_ADDONS, settings.a);
-            if (settings.s) SW.GM_setValue(CONFIG.SHORTCUTS_CONFIG, settings.s);
-            if (settings.se) SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, settings.se);
-            if (settings.p) SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, settings.p);
-            if (settings.f) SW.GM_setValue(CONFIG.FONT_SIZE, settings.f);
-            if (settings.o) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, settings.o);
-            
-            showLicenseMessage('✅ Ustawienia zaimportowane! Odświeżanie...', 'success');
-            setTimeout(() => location.reload(), 2000);
-            
-        } catch (error) {
-            console.error('❌ Błąd importu:', error);
-            showLicenseMessage('❌ Nieprawidłowy format danych importu', 'error');
-        }
-    }
-
-    // 🔹 Inicjalizacja event listenerów
-    function initializeEventListeners() {
-        // Przycisk zapisz i odśwież - MNIEJSZY I WYŚRODKOWANY
-        const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
-        if (saveRestartBtn) {
-            saveRestartBtn.addEventListener('click', () => {
-                saveAddonsState();
-                showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success');
-                setTimeout(() => location.reload(), 1500);
-            });
-        }
-        
-        // Reset ustawień
-        const resetBtn = document.getElementById('swResetButton');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                if (confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) {
-                    resetAllSettings();
-                }
-            });
-        }
-        
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI - NATYCHMIASTOWE DZIAŁANIE Z BLOKADĄ
-        const fontSizeDecrease = document.getElementById('fontSizeDecrease');
-        const fontSizeIncrease = document.getElementById('fontSizeIncrease');
-        
-        if (fontSizeDecrease) {
-            fontSizeDecrease.addEventListener('click', function() {
-                if (!this.disabled) {
-                    applyFontSize(currentFontSize - 1);
-                }
-            });
-        }
-        
-        if (fontSizeIncrease) {
-            fontSizeIncrease.addEventListener('click', function() {
-                if (!this.disabled) {
-                    applyFontSize(currentFontSize + 1);
-                }
-            });
-        }
-        
-        // 🔹 SUWAK PRZEŹROCZYSTOŚCI
-        const opacitySlider = document.getElementById('opacitySlider');
-        const opacityValue = document.getElementById('opacityValue');
-        if (opacitySlider && opacityValue) {
-            opacitySlider.addEventListener('input', function() {
-                const opacity = parseInt(this.value);
-                opacityValue.textContent = opacity + '%';
-                applyOpacity(opacity);
-            });
-        }
-        
-        // 🔹 FILTRY DODATKÓW
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                renderAddons();
-            });
-        });
-        
-        // 🔹 EKSPORT/IMPORT USTAWIEN
-        const exportBtn = document.getElementById('exportSettingsBtn');
-        const importBtn = document.getElementById('importSettingsBtn');
-        
-        if (exportBtn) {
-            exportBtn.addEventListener('click', exportSettings);
-        }
-        
-        if (importBtn) {
-            importBtn.addEventListener('click', importSettings);
-        }
-        
-        // Wyszukiwanie dodatków
-        const searchInput = document.getElementById('searchAddons');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                searchQuery = this.value.toLowerCase();
-                renderAddons();
-            });
-        }
-        
-        // 🔹 SKRÓT PANELU
-        setupPanelShortcutInput();
-        
-        // 🔹 ZAKŁADKI
-        setupTabs();
-        
-        // 🔹 GLOBALNE SKRÓTY
-        setupGlobalShortcuts();
-        
-        // 🔹 POPRAW SCROLLOWANIE W DODATKACH
-        setTimeout(() => {
-            improveAddonsScrolling();
-            setupNormalScrolling();
-            forceScrollVisibility();
-        }, 1000);
     }
 
     // 🔹 Renderowanie dodatków z FILTRAMI
@@ -2672,11 +2322,6 @@
                 if (addonId) toggleAddon(addonId, this.checked);
             });
         });
-        
-        setTimeout(() => {
-            improveAddonsScrolling();
-            forceScrollVisibility();
-        }, 100);
     }
 
     // 🔹 POPRAWIONE: Renderowanie skrótów (POKAZUJE WŁĄCZONE DODATKI)
@@ -2795,7 +2440,7 @@
         }
         
         if (document.getElementById('shortcuts').classList.contains('active')) {
-            renderShortcuts();
+            setTimeout(renderShortcuts, 100);
         }
     }
 
@@ -2836,6 +2481,19 @@
 
     function saveShortcutsEnabledState() {
         SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, shortcutsEnabled);
+    }
+
+    // 🔹 Ładowanie stanu skrótów
+    function loadShortcutsEnabledState() {
+        shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
+        
+        Object.keys(addonShortcuts).forEach(addonId => {
+            if (shortcutsEnabled[addonId] === undefined) {
+                shortcutsEnabled[addonId] = false;
+            }
+        });
+        
+        saveShortcutsEnabledState();
     }
 
     // 🔹 Ustawianie skrótu dla dodatku
@@ -2985,6 +2643,119 @@
         }
         
         return messageEl;
+    }
+
+    // 🔹 UPROSZCZONY eksport ustawień z automatycznym kopiowaniem
+    function exportSettings() {
+        try {
+            const settings = {
+                v: '4.6',
+                t: Date.now(),
+                a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
+                s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
+                se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}),
+                p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'),
+                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13),
+                o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90)
+            };
+            
+            const jsonString = JSON.stringify(settings);
+            const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+            
+            let obfuscated = base64.split('').reverse().join('')
+                .replace(/=/g, '_')
+                .replace(/\+/g, '-')
+                .replace(/\//g, '.');
+            
+            const checksum = obfuscated.length.toString(36);
+            obfuscated = checksum + ':' + obfuscated;
+            
+            const textarea = document.getElementById('settingsTextarea');
+            if (textarea) {
+                textarea.value = obfuscated;
+                
+                // Automatyczne kopiowanie do schowka
+                textarea.select();
+                textarea.setSelectionRange(0, 99999);
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showLicenseMessage('✅ Ustawienia wyeksportowane i skopiowane do schowka!', 'success');
+                    } else {
+                        // Fallback dla nowoczesnych przeglądarek
+                        navigator.clipboard.writeText(obfuscated).then(() => {
+                            showLicenseMessage('✅ Ustawienia wyeksportowane i skopiowane do schowka!', 'success');
+                        }).catch(err => {
+                            showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
+                        });
+                    }
+                } catch (err) {
+                    showLicenseMessage('✅ Ustawienia wyeksportowane! Skopiuj tekst ręcznie.', 'info');
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Błąd eksportu:', error);
+            showLicenseMessage('❌ Błąd eksportu ustawień', 'error');
+        }
+    }
+
+    // 🔹 Import obfuskowanych ustawień
+    function importSettings() {
+        const textarea = document.getElementById('settingsTextarea');
+        if (!textarea || !textarea.value.trim()) {
+            showLicenseMessage('❌ Brak danych do importu', 'error');
+            return;
+        }
+        
+        try {
+            let obfuscated = textarea.value.trim();
+            
+            const parts = obfuscated.split(':');
+            if (parts.length !== 2) {
+                throw new Error('Nieprawidłowy format danych');
+            }
+            
+            const checksum = parts[0];
+            let data = parts[1];
+            
+            data = data.replace(/_/g, '=')
+                      .replace(/-/g, '+')
+                      .replace(/\./g, '/')
+                      .split('').reverse().join('');
+            
+            if (parseInt(checksum, 36) !== data.length) {
+                throw new Error('Dane uszkodzone - nieprawidłowa checksum');
+            }
+            
+            const decoded = decodeURIComponent(escape(atob(data)));
+            const settings = JSON.parse(decoded);
+            
+            if (!settings.v) {
+                throw new Error('Brak informacji o wersji');
+            }
+            
+            if (settings.v !== '4.6') {
+                if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
+                    return;
+                }
+            }
+            
+            if (settings.a) SW.GM_setValue(CONFIG.FAVORITE_ADDONS, settings.a);
+            if (settings.s) SW.GM_setValue(CONFIG.SHORTCUTS_CONFIG, settings.s);
+            if (settings.se) SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, settings.se);
+            if (settings.p) SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, settings.p);
+            if (settings.f) SW.GM_setValue(CONFIG.FONT_SIZE, settings.f);
+            if (settings.o) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, settings.o);
+            
+            showLicenseMessage('✅ Ustawienia zaimportowane! Odświeżanie...', 'success');
+            setTimeout(() => location.reload(), 2000);
+            
+        } catch (error) {
+            console.error('❌ Błąd importu:', error);
+            showLicenseMessage('❌ Nieprawidłowy format danych importu', 'error');
+        }
     }
 
     // 🔹 POPRAWIONE: Ładowanie ustawień z ZAPISEM wartości
@@ -3322,31 +3093,13 @@
             setupToggleDrag(toggleBtn);
         }
         
-        // 🔹 Ustaw normalne scrollowanie
-        setTimeout(() => {
-            setupNormalScrolling();
-            improveAddonsScrolling();
-        }, 300);
-        
         setTimeout(async () => {
             await initAccountAndLicense();
             
             renderAddons();
             renderShortcuts();
             
-            setTimeout(() => {
-                forceScrollVisibility();
-                updateFontSizeButtons(currentFontSize);
-                improveAddonsScrolling();
-            }, 500);
-            
-            // Obsługa zmiany rozmiaru okna
-            window.addEventListener('resize', function() {
-                setTimeout(() => {
-                    improveAddonsScrolling();
-                    forceScrollVisibility();
-                }, 100);
-            });
+            updateFontSizeButtons(currentFontSize);
             
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
