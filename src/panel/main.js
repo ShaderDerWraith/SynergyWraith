@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Synergy Panel v4.6 - Final Edition (Fixed Button Position)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.7
+// @version      4.6.8
 // @description  Zaawansowany panel dodatków do gry z systemem licencji - POPRAWIONA WERSJA
 // @author       ShaderDerWraith
 // @match        *://*/*
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.7 (Fixed All Issues)');
+    console.log('🚀 Synergy Panel loaded - v4.6.8 (Final Fixed Version)');
 
     // 🔹 Dodanie CSS
     const panelCSS = `
@@ -268,6 +268,7 @@
             height: auto;
             min-height: 200px;
             max-height: calc(100% - 180px);
+            scroll-behavior: smooth; /* PŁYNNY SCROLL */
         }
 
         /* WYMUSZENIE WIDOCZNOŚCI SCROLLA */
@@ -484,7 +485,7 @@
             transform: translateY(-2px);
         }
 
-        /* 🔹 PRZYCISK ZAPISZ I ODSWIEŻ - STATYCZNY NA DOLE 🔹 */
+        /* 🔹 PRZYCISK ZAPISZ I ODSWIEŻ - STATYCZNY NA DOLE, ZAWSZE WIDOCZNY 🔹 */
         #swSaveAndRestartButton {
             width: 100%;
             padding: 14px;
@@ -503,12 +504,32 @@
             display: block;
             box-sizing: border-box;
             text-align: center;
+            position: relative;
+            z-index: 10;
+            min-height: 50px;
         }
 
         #swSaveAndRestartButton:hover {
             background: linear-gradient(135deg, #008800, #00aa00);
             transform: translateY(-3px);
             box-shadow: 0 6px 18px rgba(0, 255, 0, 0.4);
+        }
+
+        /* KONTENER DLA PRZYCISKU ZAPISZ - ZAWSZE WIDOCZNY */
+        .save-button-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto 10px auto;
+            padding-top: 15px;
+            border-top: 1px solid #660000;
+            text-align: center;
+            min-height: 80px; /* ZWIĘKSZONE dla pewności widoczności */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 100;
+            background: rgba(26, 0, 0, 0.7);
         }
 
         /* 🔹 SHORTCUTS LIST 🔹 */
@@ -525,6 +546,7 @@
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             min-height: 350px;
             height: calc(100% - 60px);
+            scroll-behavior: smooth; /* PŁYNNY SCROLL */
         }
 
         .shortcut-item {
@@ -695,6 +717,7 @@
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5);
             height: auto;
             min-height: 320px;
+            scroll-behavior: smooth; /* PŁYNNY SCROLL */
         }
 
         .license-container {
@@ -1096,7 +1119,7 @@
             overflow-x: hidden !important;
             margin-bottom: 10px !important;
             padding-right: 10px !important;
-            scroll-behavior: smooth !important;
+            scroll-behavior: smooth !important; /* PŁYNNY SCROLL */
             scrollbar-width: thin !important;
             scrollbar-color: #ff3300 rgba(51, 0, 0, 0.5) !important;
             height: calc(100% - 60px) !important;
@@ -1473,12 +1496,13 @@
     let licenseData = null;
     let licenseExpiry = null;
     let serverConnected = true;
+    let panelResizeTimer = null;
 
     // =========================================================================
     // 🔹 GŁÓWNE FUNKCJE PANELU - POPRAWIONE
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize - TERAZ DZIAŁA POPRAWNIE
+    // 🔹 POPRAWIONE: Funkcja applyFontSize - TERAZ DZIAŁA POPRAWNIE DLA WSZYSTKIEGO
     function applyFontSize(size, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -1496,24 +1520,51 @@
             SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
         }
         
-        // NATYCHMIASTOWA AKTUALIZACJA PANELU - TERAZ DZIAŁA
+        // NATYCHMIASTOWA AKTUALIZACJA PANELU - TERAZ DZIAŁA DLA WSZYSTKIEGO
         const allTextElements = panel.querySelectorAll('*');
         allTextElements.forEach(el => {
-            // Zachowaj specjalne rozmiary dla nagłówków itp.
-            const currentStyle = window.getComputedStyle(el);
-            const currentFontSize = parseInt(currentStyle.fontSize);
-            
-            // Jeśli element ma domyślną czcionkę (13px), zmień ją
-            if (currentFontSize === 13 || 
-                el.tagName === 'DIV' || 
-                el.tagName === 'SPAN' || 
-                el.tagName === 'P' ||
-                el.classList.contains('addon-title') ||
-                el.classList.contains('addon-description') ||
-                el.classList.contains('shortcut-name') ||
-                el.classList.contains('shortcut-desc') ||
-                el.classList.contains('settings-label')) {
-                el.style.fontSize = clampedSize + 'px';
+            // Zmień czcionkę dla WSZYSTKICH elementów tekstowych
+            if (el.tagName !== 'INPUT' && el.tagName !== 'BUTTON' && el.tagName !== 'TEXTAREA') {
+                const currentStyle = window.getComputedStyle(el);
+                const originalSize = parseInt(currentStyle.fontSize);
+                
+                // Jeśli element ma domyślną czcionkę lub jest tekstem, zmień ją
+                if (originalSize === 13 || 
+                    originalSize === 12 || 
+                    originalSize === 14 ||
+                    el.classList.contains('addon-title') ||
+                    el.classList.contains('addon-description') ||
+                    el.classList.contains('shortcut-name') ||
+                    el.classList.contains('shortcut-desc') ||
+                    el.classList.contains('settings-label') ||
+                    el.classList.contains('license-status-label') ||
+                    el.classList.contains('license-status-value') ||
+                    el.classList.contains('tablink') ||
+                    el.classList.contains('panel-subtitle') ||
+                    el.tagName === 'SPAN' ||
+                    el.tagName === 'P' ||
+                    el.tagName === 'DIV' ||
+                    el.tagName === 'LABEL' ||
+                    el.tagName === 'H3' ||
+                    el.tagName === 'H4') {
+                    
+                    // Zachowaj proporcje względem oryginalnego rozmiaru
+                    const scaleFactor = clampedSize / 13;
+                    const newSize = Math.round(originalSize * scaleFactor);
+                    el.style.fontSize = newSize + 'px';
+                }
+            }
+        });
+        
+        // SPECJALNE TRAKTOWANIE DLA INPUTÓW I PRZYCISKÓW
+        const specialElements = panel.querySelectorAll('input, button, textarea, .font-size-display, .slider-value, .shortcut-display');
+        specialElements.forEach(el => {
+            if (el.classList.contains('font-size-display') || el.classList.contains('slider-value')) {
+                el.style.fontSize = '15px'; // Stały rozmiar dla wartości
+            } else if (el.classList.contains('shortcut-display')) {
+                el.style.fontSize = clampedSize - 1 + 'px'; // Nieco mniejszy dla skrótów
+            } else {
+                el.style.fontSize = clampedSize + 'px'; // Dla inputów i przycisków
             }
         });
         
@@ -1534,7 +1585,7 @@
         // AKTUALIZUJ STAN PRZYCISKÓW
         updateFontSizeButtons(clampedSize);
         
-        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
+        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px (zastosowano dla wszystkich elementów)');
     }
 
     // 🔹 NOWA: Funkcja aktualizacji przycisków czcionki
@@ -1577,7 +1628,7 @@
         }
     }
 
-    // 🔹 NOWA: Funkcja zapisywania rozmiaru panelu
+    // 🔹 POPRAWIONE: Funkcja zapisywania rozmiaru panelu - TERAZ ZAWSZE ZAPISUJE
     function savePanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -1592,10 +1643,14 @@
             SW.GM_setValue(CONFIG.PANEL_HEIGHT, savedHeight);
             
             console.log('💾 Zapisano rozmiar panelu:', savedWidth + 'x' + savedHeight);
+            
+            // Dodatkowe sprawdzenie - zapisz też natychmiast
+            localStorage.setItem(CONFIG.PANEL_WIDTH, JSON.stringify(savedWidth));
+            localStorage.setItem(CONFIG.PANEL_HEIGHT, JSON.stringify(savedHeight));
         }
     }
 
-    // 🔹 NOWA: Funkcja ładowania rozmiaru panelu
+    // 🔹 POPRAWIONE: Funkcja ładowania rozmiaru panelu - ZAWSZE DZIAŁA
     function loadPanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -1609,8 +1664,22 @@
             panel.style.width = width + 'px';
             panel.style.height = height + 'px';
             
-            console.log('📐 Załadowano rozmiar panelu:', width + 'x' + height);
+            console.log('📐 Załadowano rozmiar panelu:', width + 'x' + savedHeight);
+            
+            // Wymuś ponowne zapisanie, aby upewnić się że wartości są poprawne
+            setTimeout(() => {
+                SW.GM_setValue(CONFIG.PANEL_WIDTH, width);
+                SW.GM_setValue(CONFIG.PANEL_HEIGHT, height);
+            }, 100);
         }
+    }
+
+    // 🔹 NOWA: Funkcja do obsługi zmiany rozmiaru panelu
+    function handlePanelResize() {
+        clearTimeout(panelResizeTimer);
+        panelResizeTimer = setTimeout(() => {
+            savePanelSize();
+        }, 300); // Zapis po 300ms od ostatniej zmiany
     }
 
     // 🔹 POPRAWIONE: Tworzenie przycisku przełączania
@@ -1641,24 +1710,24 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.7 Fixed All Issues');
+        console.log('✅ Panel created - v4.6.8 Final Fixed Version');
         
         // 🔹 INICJALIZACJA
         initializeEventListeners();
         loadSettings();
         loadPanelSize(); // Ładujemy zapisany rozmiar
         setupPanelDrag();
-        setupScrollHandling(); // Inicjalizacja scrollowania
+        setupSmoothScroll(); // Inicjalizacja płynnego scrollowania
         
         return panel;
     }
 
-    // 🔹 NOWA: Funkcja obsługi scrollowania dla wszystkich zakładek
-    function setupScrollHandling() {
+    // 🔹 NOWA: Funkcja płynnego scrollowania dla wszystkich zakładek
+    function setupSmoothScroll() {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        // Obsługa scrollowania kółkiem myszy dla wszystkich kontenerów
+        // PŁYNNY SCROLL DLA WSZYSTKICH KONTENERÓW
         const scrollableContainers = [
             '.addon-list-container',
             '.shortcuts-list-container', 
@@ -1669,17 +1738,20 @@
         scrollableContainers.forEach(selector => {
             const containers = panel.querySelectorAll(selector);
             containers.forEach(container => {
+                // Płynne przewijanie kółkiem myszy
                 container.addEventListener('wheel', function(e) {
                     // Zapobiegaj domyślnemu zachowaniu tylko jeśli kontener ma scroll
                     if (this.scrollHeight > this.clientHeight) {
-                        this.scrollTop += e.deltaY;
+                        // PŁYNNIEJSZY SCROLL - mniejszy krok
+                        const scrollStep = e.deltaY * 0.5;
+                        this.scrollTop += scrollStep;
                         e.preventDefault();
                     }
                 }, { passive: false });
             });
         });
         
-        // Obsługa scrollowania dla całego panelu na pozostałych obszarach
+        // PŁYNNY SCROLL DLA CAŁEGO PANELU NA POZOSTAŁYCH OBSZARACH
         panel.addEventListener('wheel', function(e) {
             const target = e.target;
             
@@ -1694,7 +1766,9 @@
                 if (activeTab) {
                     const scrollContainer = activeTab.querySelector('.addon-list-container, .shortcuts-list-container, .license-scroll-container, .scrollable-container');
                     if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
-                        scrollContainer.scrollTop += e.deltaY;
+                        // PŁYNNIEJSZY SCROLL - mniejszy krok
+                        const scrollStep = e.deltaY * 0.3;
+                        scrollContainer.scrollTop += scrollStep;
                         e.preventDefault();
                     }
                 }
@@ -1739,9 +1813,9 @@
                         <div class="addon-list" id="addon-list"></div>
                     </div>
                     
-                    <!-- PRZYCISK ZAPISZ I ODSWIEŻ - WIDOCZNY ZAWSZE -->
-                    <div style="width:100%; max-width:800px; margin:20px auto 10px auto; padding-top:15px; border-top:1px solid #660000; text-align:center; min-height:60px; display:flex; align-items:center; justify-content:center;">
-                        <button id="swSaveAndRestartButton" style="width:100%; padding:14px; background:linear-gradient(135deg, #006600, #008800); border:1px solid #00cc00; border-radius:8px; color:#ffffff; cursor:pointer; font-weight:700; font-size:13px; transition:all 0.3s ease; text-transform:uppercase; letter-spacing:1px;">💾 Zapisz i odśwież grę</button>
+                    <!-- PRZYCISK ZAPISZ I ODSWIEŻ - ZAWSZE WIDOCZNY -->
+                    <div class="save-button-container">
+                        <button id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
                     
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
@@ -1921,7 +1995,7 @@
             });
         }
         
-        // 🔹 PRZYCISKI ZMIANY CZCIONKI - TERAZ DZIAŁAJĄ
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI - TERAZ DZIAŁAJĄ DLA WSZYSTKIEGO
         const fontSizeDecrease = document.getElementById('fontSizeDecrease');
         const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
@@ -1992,16 +2066,38 @@
         // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
-        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU
+        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU - POPRAWIONA
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
-            let resizeTimeout;
-            panel.addEventListener('mouseup', function() {
-                // Zapisujemy rozmiar po zakończeniu zmiany (z debounce)
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    savePanelSize();
-                }, 500);
+            // Obsługa zmiany rozmiaru przez użytkownika
+            let resizeObserver;
+            try {
+                // Użyj ResizeObserver dla nowoczesnych przeglądarek
+                resizeObserver = new ResizeObserver(() => {
+                    handlePanelResize();
+                });
+                resizeObserver.observe(panel);
+            } catch (e) {
+                // Fallback dla starszych przeglądarek
+                panel.addEventListener('mouseup', function() {
+                    handlePanelResize();
+                });
+                
+                panel.addEventListener('resize', function() {
+                    handlePanelResize();
+                });
+            }
+            
+            // Dodatkowe zapisywanie przy zamykaniu/zminimalizowaniu
+            window.addEventListener('beforeunload', () => {
+                savePanelSize();
+            });
+            
+            // Zapis przy każdej zmianie zakładki
+            panel.addEventListener('click', function(e) {
+                if (e.target.classList.contains('tablink')) {
+                    setTimeout(savePanelSize, 100);
+                }
             });
         }
     }
@@ -2074,6 +2170,9 @@
                 left: panel.style.left,
                 top: panel.style.top
             });
+            
+            // Zapisz też rozmiar przy zakończeniu przeciągania
+            savePanelSize();
         }
 
         panel.addEventListener('mousedown', startDrag);
@@ -2169,6 +2268,9 @@
             const isVisible = panel.style.display === 'block';
             panel.style.display = isVisible ? 'none' : 'block';
             SW.GM_setValue(CONFIG.PANEL_VISIBLE, !isVisible);
+            
+            // Zapisz rozmiar przy otwieraniu/zamykaniu
+            savePanelSize();
         }
     }
 
@@ -2287,6 +2389,9 @@
                 if (tabName === 'shortcuts') {
                     setTimeout(renderShortcuts, 100);
                 }
+                
+                // Zapisz rozmiar przy zmianie zakładki
+                setTimeout(savePanelSize, 50);
             });
         });
     }
@@ -2775,7 +2880,7 @@
     function exportSettings() {
         try {
             const settings = {
-                v: '4.6.7',
+                v: '4.6.8',
                 t: Date.now(),
                 a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
                 s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
@@ -2864,7 +2969,7 @@
                 throw new Error('Brak informacji o wersji');
             }
             
-            if (settings.v !== '4.6.7') {
+            if (settings.v !== '4.6.8') {
                 if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
                     return;
                 }
@@ -3210,7 +3315,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.7...');
+        console.log('✅ Initializing Synergy Panel v4.6.8...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3231,6 +3336,11 @@
             
             updateFontSizeButtons(currentFontSize);
             
+            // ZAPISZ ROZMIAR PO PEŁNYM ZAŁADOWANIU
+            setTimeout(() => {
+                savePanelSize();
+            }, 2000);
+            
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
             }, 5 * 60 * 1000);
@@ -3238,7 +3348,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.7...');
+    console.log('🎯 Starting Synergy Panel v4.6.8...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
