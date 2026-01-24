@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Synergy Panel v4.6 - Compact Edition
+// @name         Synergy Panel v4.6 - Final Edition (Fixed Button Position)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.9
-// @description  Zaawansowany panel dodatków do gry z systemem licencji - KOMPAKTOWA WERSJA
+// @version      4.6.8
+// @description  Zaawansowany panel dodatków do gry z systemem licencji - POPRAWIONA WERSJA
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,9 +13,9 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.9 (Compact Version)');
+    console.log('🚀 Synergy Panel loaded - v4.6.8 (Final Fixed Version)');
 
-    // 🔹 Dodanie CSS - KOMPAKTOWY
+    // 🔹 Dodanie CSS
     const panelCSS = `
         /* 🔹 BASE STYLES - KOMPAKTOWA WERSJA 🔹 */
         #swPanelToggle {
@@ -111,6 +111,7 @@
             cursor: default;
         }
 
+        /* Stylizacja uchwytu zmiany rozmiaru */
         #swAddonsPanel::-webkit-resizer {
             background-color: #ff3300;
             border-radius: 3px;
@@ -126,6 +127,7 @@
             cursor: grabbing;
         }
 
+        /* 🔹 NAGŁÓWEK - KOMPAKTOWY 🔹 */
         #swPanelHeader {
             background: linear-gradient(to right, 
                 rgba(40, 0, 0, 0.95), 
@@ -149,6 +151,7 @@
             justify-content: center;
         }
 
+        /* 🔹 OBSZAR DO CHWYTANIA 🔹 */
         #swAddonsPanel::before {
             content: '';
             position: absolute;
@@ -160,6 +163,7 @@
             z-index: 1000;
         }
 
+        /* 🔹 TABS - KOMPAKTOWE 🔹 */
         .tab-container {
             display: flex;
             background: linear-gradient(to bottom, 
@@ -222,6 +226,7 @@
             color: #ff6600; 
         }
 
+        /* 🔹 TAB CONTENT 🔹 */
         .tabcontent {
             display: none;
             flex: 1;
@@ -248,6 +253,7 @@
             min-height: 0;
         }
 
+        /* 🔹 DODATKI - KOMPAKTOWE 🔹 */
         .addon-list-container {
             width: 100%;
             max-width: 600px;
@@ -350,6 +356,7 @@
             flex-shrink: 0;
         }
 
+        /* 🔹 PRZYCISK ULUBIONYCH 🔹 */
         .favorite-btn {
             background: transparent;
             border: none;
@@ -377,6 +384,7 @@
             text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
         }
 
+        /* 🔹 ADDON SWITCH 🔹 */
         .addon-switch {
             position: relative;
             display: inline-block;
@@ -435,6 +443,7 @@
             background-color: #555555;
         }
 
+        /* 🔹 FILTRY DODATKÓW 🔹 */
         .addon-filters {
             display: flex;
             gap: 10px;
@@ -475,6 +484,7 @@
             transform: translateY(-2px);
         }
 
+        /* 🔹 PRZYCISK ZAPISZ 🔹 */
         #swSaveAndRestartButton {
             width: 100%;
             padding: 12px;
@@ -520,6 +530,7 @@
             background: rgba(20, 0, 0, 0.7);
         }
 
+        /* 🔹 SHORTCUTS LIST 🔹 */
         .shortcuts-list-container {
             width: 100%;
             max-width: 600px;
@@ -603,6 +614,7 @@
             white-space: nowrap;
         }
 
+        /* 🔹 PRZYCISKI SKRÓTÓW 🔹 */
         .shortcut-set-btn, .shortcut-clear-btn {
             padding: 6px 12px;
             background: linear-gradient(135deg, #550000, #880000);
@@ -630,6 +642,7 @@
             min-width: 75px;
         }
 
+        /* 🔹 SKRÓTY TOGGLE 🔹 */
         .shortcut-toggle {
             position: relative;
             display: inline-block;
@@ -688,6 +701,7 @@
             background-color: #ff3300;
         }
 
+        /* 🔹 LICENCJA 🔹 */
         .license-scroll-container {
             width: 100%;
             max-width: 600px;
@@ -802,6 +816,7 @@
             text-shadow: 0 0 6px rgba(255, 204, 0, 0.6);
         }
 
+        /* 🔹 SETTINGS 🔹 */
         .settings-item {
             margin-bottom: 15px;
             padding: 15px;
@@ -899,6 +914,7 @@
             100% { transform: scale(1); }
         }
 
+        /* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
         .slider-container {
             display: flex;
             align-items: center;
@@ -940,6 +956,7 @@
             transform: scale(1.1);
         }
 
+        /* 🔹 PRZYCISK USTAW SKRÓT 🔹 */
         #panelShortcutSetBtn {
             padding: 8px 15px;
             background: linear-gradient(135deg, #550000, #880000);
@@ -963,6 +980,7 @@
             box-shadow: 0 4px 12px rgba(255, 51, 0, 0.4);
         }
 
+        /* 🔹 EKSPORT/IMPORT 🔹 */
         .import-export-container {
             width: 100%;
             max-width: 600px;
@@ -1027,6 +1045,7 @@
             box-shadow: 0 0 12px rgba(255, 51, 0, 0.5);
         }
 
+        /* 🔹 INFO 🔹 */
         #info .sw-tab-content {
             overflow: hidden !important;
             position: relative !important;
@@ -1088,6 +1107,7 @@
             color: #ff9966;
         }
 
+        /* 🔹 SCROLLBAR 🔹 */
         .scrollable-container {
             width: 100% !important;
             max-width: 600px !important;
@@ -1145,6 +1165,7 @@
             transform: scale(1.05);
         }
 
+        /* 🔹 MESSAGES 🔹 */
         .license-message {
             padding: 10px 12px;
             border-radius: 6px;
@@ -1175,6 +1196,7 @@
             color: #ff9900;
         }
 
+        /* 🔹 RESET BUTTON 🔹 */
         #swResetButton {
             padding: 12px;
             background: linear-gradient(135deg, 
@@ -1205,6 +1227,7 @@
             box-shadow: 0 4px 12px rgba(255, 51, 0, 0.4);
         }
 
+        /* 🔹 SEARCH INPUT 🔹 */
         #searchAddons {
             width: 100%;
             max-width: 600px;
@@ -1231,6 +1254,7 @@
             opacity: 0.8;
         }
 
+        /* 🔹 PREMIUM BADGE 🔹 */
         .premium-badge {
             display: inline-block;
             background: linear-gradient(45deg, #ff9900, #ffcc00);
@@ -1245,6 +1269,7 @@
             letter-spacing: 0.4px;
         }
 
+        /* 🔹 RESPONSYWNOŚĆ 🔹 */
         @media (max-width: 768px) {
             #swAddonsPanel {
                 width: 95vw !important;
@@ -1276,6 +1301,7 @@
             }
         }
 
+        /* 🔹 ANIMACJE 🔹 */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1285,6 +1311,7 @@
             animation: fadeIn 0.3s ease-out;
         }
 
+        /* 🔹 FOCUS STATES 🔹 */
         .font-size-btn:focus,
         .filter-btn:focus,
         .shortcut-set-btn:focus,
@@ -1298,10 +1325,12 @@
         }
     `;
 
+    // Wstrzyknięcie CSS
     const style = document.createElement('style');
     style.textContent = panelCSS;
     document.head.appendChild(style);
 
+    // 🔹 Konfiguracja
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
@@ -1321,19 +1350,102 @@
         PANEL_HEIGHT: "sw_panel_height"
     };
 
+    // 🔹 Lista dostępnych dodatków
     const ADDONS = [
-        { id: 'enhanced-stats', name: 'Enhanced Stats', description: 'Rozszerzone statystyki postaci', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'trade-helper', name: 'Trade Helper', description: 'Pomocnik handlu i aukcji', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'chat-manager', name: 'Chat Manager', description: 'Zaawansowane zarządzanie czatem', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'quest-logger', name: 'Quest Logger', description: 'Logowanie postępów w zadaniach', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'kcs-icons', name: 'KCS Icons', description: 'Profesjonalne ikony do interfejsu', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'auto-looter', name: 'Auto Looter', description: 'Inteligentny zbieracz łupów', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'quest-helper', name: 'Quest Helper', description: 'Pełna pomoc w zadaniach z mapą', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'combat-log', name: 'Combat Log', description: 'Szczegółowy log walki z analizą', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'auto-potion', name: 'Auto Potion', description: 'Automatyczne używanie mikstur', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'fishing-bot', name: 'Fishing Bot', description: 'Automatyczne łowienie ryb', type: 'premium', enabled: false, favorite: false, hidden: true }
+        {
+            id: 'enhanced-stats',
+            name: 'Enhanced Stats',
+            description: 'Rozszerzone statystyki postaci',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false
+        },
+        {
+            id: 'trade-helper',
+            name: 'Trade Helper',
+            description: 'Pomocnik handlu i aukcji',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false
+        },
+        {
+            id: 'chat-manager',
+            name: 'Chat Manager',
+            description: 'Zaawansowane zarządzanie czatem',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false
+        },
+        {
+            id: 'quest-logger',
+            name: 'Quest Logger',
+            description: 'Logowanie postępów w zadaniach',
+            type: 'free',
+            enabled: false,
+            favorite: false,
+            hidden: false
+        },
+        // DODATKI PREMIUM
+        {
+            id: 'kcs-icons',
+            name: 'KCS Icons',
+            description: 'Profesjonalne ikony do interfejsu',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        },
+        {
+            id: 'auto-looter',
+            name: 'Auto Looter',
+            description: 'Inteligentny zbieracz łupów',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        },
+        {
+            id: 'quest-helper',
+            name: 'Quest Helper',
+            description: 'Pełna pomoc w zadaniach z mapą',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        },
+        {
+            id: 'combat-log',
+            name: 'Combat Log',
+            description: 'Szczegółowy log walki z analizą',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        },
+        {
+            id: 'auto-potion',
+            name: 'Auto Potion',
+            description: 'Automatyczne używanie mikstur',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        },
+        {
+            id: 'fishing-bot',
+            name: 'Fishing Bot',
+            description: 'Automatyczne łowienie ryb',
+            type: 'premium',
+            enabled: false,
+            favorite: false,
+            hidden: true
+        }
     ];
 
+    // 🔹 Safe fallback dla Tampermonkey/Greasemonkey
     if (!window.synergyWraith) {
         window.synergyWraith = {
             GM_getValue: (key, defaultValue) => {
@@ -1365,6 +1477,7 @@
 
     const SW = window.synergyWraith;
     
+    // 🔹 Główne zmienne
     let currentAddons = [];
     let searchQuery = '';
     let panelShortcut = 'Ctrl+A';
@@ -1373,7 +1486,7 @@
     let isAdmin = false;
     let addonShortcuts = {};
     let shortcutsEnabled = {};
-    let currentFontSize = 12;
+    let currentFontSize = 13;
     let currentFilter = 'all';
     let userAccountId = null;
     let isLicenseVerified = false;
@@ -1382,12 +1495,18 @@
     let serverConnected = true;
     let panelResizeTimer = null;
 
+    // =========================================================================
+    // 🔹 GŁÓWNE FUNKCJE PANELU
+    // =========================================================================
+
+    // 🔹 POPRAWIONE: Funkcja applyFontSize
     function applyFontSize(size, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
         const minSize = 8;
         const maxSize = 16;
+        
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
         currentFontSize = clampedSize;
         
@@ -1401,9 +1520,9 @@
                 const currentStyle = window.getComputedStyle(el);
                 const originalSize = parseInt(currentStyle.fontSize);
                 
-                if (originalSize === 12 || 
-                    originalSize === 11 || 
-                    originalSize === 13 ||
+                if (originalSize === 13 || 
+                    originalSize === 12 || 
+                    originalSize === 14 ||
                     el.classList.contains('addon-title') ||
                     el.classList.contains('addon-description') ||
                     el.classList.contains('shortcut-name') ||
@@ -1420,7 +1539,7 @@
                     el.tagName === 'H3' ||
                     el.tagName === 'H4') {
                     
-                    const scaleFactor = clampedSize / 12;
+                    const scaleFactor = clampedSize / 13;
                     const newSize = Math.round(originalSize * scaleFactor);
                     el.style.fontSize = newSize + 'px';
                 }
@@ -1430,7 +1549,7 @@
         const specialElements = panel.querySelectorAll('input, button, textarea, .font-size-display, .slider-value, .shortcut-display');
         specialElements.forEach(el => {
             if (el.classList.contains('font-size-display') || el.classList.contains('slider-value')) {
-                el.style.fontSize = '14px';
+                el.style.fontSize = '15px';
             } else if (el.classList.contains('shortcut-display')) {
                 el.style.fontSize = clampedSize - 1 + 'px';
             } else {
@@ -1451,10 +1570,9 @@
         }
         
         updateFontSizeButtons(clampedSize);
-        
-        console.log('🔠 Zmieniono rozmiar czcionki na:', clampedSize + 'px');
     }
 
+    // 🔹 Funkcja aktualizacji przycisków czcionki
     function updateFontSizeButtons(currentSize) {
         const minSize = 8;
         const maxSize = 16;
@@ -1473,6 +1591,7 @@
         }
     }
 
+    // 🔹 Funkcja applyOpacity
     function applyOpacity(opacity, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -1493,6 +1612,7 @@
         }
     }
 
+    // 🔹 Funkcja zapisywania rozmiaru panelu
     function savePanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -1505,13 +1625,12 @@
             SW.GM_setValue(CONFIG.PANEL_WIDTH, savedWidth);
             SW.GM_setValue(CONFIG.PANEL_HEIGHT, savedHeight);
             
-            console.log('💾 Zapisano rozmiar panelu:', savedWidth + 'x' + savedHeight);
-            
             localStorage.setItem(CONFIG.PANEL_WIDTH, JSON.stringify(savedWidth));
             localStorage.setItem(CONFIG.PANEL_HEIGHT, JSON.stringify(savedHeight));
         }
     }
 
+    // 🔹 Funkcja ładowania rozmiaru panelu
     function loadPanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -1524,8 +1643,6 @@
             panel.style.width = width + 'px';
             panel.style.height = height + 'px';
             
-            console.log('📐 Załadowano rozmiar panelu:', width + 'x' + savedHeight);
-            
             setTimeout(() => {
                 SW.GM_setValue(CONFIG.PANEL_WIDTH, width);
                 SW.GM_setValue(CONFIG.PANEL_HEIGHT, height);
@@ -1533,6 +1650,7 @@
         }
     }
 
+    // 🔹 Funkcja do obsługi zmiany rozmiaru panelu
     function handlePanelResize() {
         clearTimeout(panelResizeTimer);
         panelResizeTimer = setTimeout(() => {
@@ -1540,6 +1658,7 @@
         }, 300);
     }
 
+    // 🔹 Tworzenie przycisku przełączania
     function createToggleButton() {
         const oldToggle = document.getElementById('swPanelToggle');
         if (oldToggle) oldToggle.remove();
@@ -1550,11 +1669,11 @@
         toggleBtn.innerHTML = '';
         
         document.body.appendChild(toggleBtn);
-        console.log('✅ Toggle button created with GitHub icon');
         
         return toggleBtn;
     }
 
+    // 🔹 Tworzenie głównego panelu
     function createMainPanel() {
         const oldPanel = document.getElementById('swAddonsPanel');
         if (oldPanel) oldPanel.remove();
@@ -1565,7 +1684,6 @@
         panel.innerHTML = generatePanelHTML();
         
         document.body.appendChild(panel);
-        console.log('✅ Panel created - v4.6.9 Compact Version');
         
         initializeEventListeners();
         loadSettings();
@@ -1576,51 +1694,123 @@
         return panel;
     }
 
+    // 🔹 NOWA: Funkcja płynnego scrollowania - POPRAWIONA
     function setupSmoothScroll() {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
         
-        const scrollableContainers = [
+        // Zmienne do obsługi scrollowania myszą
+        let isMouseDown = false;
+        let startY;
+        let scrollTop;
+        
+        // Lista kontenerów do scrollowania
+        const scrollContainers = [
             '.addon-list-container',
             '.shortcuts-list-container', 
             '.license-scroll-container',
             '.scrollable-container'
         ];
         
-        scrollableContainers.forEach(selector => {
+        scrollContainers.forEach(selector => {
             const containers = panel.querySelectorAll(selector);
             containers.forEach(container => {
+                // Obsługa przeciągania myszą do scrollowania
+                container.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return; // Tylko lewy przycisk myszy
+                    
+                    isMouseDown = true;
+                    startY = e.pageY - container.offsetTop;
+                    scrollTop = container.scrollTop;
+                    container.style.cursor = 'grabbing';
+                    container.style.userSelect = 'none';
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+                
+                // Obsługa ruchu myszą podczas scrollowania
+                container.addEventListener('mousemove', function(e) {
+                    if (!isMouseDown) return;
+                    
+                    const y = e.pageY - container.offsetTop;
+                    const walk = (y - startY) * 2; // Mnożnik dla lepszej kontroli
+                    container.scrollTop = scrollTop - walk;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+                
+                // Zakończenie scrollowania
+                container.addEventListener('mouseup', function() {
+                    isMouseDown = false;
+                    container.style.cursor = '';
+                    container.style.userSelect = '';
+                });
+                
+                container.addEventListener('mouseleave', function() {
+                    isMouseDown = false;
+                    container.style.cursor = '';
+                    container.style.userSelect = '';
+                });
+                
+                // Płynne scrollowanie kółkiem myszy
                 container.addEventListener('wheel', function(e) {
+                    // Zapobiegaj domyślnemu zachowaniu tylko jeśli kontener ma scroll
                     if (this.scrollHeight > this.clientHeight) {
-                        const scrollStep = e.deltaY * 0.5;
-                        this.scrollTop += scrollStep;
+                        // PŁYNNY SCROLL - użyj requestAnimationFrame dla płynności
                         e.preventDefault();
+                        const target = this;
+                        const delta = e.deltaY;
+                        
+                        function smoothScroll() {
+                            const step = delta * 0.3;
+                            target.scrollTop += step;
+                            
+                            // Kontynuuj animację jeśli nadal scrollujemy
+                            if (Math.abs(step) > 0.5 && target === document.activeElement) {
+                                requestAnimationFrame(smoothScroll);
+                            }
+                        }
+                        
+                        requestAnimationFrame(smoothScroll);
                     }
                 }, { passive: false });
             });
         });
         
-        panel.addEventListener('wheel', function(e) {
-            const target = e.target;
-            
-            if (!target.closest('.addon-list-container') && 
-                !target.closest('.shortcuts-list-container') &&
-                !target.closest('.license-scroll-container') &&
-                !target.closest('.scrollable-container')) {
-                
-                const activeTab = panel.querySelector('.tabcontent.active');
-                if (activeTab) {
-                    const scrollContainer = activeTab.querySelector('.addon-list-container, .shortcuts-list-container, .license-scroll-container, .scrollable-container');
-                    if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
-                        const scrollStep = e.deltaY * 0.3;
-                        scrollContainer.scrollTop += scrollStep;
-                        e.preventDefault();
-                    }
-                }
+        // Obsługa zakończenia scrollowania na całym panelu
+        panel.addEventListener('mouseup', function() {
+            isMouseDown = false;
+            const containers = panel.querySelectorAll(scrollContainers.join(','));
+            containers.forEach(container => {
+                container.style.cursor = '';
+                container.style.userSelect = '';
+            });
+        });
+        
+        // Dodaj styl dla wskazania scrollowania
+        const scrollStyle = document.createElement('style');
+        scrollStyle.textContent = `
+            .addon-list-container.grabbing,
+            .shortcuts-list-container.grabbing,
+            .license-scroll-container.grabbing,
+            .scrollable-container.grabbing {
+                cursor: grabbing !important;
+                user-select: none !important;
             }
-        }, { passive: false });
+            
+            .addon-list-container.grabbing *,
+            .shortcuts-list-container.grabbing *,
+            .license-scroll-container.grabbing *,
+            .scrollable-container.grabbing * {
+                pointer-events: none !important;
+            }
+        `;
+        document.head.appendChild(scrollStyle);
     }
 
+    // 🔹 Generowanie HTML panelu
     function generatePanelHTML() {
         return `
             <div id="swPanelHeader">
@@ -1636,6 +1826,7 @@
                 <button class="tablink" data-tab="info">Info</button>
             </div>
 
+            <!-- ZAKŁADKA DODATKI -->
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
                     <div style="width:100%; max-width:600px; margin:0 auto 12px auto;">
@@ -1656,6 +1847,7 @@
                         <div class="addon-list" id="addon-list"></div>
                     </div>
                     
+                    <!-- PRZYCISK ZAPISZ I ODSWIEŻ -->
                     <div class="save-button-container">
                         <button id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button>
                     </div>
@@ -1664,6 +1856,7 @@
                 </div>
             </div>
 
+            <!-- ZAKŁADKA SKRÓTY -->
             <div id="shortcuts" class="tabcontent">
                 <div class="sw-tab-content">
                     <div style="margin-bottom:12px; padding:12px; background:linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border-radius:6px; border:1px solid #550000; width:100%; max-width:600px;">
@@ -1681,6 +1874,7 @@
                 </div>
             </div>
 
+            <!-- ZAKŁADKA LICENCJA -->
             <div id="license" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="license-scroll-container">
@@ -1716,6 +1910,7 @@
                 </div>
             </div>
 
+            <!-- ZAKŁADKA USTAWIENIA -->
             <div id="settings" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="scrollable-container">
@@ -1723,7 +1918,7 @@
                             <div class="settings-label">Rozmiar czcionki:</div>
                             <div class="font-size-controls">
                                 <button class="font-size-btn" id="fontSizeDecrease">-</button>
-                                <div class="font-size-display" id="fontSizeValue">12px</div>
+                                <div class="font-size-display" id="fontSizeValue">13px</div>
                                 <button class="font-size-btn" id="fontSizeIncrease">+</button>
                             </div>
                             <small style="color:#ff9966; font-size:10px; display:block; text-align:center;">Kliknij +/- aby zmienić (8-16px)</small>
@@ -1743,7 +1938,7 @@
                             <div style="display:flex; gap:8px; align-items:center; margin-bottom:5px;">
                                 <input type="text" id="panelShortcutInput" 
                                        style="flex:1; padding:8px; background:rgba(40,0,0,0.8); border:1px solid #550000; 
-                                              border-radius:5px; color:#ffcc00; font-size:12px; text-align:center;" 
+                                              border-radius:4px; color:#ffcc00; font-size:12px; text-align:center;" 
                                        value="Ctrl+A" readonly>
                                 <button id="panelShortcutSetBtn">Ustaw</button>
                             </div>
@@ -1759,15 +1954,17 @@
                                       placeholder="Dane pojawią się tutaj po eksporcie..."></textarea>
                         </div>
                         
-                        <div style="margin:15px auto 0 auto; padding-top:12px; border-top:1px solid #550000; width:100%; max-width:500px; text-align:center; min-height:50px; display:flex; align-items:center; justify-content:center;">
+                        <!-- PRZYCISK RESETU -->
+                        <div style="margin:15px auto 0 auto; padding-top:12px; border-top:1px solid #550000; width:100%; max-width:600px; text-align:center; min-height:50px; display:flex; align-items:center; justify-content:center;">
                             <button id="swResetButton">🔄 Resetuj ustawienia</button>
                         </div>
                     </div>
                     
-                    <div id="swResetMessage" style="margin-top:12px; padding:10px; border-radius:5px; display:none; font-size:11px; width:100%; max-width:500px; text-align:center;"></div>
+                    <div id="swResetMessage" style="margin-top:12px; padding:10px; border-radius:5px; display:none; font-size:11px; width:100%; max-width:600px; text-align:center;"></div>
                 </div>
             </div>
 
+            <!-- ZAKŁADKA INFO -->
             <div id="info" class="tabcontent">
                 <div class="sw-tab-content">
                     <div class="scrollable-container">
@@ -1798,8 +1995,8 @@
                             
                             <div style="color:#ff9966; font-size:10px; margin-top:20px; padding:12px; 
                                         background:rgba(40,0,0,0.5); border-radius:5px;">
-                                <p style="margin:4px 0;">© 2024 Synergy Panel</p>
-                                <p style="margin:4px 0;">System licencji GitHub RAW</p>
+                                <p style="margin:5px 0;">© 2024 Synergy Panel</p>
+                                <p style="margin:5px 0;">System licencji GitHub RAW</p>
                             </div>
                         </div>
                     </div>
@@ -1808,7 +2005,9 @@
         `;
     }
 
+    // 🔹 Inicjalizacja event listenerów
     function initializeEventListeners() {
+        // Przycisk zapisz i odśwież
         const saveRestartBtn = document.getElementById('swSaveAndRestartButton');
         if (saveRestartBtn) {
             saveRestartBtn.addEventListener('click', () => {
@@ -1819,6 +2018,7 @@
             });
         }
         
+        // Reset ustawień
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
@@ -1828,6 +2028,7 @@
             });
         }
         
+        // 🔹 PRZYCISKI ZMIANY CZCIONKI
         const fontSizeDecrease = document.getElementById('fontSizeDecrease');
         const fontSizeIncrease = document.getElementById('fontSizeIncrease');
         
@@ -1847,6 +2048,7 @@
             });
         }
         
+        // 🔹 SUWAK PRZEŹROCZYSTOŚCI
         const opacitySlider = document.getElementById('opacitySlider');
         const opacityValue = document.getElementById('opacityValue');
         if (opacitySlider && opacityValue) {
@@ -1857,6 +2059,7 @@
             });
         }
         
+        // 🔹 FILTRY DODATKÓW
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1866,6 +2069,7 @@
             });
         });
         
+        // 🔹 EKSPORT/IMPORT USTAWIEN
         const exportBtn = document.getElementById('exportSettingsBtn');
         const importBtn = document.getElementById('importSettingsBtn');
         
@@ -1877,6 +2081,7 @@
             importBtn.addEventListener('click', importSettings);
         }
         
+        // Wyszukiwanie dodatków
         const searchInput = document.getElementById('searchAddons');
         if (searchInput) {
             searchInput.addEventListener('input', function() {
@@ -1885,10 +2090,16 @@
             });
         }
         
+        // 🔹 SKRÓT PANELU
         setupPanelShortcutInput();
+        
+        // 🔹 ZAKŁADKI
         setupTabs();
+        
+        // 🔹 GLOBALNE SKRÓTY
         setupGlobalShortcuts();
         
+        // 🔹 OBSŁUGA ZMIANY ROZMIARU PANELU
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
             let resizeObserver;
@@ -1919,6 +2130,7 @@
         }
     }
 
+    // 🔹 Setup przeciągania PANELU
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
         const header = document.getElementById('swPanelHeader');
@@ -1994,6 +2206,7 @@
         panel.addEventListener('dragstart', (e) => e.preventDefault());
     }
 
+    // 🔹 Setup przeciągania przycisku
     function setupToggleDrag(toggleBtn) {
         if (!toggleBtn) return;
         
@@ -2075,6 +2288,7 @@
         });
     }
 
+    // 🔹 Toggle panelu
     function togglePanel() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
@@ -2086,6 +2300,7 @@
         }
     }
 
+    // 🔹 Setup skrótu panelu
     function setupPanelShortcutInput() {
         const input = document.getElementById('panelShortcutInput');
         const setBtn = document.getElementById('panelShortcutSetBtn');
@@ -2188,6 +2403,7 @@
         });
     }
 
+    // 🔹 Setup zakładek
     function setupTabs() {
         const tabs = document.querySelectorAll('.tablink');
         tabs.forEach(tab => {
@@ -2227,6 +2443,7 @@
         }
     }
 
+    // 🔹 Setup globalnych skrótów
     function setupGlobalShortcuts() {
         document.addEventListener('keydown', (e) => {
             if (isShortcutInputFocused) return;
@@ -2275,6 +2492,7 @@
         });
     }
 
+    // 🔹 Renderowanie dodatków z FILTRAMI
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
@@ -2362,6 +2580,7 @@
         });
     }
 
+    // 🔹 Renderowanie skrótów
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
@@ -2433,6 +2652,7 @@
         });
     }
 
+    // 🔹 Przełączanie ulubionych
     function toggleFavorite(addonId) {
         const addonIndex = currentAddons.findIndex(a => a.id === addonId);
         if (addonIndex === -1) return;
@@ -2450,6 +2670,7 @@
         }
     }
 
+    // 🔹 Przełączanie dodatków
     function toggleAddon(addonId, isEnabled) {
         const addon = currentAddons.find(a => a.id === addonId);
         if (!addon || addon.locked) return;
@@ -2478,6 +2699,7 @@
         }
     }
 
+    // 🔹 Zapisywanie stanu dodatków
     function saveAddonsState() {
         const addonsToSave = currentAddons.map(addon => ({
             id: addon.id,
@@ -2487,6 +2709,7 @@
         SW.GM_setValue(CONFIG.FAVORITE_ADDONS, addonsToSave);
     }
 
+    // 🔹 Przywracanie stanu dodatków
     function restoreAddonsState() {
         const savedAddons = SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []);
         currentAddons = ADDONS.map(addon => {
@@ -2502,6 +2725,7 @@
         });
     }
 
+    // 🔹 Ładowanie skrótów
     function loadAddonShortcuts() {
         addonShortcuts = SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {});
     }
@@ -2514,6 +2738,7 @@
         SW.GM_setValue(CONFIG.SHORTCUTS_ENABLED, shortcutsEnabled);
     }
 
+    // 🔹 Ładowanie stanu skrótów
     function loadShortcutsEnabledState() {
         shortcutsEnabled = SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {});
         
@@ -2526,6 +2751,7 @@
         saveShortcutsEnabledState();
     }
 
+    // 🔹 Ustawianie skrótu dla dodatku
     function setAddonShortcut(addonId) {
         const display = document.getElementById(`shortcut-display-${addonId}`);
         if (!display) return;
@@ -2620,6 +2846,7 @@
         }, 10000);
     }
 
+    // 🔹 Czyszczenie skrótu
     function clearAddonShortcut(addonId) {
         delete addonShortcuts[addonId];
         delete shortcutsEnabled[addonId];
@@ -2635,12 +2862,14 @@
         showShortcutMessage('Skrót wyczyszczony', 'info');
     }
 
+    // 🔹 Przełączanie włączenia skrótu
     function toggleShortcutEnabled(addonId, enabled) {
         shortcutsEnabled[addonId] = enabled;
         saveShortcutsEnabledState();
         showShortcutMessage(enabled ? '✅ Skrót włączony' : '⚠️ Skrót wyłączony', 'info');
     }
 
+    // 🔹 Wyświetlanie wiadomości dla skrótów
     function showShortcutMessage(message, type) {
         const messageEl = document.getElementById('shortcutsMessage') || createShortcutsMessageElement();
         if (messageEl) {
@@ -2671,16 +2900,17 @@
         return messageEl;
     }
 
+    // 🔹 Eksport ustawień
     function exportSettings() {
         try {
             const settings = {
-                v: '4.6.9',
+                v: '4.6.8',
                 t: Date.now(),
                 a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
                 s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
                 se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}),
                 p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'),
-                f: SW.GM_getValue(CONFIG.FONT_SIZE, 12),
+                f: SW.GM_getValue(CONFIG.FONT_SIZE, 13),
                 o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90),
                 w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500),
                 h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500)
@@ -2726,6 +2956,7 @@
         }
     }
 
+    // 🔹 Import obfuskowanych ustawień
     function importSettings() {
         const textarea = document.getElementById('settingsTextarea');
         if (!textarea || !textarea.value.trim()) {
@@ -2760,7 +2991,7 @@
                 throw new Error('Brak informacji o wersji');
             }
             
-            if (settings.v !== '4.6.9') {
+            if (settings.v !== '4.6.8') {
                 if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
                     return;
                 }
@@ -2784,8 +3015,9 @@
         }
     }
 
+    // 🔹 Ładowanie ustawień
     function loadSettings() {
-        const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 12));
+        const savedFontSize = parseInt(SW.GM_getValue(CONFIG.FONT_SIZE, 13));
         currentFontSize = savedFontSize;
         
         applyFontSize(savedFontSize, true);
@@ -2811,6 +3043,7 @@
         updateFontSizeButtons(currentFontSize);
     }
 
+    // 🔹 Ładowanie zapisanego stanu
     function loadSavedState() {
         const savedBtnPosition = SW.GM_getValue(CONFIG.TOGGLE_BTN_POSITION);
         const toggleBtn = document.getElementById('swPanelToggle');
@@ -2832,6 +3065,7 @@
         }
     }
 
+    // 🔹 Reset wszystkich ustawień
     function resetAllSettings() {
         Object.keys(CONFIG).forEach(key => {
             SW.GM_deleteValue(CONFIG[key]);
@@ -2853,7 +3087,7 @@
         addonShortcuts = {};
         shortcutsEnabled = {};
         panelShortcut = 'Ctrl+A';
-        currentFontSize = 12;
+        currentFontSize = 13;
         currentFilter = 'all';
         
         const resetMessage = document.getElementById('swResetMessage');
@@ -2866,6 +3100,10 @@
             setTimeout(() => location.reload(), 2000);
         }
     }
+
+    // =========================================================================
+    // 🔹 SYSTEM KONTA I LICENCJI
+    // =========================================================================
 
     async function initAccountAndLicense() {
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -3092,8 +3330,12 @@
         }
     }
 
+    // =========================================================================
+    // 🔹 INICJALIZACJA PANELU
+    // =========================================================================
+
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.9...');
+        console.log('✅ Initializing Synergy Panel v4.6.8...');
         
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -3124,7 +3366,8 @@
         }, 1000);
     }
 
-    console.log('🎯 Starting Synergy Panel v4.6.9...');
+    // 🔹 Start panelu
+    console.log('🎯 Starting Synergy Panel v4.6.8...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
