@@ -1632,7 +1632,7 @@
     let panelResizeTimer = null;
 
     // =========================================================================
-    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY
+    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY DLA MAŁYCH LIST
     // =========================================================================
 
     // 🔹 ZOPTYMALIZOWANA FUNKCJA SCROLLOWANIA
@@ -1669,22 +1669,24 @@
             velocity = 0;
         }
         
-        // Funkcja momentum (inercja) - ZOPTYMALIZOWANA
+        // Funkcja momentum (inercja) - ZOPTYMALIZOWANA DLA MAŁYCH LIST
         function momentumScroll() {
-            if (!scrollContainer || Math.abs(velocity) < 0.05) {
+            if (!scrollContainer || Math.abs(velocity) < 0.1) {
                 momentumActive = false;
                 velocity = 0;
                 return;
             }
             
-            // Apply friction
-            velocity *= 0.88; // Zwiększone tarcie dla szybszego zatrzymania
+            // Apply friction - większe tarcie dla małych list
+            const itemCount = scrollContainer.children.length;
+            const friction = itemCount <= 5 ? 0.7 : 0.85;
+            velocity *= friction;
             
             // Apply scroll
             scrollContainer.scrollTop -= velocity;
             
             // Continue if we still have velocity
-            if (Math.abs(velocity) > 0.05) {
+            if (Math.abs(velocity) > 0.1) {
                 animationFrameId = requestAnimationFrame(momentumScroll);
             } else {
                 momentumActive = false;
@@ -1692,14 +1694,20 @@
             }
         }
         
-        // Funkcja płynnego scrollowania z easingiem - ZOPTYMALIZOWANA
+        // Funkcja płynnego scrollowania z easingiem - DOSTOSOWANA DLA MAŁYCH LIST
         function smoothScrollTo(target, deltaY) {
             if (!target) return;
             
             const startTime = performance.now();
-            const duration = 120; // Zmniejszone z 200ms na 120ms
+            const itemCount = target.children.length;
+            
+            // Długość animacji zależna od wielkości listy
+            const duration = itemCount <= 5 ? 80 : 150;
             const startScroll = target.scrollTop;
-            const distance = deltaY * 3.2; // Zwiększony mnożnik dla lepszej responsywności
+            
+            // Mnożnik zależny od wielkości listy
+            const multiplier = itemCount <= 5 ? 1.5 : 2.5;
+            const distance = deltaY * multiplier;
             
             function animate(currentTime) {
                 const elapsed = currentTime - startTime;
@@ -1753,26 +1761,28 @@
                     e.stopPropagation();
                 });
                 
-                // Obsługa ruchu myszą - ULTRA PŁYNNA z minimalnym opóźnieniem
+                // Obsługa ruchu myszą - ULTRA PŁYNNA z dostosowaniem do wielkości listy
                 container.addEventListener('mousemove', function(e) {
                     if (!isMouseDown || !scrollContainer) return;
                     
                     const currentTime = performance.now();
-                    const deltaTime = Math.max(1, currentTime - timestamp); // Zapobiegamy dzieleniu przez 0
+                    const deltaTime = Math.max(1, currentTime - timestamp);
                     
                     const currentY = e.pageY;
                     const deltaY = currentY - lastY;
                     
                     // Calculate velocity for momentum
-                    velocity = deltaY / deltaTime * 12; // Znormalizowane
+                    const itemCount = this.children.length;
+                    const speedMultiplier = itemCount <= 5 ? 8 : 12;
+                    velocity = deltaY / deltaTime * speedMultiplier;
                     lastY = currentY;
                     timestamp = currentTime;
                     
-                    // Ultra płynne scrollowanie z bezpośrednim renderowaniem
-                    const walk = (currentY - startY) * 1.3;
+                    // Ultra płynne scrollowanie z dostosowaniem do wielkości listy
+                    const walk = (currentY - startY) * (itemCount <= 5 ? 0.8 : 1.3);
                     const newScrollTop = scrollTop - walk;
                     
-                    // Natychmiastowe ustawienie scrollTop bez requestAnimationFrame dla minimalnego opóźnienia
+                    // Natychmiastowe ustawienie scrollTop
                     this.scrollTop = newScrollTop;
                     
                     e.preventDefault();
@@ -1789,7 +1799,10 @@
                     this.classList.remove('grabbing');
                     
                     // Start momentum if we have enough velocity
-                    if (Math.abs(velocity) > 0.3 && scrollContainer) {
+                    const itemCount = this.children.length;
+                    const threshold = itemCount <= 5 ? 0.5 : 0.3;
+                    
+                    if (Math.abs(velocity) > threshold && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
@@ -1805,7 +1818,10 @@
                         this.style.userSelect = '';
                         this.classList.remove('grabbing');
                         
-                        if (Math.abs(velocity) > 0.3 && scrollContainer) {
+                        const itemCount = this.children.length;
+                        const threshold = itemCount <= 5 ? 0.5 : 0.3;
+                        
+                        if (Math.abs(velocity) > threshold && scrollContainer) {
                             momentumActive = true;
                             animationFrameId = requestAnimationFrame(momentumScroll);
                         }
@@ -1814,7 +1830,7 @@
                     }
                 });
                 
-                // Obsługa kółka myszy - ULTRA PŁYNNE z natychmiastową reakcją
+                // Obsługa kółka myszy - DOSTOSOWANA DLA MAŁYCH LIST
                 container.addEventListener('wheel', function(e) {
                     // Zatrzymaj momentum jeśli aktywne
                     stopMomentum();
@@ -1822,16 +1838,23 @@
                     // Zapobiegaj domyślnemu zachowaniu
                     e.preventDefault();
                     
-                    // Natychmiastowe scrollowanie z minimalnym opóźnieniem animacji
                     const delta = e.deltaY;
+                    const itemCount = this.children.length;
                     
-                    // Bezpośrednie scrollowanie dla natychmiastowej reakcji
-                    const immediateScroll = delta * 1.5;
-                    this.scrollTop += immediateScroll;
-                    
-                    // Dodaj płynną animację tylko dla większych ruchów
-                    if (Math.abs(delta) > 30) {
-                        smoothScrollTo(this, delta);
+                    // Dla małych list - bezpośrednie scrollowanie bez animacji
+                    if (itemCount <= 5) {
+                        // Mniejszy krok dla małych list
+                        const scrollStep = delta * 0.8;
+                        this.scrollTop += scrollStep;
+                    } else {
+                        // Dla większych list - normalne zachowanie
+                        const immediateScroll = delta * 1.2;
+                        this.scrollTop += immediateScroll;
+                        
+                        // Dodaj płynną animację tylko dla większych ruchów
+                        if (Math.abs(delta) > 20) {
+                            smoothScrollTo(this, delta);
+                        }
                     }
                     
                     // Minimalny timeout dla klasy scrolling
@@ -1839,7 +1862,7 @@
                     clearTimeout(this.scrollTimeout);
                     this.scrollTimeout = setTimeout(() => {
                         this.classList.remove('scrolling');
-                    }, 80); // Zmniejszone z 150ms na 80ms
+                    }, 100);
                 }, { passive: false });
                 
                 // Touch events dla urządzeń mobilnych - ZOPTYMALIZOWANE
@@ -1869,11 +1892,13 @@
                     const currentY = e.touches[0].pageY;
                     const deltaY = currentY - lastY;
                     
-                    velocity = deltaY / deltaTime * 12;
+                    const itemCount = this.children.length;
+                    const speedMultiplier = itemCount <= 5 ? 8 : 12;
+                    velocity = deltaY / deltaTime * speedMultiplier;
                     lastY = currentY;
                     timestamp = currentTime;
                     
-                    const walk = (currentY - startY) * 1.3;
+                    const walk = (currentY - startY) * (itemCount <= 5 ? 0.8 : 1.3);
                     const newScrollTop = scrollTop - walk;
                     
                     // Natychmiastowe scrollowanie
@@ -1887,7 +1912,10 @@
                     this.style.userSelect = '';
                     this.classList.remove('grabbing');
                     
-                    if (Math.abs(velocity) > 0.3 && scrollContainer) {
+                    const itemCount = this.children.length;
+                    const threshold = itemCount <= 5 ? 0.5 : 0.3;
+                    
+                    if (Math.abs(velocity) > threshold && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
