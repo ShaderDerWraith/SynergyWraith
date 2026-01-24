@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Synergy Panel v4.6 - Final Edition (Fixed Button Position)
+// @name         Synergy Panel v4.6 - Final Edition (Ultra Smooth Scroll)
 // @namespace    http://tampermonkey.net/
-// @version      4.6.8
-// @description  Zaawansowany panel dodatków do gry z systemem licencji - POPRAWIONA WERSJA
+// @version      4.7.0
+// @description  Zaawansowany panel dodatków do gry z ultra płynnym scrollowaniem
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,9 +13,9 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.6.8 (Final Fixed Version)');
+    console.log('🚀 Synergy Panel loaded - v4.7.0 (Ultra Smooth Scroll)');
 
-    // 🔹 Dodanie CSS
+    // 🔹 Dodanie CSS z optymalizacjami dla scrollowania
     const panelCSS = `
         /* 🔹 BASE STYLES - KOMPAKTOWA WERSJA 🔹 */
         #swPanelToggle {
@@ -109,6 +109,10 @@
             resize: both;
             font-size: 12px;
             cursor: default;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000;
+            contain: layout style paint;
         }
 
         /* Stylizacja uchwytu zmiany rozmiaru */
@@ -253,6 +257,95 @@
             min-height: 0;
         }
 
+        /* 🔹 OPTYMALIZACJE WYDAJNOŚCI DLA SCROLLOWANIA 🔹 */
+        .addon-list-container,
+        .shortcuts-list-container,
+        .license-scroll-container,
+        .scrollable-container {
+            transform: translateZ(0);
+            will-change: scroll-position;
+            backface-visibility: hidden;
+            -webkit-overflow-scrolling: touch !important;
+            overflow-anchor: none !important;
+            contain: content !important;
+            scroll-behavior: auto !important;
+            overflow: hidden;
+            overflow-y: auto;
+        }
+
+        .addon-list-container > *,
+        .shortcuts-list-container > *,
+        .license-scroll-container > *,
+        .scrollable-container > * {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000;
+        }
+
+        /* Styl podczas scrollowania */
+        .grabbing {
+            cursor: grabbing !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+        }
+
+        .grabbing * {
+            pointer-events: none !important;
+            -webkit-touch-callout: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        /* Ukryj scrollbar podczas scrollowania dla lepszej wydajności */
+        .scrolling::-webkit-scrollbar-thumb {
+            background: transparent !important;
+            transition: background 0.2s ease;
+        }
+
+        .scrolling {
+            scrollbar-color: transparent transparent !important;
+        }
+
+        /* Przywróć scrollbar po zatrzymaniu */
+        .addon-list-container:not(.scrolling)::-webkit-scrollbar-thumb,
+        .shortcuts-list-container:not(.scrolling)::-webkit-scrollbar-thumb,
+        .license-scroll-container:not(.scrolling)::-webkit-scrollbar-thumb,
+        .scrollable-container:not(.scrolling)::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #ff3300, #ff6600) !important;
+            transition: background 0.3s ease 0.5s;
+        }
+
+        /* Optymalizacja dla Firefox */
+        @supports (scrollbar-width: thin) {
+            .addon-list-container,
+            .shortcuts-list-container,
+            .license-scroll-container,
+            .scrollable-container {
+                scrollbar-width: thin;
+                scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5);
+            }
+            
+            .scrolling {
+                scrollbar-color: transparent transparent !important;
+            }
+        }
+
+        /* Klasy pomocnicze dla JavaScript */
+        .no-transition * {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        .optimize-scroll {
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: optimize-contrast;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+
         /* 🔹 DODATKI - KOMPAKTOWE 🔹 */
         .addon-list-container {
             width: 100%;
@@ -309,10 +402,14 @@
             min-height: 55px;
             box-sizing: border-box;
             width: 100%;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .addon:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) translateZ(0);
             border-color: #ff3300;
             box-shadow: 0 4px 12px rgba(255, 51, 0, 0.4);
             background: linear-gradient(135deg, 
@@ -561,6 +658,10 @@
             width: 100%;
             box-sizing: border-box;
             flex-wrap: wrap;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .shortcut-item:hover {
@@ -568,6 +669,7 @@
             background: linear-gradient(135deg, 
                 rgba(80, 0, 0, 0.95), 
                 rgba(120, 0, 0, 0.95));
+            transform: translateY(-2px) translateZ(0);
         }
 
         .shortcut-info {
@@ -730,6 +832,10 @@
             max-width: 600px;
             box-sizing: border-box;
             word-wrap: break-word;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .license-header {
@@ -828,6 +934,10 @@
             width: 100%;
             max-width: 600px;
             box-sizing: border-box;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .settings-label {
@@ -992,6 +1102,10 @@
             border: 1px solid #550000;
             border-radius: 8px;
             box-sizing: border-box;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .import-export-buttons {
@@ -1067,6 +1181,10 @@
             min-width: 0;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: transform;
+            contain: layout style;
         }
 
         .info-section h4 {
@@ -1267,6 +1385,24 @@
             text-shadow: none;
             text-transform: uppercase;
             letter-spacing: 0.4px;
+        }
+
+        /* 🔹 DLA URZĄDZEŃ MOBILNYCH 🔹 */
+        @media (hover: none) and (pointer: coarse) {
+            .addon-list-container,
+            .shortcuts-list-container,
+            .license-scroll-container,
+            .scrollable-container {
+                -webkit-overflow-scrolling: touch !important;
+                overflow-scrolling: touch !important;
+                scroll-snap-type: y proximity;
+            }
+            
+            .addon,
+            .shortcut-item {
+                min-height: 60px;
+                padding: 14px 16px;
+            }
         }
 
         /* 🔹 RESPONSYWNOŚĆ 🔹 */
@@ -1496,10 +1632,311 @@
     let panelResizeTimer = null;
 
     // =========================================================================
+    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA
+    // =========================================================================
+
+    // 🔹 ULTRA PŁYNNA FUNKCJA SCROLLOWANIA
+    function setupSmoothScroll() {
+        const panel = document.getElementById('swAddonsPanel');
+        if (!panel) return;
+        
+        // Zmienne globalne dla scrollowania
+        let isMouseDown = false;
+        let startY = 0;
+        let scrollTop = 0;
+        let scrollContainer = null;
+        let animationFrameId = null;
+        let velocity = 0;
+        let lastY = 0;
+        let timestamp = 0;
+        let momentumActive = false;
+        
+        // Lista kontenerów do scrollowania
+        const scrollContainers = [
+            '.addon-list-container',
+            '.shortcuts-list-container', 
+            '.license-scroll-container',
+            '.scrollable-container'
+        ];
+        
+        // Funkcja zatrzymania momentum
+        function stopMomentum() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            momentumActive = false;
+            velocity = 0;
+        }
+        
+        // Funkcja momentum (inercja)
+        function momentumScroll() {
+            if (!scrollContainer || Math.abs(velocity) < 0.1) {
+                momentumActive = false;
+                velocity = 0;
+                return;
+            }
+            
+            // Apply friction
+            velocity *= 0.95;
+            
+            // Apply scroll
+            scrollContainer.scrollTop -= velocity;
+            
+            // Continue if we still have velocity
+            if (Math.abs(velocity) > 0.1) {
+                animationFrameId = requestAnimationFrame(momentumScroll);
+            } else {
+                momentumActive = false;
+                velocity = 0;
+            }
+        }
+        
+        // Funkcja płynnego scrollowania z easingiem
+        function smoothScrollTo(target, deltaY) {
+            if (!target) return;
+            
+            const startTime = performance.now();
+            const duration = 200; // ms
+            const startScroll = target.scrollTop;
+            const distance = deltaY * 2.5; // Zwiększony mnożnik dla lepszej responsywności
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth scroll
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                target.scrollTop = startScroll + (distance * easeOut);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Inicjalizacja kontenerów
+        scrollContainers.forEach(selector => {
+            const containers = panel.querySelectorAll(selector);
+            containers.forEach(container => {
+                // Optymalizacje dla lepszego scrollowania
+                container.style.overflow = 'hidden';
+                container.style.overflowY = 'auto';
+                container.style.willChange = 'scroll-position';
+                container.style.backfaceVisibility = 'hidden';
+                container.style.transform = 'translateZ(0)';
+                
+                // Obsługa przeciągania myszą - ULTRA PŁYNNA
+                container.addEventListener('mousedown', function(e) {
+                    if (e.button !== 0) return; // Tylko lewy przycisk myszy
+                    
+                    isMouseDown = true;
+                    scrollContainer = this;
+                    startY = e.pageY - this.getBoundingClientRect().top + this.scrollTop;
+                    scrollTop = this.scrollTop;
+                    lastY = e.pageY;
+                    timestamp = performance.now();
+                    velocity = 0;
+                    
+                    // Styl podczas scrollowania
+                    this.style.cursor = 'grabbing';
+                    this.style.userSelect = 'none';
+                    this.classList.add('grabbing');
+                    
+                    // Zatrzymaj momentum
+                    stopMomentum();
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+                
+                // Obsługa ruchu myszą - ULTRA PŁYNNA z wyższą częstotliwością
+                container.addEventListener('mousemove', function(e) {
+                    if (!isMouseDown || !scrollContainer) return;
+                    
+                    const currentTime = performance.now();
+                    const deltaTime = currentTime - timestamp;
+                    
+                    if (deltaTime > 0) {
+                        const currentY = e.pageY;
+                        const deltaY = currentY - lastY;
+                        
+                        // Calculate velocity for momentum
+                        velocity = deltaY / deltaTime * 16; // Normalize
+                        lastY = currentY;
+                        timestamp = currentTime;
+                        
+                        // Ultra płynne scrollowanie
+                        const walk = (currentY - startY) * 1.2;
+                        const newScrollTop = scrollTop - walk;
+                        
+                        // Bezpośrednie ustawienie scrollTop z requestAnimationFrame dla płynności
+                        requestAnimationFrame(() => {
+                            this.scrollTop = newScrollTop;
+                        });
+                    }
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+                
+                // Zakończenie scrollowania - ULTRA PŁYNNE
+                container.addEventListener('mouseup', function(e) {
+                    if (!isMouseDown) return;
+                    
+                    isMouseDown = false;
+                    this.style.cursor = '';
+                    this.style.userSelect = '';
+                    this.classList.remove('grabbing');
+                    
+                    // Start momentum if we have enough velocity
+                    if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                        momentumActive = true;
+                        animationFrameId = requestAnimationFrame(momentumScroll);
+                    }
+                    
+                    scrollContainer = null;
+                });
+                
+                // Opuszczenie obszaru
+                container.addEventListener('mouseleave', function() {
+                    if (isMouseDown) {
+                        isMouseDown = false;
+                        this.style.cursor = '';
+                        this.style.userSelect = '';
+                        this.classList.remove('grabbing');
+                        
+                        if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                            momentumActive = true;
+                            animationFrameId = requestAnimationFrame(momentumScroll);
+                        }
+                        
+                        scrollContainer = null;
+                    }
+                });
+                
+                // Obsługa kółka myszy - ULTRA PŁYNNE z animowaniem
+                container.addEventListener('wheel', function(e) {
+                    // Zatrzymaj momentum jeśli aktywne
+                    stopMomentum();
+                    
+                    // Zapobiegaj domyślnemu zachowaniu
+                    e.preventDefault();
+                    
+                    // Płynne scrollowanie z animacją
+                    const delta = e.deltaY;
+                    smoothScrollTo(this, delta);
+                    
+                    // Blokuj szybkie wielokrotne scrollowanie
+                    this.classList.add('scrolling');
+                    clearTimeout(this.scrollTimeout);
+                    this.scrollTimeout = setTimeout(() => {
+                        this.classList.remove('scrolling');
+                    }, 150);
+                }, { passive: false });
+                
+                // Touch events dla urządzeń mobilnych
+                container.addEventListener('touchstart', function(e) {
+                    if (e.touches.length !== 1) return;
+                    
+                    isMouseDown = true;
+                    scrollContainer = this;
+                    startY = e.touches[0].pageY - this.getBoundingClientRect().top + this.scrollTop;
+                    scrollTop = this.scrollTop;
+                    lastY = e.touches[0].pageY;
+                    timestamp = performance.now();
+                    velocity = 0;
+                    
+                    this.style.userSelect = 'none';
+                    this.classList.add('grabbing');
+                    
+                    stopMomentum();
+                });
+                
+                container.addEventListener('touchmove', function(e) {
+                    if (!isMouseDown || !scrollContainer || e.touches.length !== 1) return;
+                    
+                    const currentTime = performance.now();
+                    const deltaTime = currentTime - timestamp;
+                    
+                    if (deltaTime > 0) {
+                        const currentY = e.touches[0].pageY;
+                        const deltaY = currentY - lastY;
+                        
+                        velocity = deltaY / deltaTime * 16;
+                        lastY = currentY;
+                        timestamp = currentTime;
+                        
+                        const walk = (currentY - startY) * 1.2;
+                        const newScrollTop = scrollTop - walk;
+                        
+                        requestAnimationFrame(() => {
+                            this.scrollTop = newScrollTop;
+                        });
+                        
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                container.addEventListener('touchend', function() {
+                    isMouseDown = false;
+                    this.style.userSelect = '';
+                    this.classList.remove('grabbing');
+                    
+                    if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                        momentumActive = true;
+                        animationFrameId = requestAnimationFrame(momentumScroll);
+                    }
+                    
+                    scrollContainer = null;
+                });
+            });
+        });
+        
+        // Globalne event listenery dla bezpieczeństwa
+        document.addEventListener('mouseup', function() {
+            if (isMouseDown) {
+                isMouseDown = false;
+                const containers = panel.querySelectorAll(scrollContainers.join(','));
+                containers.forEach(container => {
+                    container.style.cursor = '';
+                    container.style.userSelect = '';
+                    container.classList.remove('grabbing');
+                });
+                
+                if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                    momentumActive = true;
+                    animationFrameId = requestAnimationFrame(momentumScroll);
+                }
+                
+                scrollContainer = null;
+            }
+        });
+        
+        // Optymalizacja: Debounce dla resize
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // Force reflow dla lepszego scrollowania
+                const containers = panel.querySelectorAll(scrollContainers.join(','));
+                containers.forEach(container => {
+                    container.style.display = 'none';
+                    container.offsetHeight; // Trigger reflow
+                    container.style.display = '';
+                });
+            }, 100);
+        });
+    }
+
+    // =========================================================================
     // 🔹 GŁÓWNE FUNKCJE PANELU
     // =========================================================================
 
-    // 🔹 POPRAWIONE: Funkcja applyFontSize
+    // 🔹 Funkcja applyFontSize
     function applyFontSize(size, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -1689,125 +2126,8 @@
         loadSettings();
         loadPanelSize();
         setupPanelDrag();
-        setupSmoothScroll();
         
         return panel;
-    }
-
-    // 🔹 NOWA: Funkcja płynnego scrollowania - POPRAWIONA
-    function setupSmoothScroll() {
-        const panel = document.getElementById('swAddonsPanel');
-        if (!panel) return;
-        
-        // Zmienne do obsługi scrollowania myszą
-        let isMouseDown = false;
-        let startY;
-        let scrollTop;
-        
-        // Lista kontenerów do scrollowania
-        const scrollContainers = [
-            '.addon-list-container',
-            '.shortcuts-list-container', 
-            '.license-scroll-container',
-            '.scrollable-container'
-        ];
-        
-        scrollContainers.forEach(selector => {
-            const containers = panel.querySelectorAll(selector);
-            containers.forEach(container => {
-                // Obsługa przeciągania myszą do scrollowania
-                container.addEventListener('mousedown', function(e) {
-                    if (e.button !== 0) return; // Tylko lewy przycisk myszy
-                    
-                    isMouseDown = true;
-                    startY = e.pageY - container.offsetTop;
-                    scrollTop = container.scrollTop;
-                    container.style.cursor = 'grabbing';
-                    container.style.userSelect = 'none';
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-                
-                // Obsługa ruchu myszą podczas scrollowania
-                container.addEventListener('mousemove', function(e) {
-                    if (!isMouseDown) return;
-                    
-                    const y = e.pageY - container.offsetTop;
-                    const walk = (y - startY) * 2; // Mnożnik dla lepszej kontroli
-                    container.scrollTop = scrollTop - walk;
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-                
-                // Zakończenie scrollowania
-                container.addEventListener('mouseup', function() {
-                    isMouseDown = false;
-                    container.style.cursor = '';
-                    container.style.userSelect = '';
-                });
-                
-                container.addEventListener('mouseleave', function() {
-                    isMouseDown = false;
-                    container.style.cursor = '';
-                    container.style.userSelect = '';
-                });
-                
-                // Płynne scrollowanie kółkiem myszy
-                container.addEventListener('wheel', function(e) {
-                    // Zapobiegaj domyślnemu zachowaniu tylko jeśli kontener ma scroll
-                    if (this.scrollHeight > this.clientHeight) {
-                        // PŁYNNY SCROLL - użyj requestAnimationFrame dla płynności
-                        e.preventDefault();
-                        const target = this;
-                        const delta = e.deltaY;
-                        
-                        function smoothScroll() {
-                            const step = delta * 0.3;
-                            target.scrollTop += step;
-                            
-                            // Kontynuuj animację jeśli nadal scrollujemy
-                            if (Math.abs(step) > 0.5 && target === document.activeElement) {
-                                requestAnimationFrame(smoothScroll);
-                            }
-                        }
-                        
-                        requestAnimationFrame(smoothScroll);
-                    }
-                }, { passive: false });
-            });
-        });
-        
-        // Obsługa zakończenia scrollowania na całym panelu
-        panel.addEventListener('mouseup', function() {
-            isMouseDown = false;
-            const containers = panel.querySelectorAll(scrollContainers.join(','));
-            containers.forEach(container => {
-                container.style.cursor = '';
-                container.style.userSelect = '';
-            });
-        });
-        
-        // Dodaj styl dla wskazania scrollowania
-        const scrollStyle = document.createElement('style');
-        scrollStyle.textContent = `
-            .addon-list-container.grabbing,
-            .shortcuts-list-container.grabbing,
-            .license-scroll-container.grabbing,
-            .scrollable-container.grabbing {
-                cursor: grabbing !important;
-                user-select: none !important;
-            }
-            
-            .addon-list-container.grabbing *,
-            .shortcuts-list-container.grabbing *,
-            .license-scroll-container.grabbing *,
-            .scrollable-container.grabbing * {
-                pointer-events: none !important;
-            }
-        `;
-        document.head.appendChild(scrollStyle);
     }
 
     // 🔹 Generowanie HTML panelu
@@ -2492,11 +2812,13 @@
         });
     }
 
-    // 🔹 Renderowanie dodatków z FILTRAMI
+    // 🔹 Renderowanie dodatków z optymalizacją
     function renderAddons() {
         const listContainer = document.getElementById('addon-list');
         if (!listContainer) return;
         
+        // Zastosuj klasę optymalizacji podczas renderowania
+        listContainer.classList.add('no-transition');
         listContainer.innerHTML = '';
         
         let filteredAddons = currentAddons.filter(addon => !addon.hidden);
@@ -2529,6 +2851,9 @@
             return;
         }
         
+        // Użyj DocumentFragment dla lepszej wydajności
+        const fragment = document.createDocumentFragment();
+        
         filteredAddons.forEach(addon => {
             const div = document.createElement('div');
             div.className = 'addon';
@@ -2560,9 +2885,18 @@
                 </div>
             `;
             
-            listContainer.appendChild(div);
+            fragment.appendChild(div);
         });
         
+        listContainer.appendChild(fragment);
+        
+        // Po zakończeniu renderowania
+        requestAnimationFrame(() => {
+            listContainer.classList.remove('no-transition');
+            listContainer.classList.add('optimize-scroll');
+        });
+        
+        // Event listenery
         document.querySelectorAll('.favorite-btn:not(:disabled)').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -2580,11 +2914,13 @@
         });
     }
 
-    // 🔹 Renderowanie skrótów
+    // 🔹 Renderowanie skrótów z optymalizacją
     function renderShortcuts() {
         const container = document.getElementById('shortcuts-list');
         if (!container) return;
         
+        // Zastosuj klasę optymalizacji podczas renderowania
+        container.classList.add('no-transition');
         container.innerHTML = '';
         
         const enabledAddons = currentAddons.filter(addon => 
@@ -2599,6 +2935,9 @@
             `;
             return;
         }
+        
+        // Użyj DocumentFragment dla lepszej wydajności
+        const fragment = document.createDocumentFragment();
         
         enabledAddons.forEach(addon => {
             const shortcut = addonShortcuts[addon.id] || 'Brak skrótu';
@@ -2627,9 +2966,18 @@
                 </div>
             `;
             
-            container.appendChild(item);
+            fragment.appendChild(item);
         });
         
+        container.appendChild(fragment);
+        
+        // Po zakończeniu renderowania
+        requestAnimationFrame(() => {
+            container.classList.remove('no-transition');
+            container.classList.add('optimize-scroll');
+        });
+        
+        // Event listenery
         document.querySelectorAll('.shortcut-set-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const addonId = this.dataset.id;
@@ -2904,7 +3252,7 @@
     function exportSettings() {
         try {
             const settings = {
-                v: '4.6.8',
+                v: '4.7.0',
                 t: Date.now(),
                 a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
                 s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
@@ -2991,7 +3339,7 @@
                 throw new Error('Brak informacji o wersji');
             }
             
-            if (settings.v !== '4.6.8') {
+            if (settings.v !== '4.7.0') {
                 if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
                     return;
                 }
@@ -3335,9 +3683,19 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.6.8...');
+        console.log('✅ Initializing Synergy Panel v4.7.0 (Ultra Smooth Scroll)...');
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Oczekiwanie na załadowanie DOM
+        await new Promise(resolve => {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', resolve);
+            } else {
+                resolve();
+            }
+        });
+        
+        // Dodatkowe opóźnienie dla pewności
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         const toggleBtn = createToggleButton();
         createMainPanel();
@@ -3348,26 +3706,36 @@
             setupToggleDrag(toggleBtn);
         }
         
+        // Inicjalizacja z opóźnieniem dla lepszej wydajności
         setTimeout(async () => {
             await initAccountAndLicense();
             
-            renderAddons();
-            renderShortcuts();
+            // Renderowanie z requestAnimationFrame dla płynności
+            requestAnimationFrame(() => {
+                renderAddons();
+                renderShortcuts();
+                updateFontSizeButtons(currentFontSize);
+            });
             
-            updateFontSizeButtons(currentFontSize);
-            
+            // Dodatkowe opóźnienie dla pełnego załadowania
             setTimeout(() => {
                 savePanelSize();
-            }, 2000);
+                
+                // Inicjalizacja ULTRA PŁYNNEGO scrollowania PO załadowaniu zawartości
+                requestAnimationFrame(() => {
+                    setupSmoothScroll();
+                });
+            }, 300);
             
+            // Interwał dla licencji
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
             }, 5 * 60 * 1000);
-        }, 1000);
+        }, 500);
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.6.8...');
+    console.log('🎯 Starting Synergy Panel v4.7.0 (Ultra Smooth Scroll)...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
