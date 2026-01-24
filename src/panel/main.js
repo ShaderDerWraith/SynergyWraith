@@ -1632,10 +1632,10 @@
     let panelResizeTimer = null;
 
     // =========================================================================
-    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA
+    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY
     // =========================================================================
 
-    // 🔹 ULTRA PŁYNNA FUNKCJA SCROLLOWANIA
+    // 🔹 ZOPTYMALIZOWANA FUNKCJA SCROLLOWANIA
     function setupSmoothScroll() {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
@@ -1669,22 +1669,22 @@
             velocity = 0;
         }
         
-        // Funkcja momentum (inercja)
+        // Funkcja momentum (inercja) - ZOPTYMALIZOWANA
         function momentumScroll() {
-            if (!scrollContainer || Math.abs(velocity) < 0.1) {
+            if (!scrollContainer || Math.abs(velocity) < 0.05) {
                 momentumActive = false;
                 velocity = 0;
                 return;
             }
             
             // Apply friction
-            velocity *= 0.95;
+            velocity *= 0.88; // Zwiększone tarcie dla szybszego zatrzymania
             
             // Apply scroll
             scrollContainer.scrollTop -= velocity;
             
             // Continue if we still have velocity
-            if (Math.abs(velocity) > 0.1) {
+            if (Math.abs(velocity) > 0.05) {
                 animationFrameId = requestAnimationFrame(momentumScroll);
             } else {
                 momentumActive = false;
@@ -1692,14 +1692,14 @@
             }
         }
         
-        // Funkcja płynnego scrollowania z easingiem
+        // Funkcja płynnego scrollowania z easingiem - ZOPTYMALIZOWANA
         function smoothScrollTo(target, deltaY) {
             if (!target) return;
             
             const startTime = performance.now();
-            const duration = 200; // ms
+            const duration = 120; // Zmniejszone z 200ms na 120ms
             const startScroll = target.scrollTop;
-            const distance = deltaY * 2.5; // Zwiększony mnożnik dla lepszej responsywności
+            const distance = deltaY * 3.2; // Zwiększony mnożnik dla lepszej responsywności
             
             function animate(currentTime) {
                 const elapsed = currentTime - startTime;
@@ -1753,31 +1753,27 @@
                     e.stopPropagation();
                 });
                 
-                // Obsługa ruchu myszą - ULTRA PŁYNNA z wyższą częstotliwością
+                // Obsługa ruchu myszą - ULTRA PŁYNNA z minimalnym opóźnieniem
                 container.addEventListener('mousemove', function(e) {
                     if (!isMouseDown || !scrollContainer) return;
                     
                     const currentTime = performance.now();
-                    const deltaTime = currentTime - timestamp;
+                    const deltaTime = Math.max(1, currentTime - timestamp); // Zapobiegamy dzieleniu przez 0
                     
-                    if (deltaTime > 0) {
-                        const currentY = e.pageY;
-                        const deltaY = currentY - lastY;
-                        
-                        // Calculate velocity for momentum
-                        velocity = deltaY / deltaTime * 16; // Normalize
-                        lastY = currentY;
-                        timestamp = currentTime;
-                        
-                        // Ultra płynne scrollowanie
-                        const walk = (currentY - startY) * 1.2;
-                        const newScrollTop = scrollTop - walk;
-                        
-                        // Bezpośrednie ustawienie scrollTop z requestAnimationFrame dla płynności
-                        requestAnimationFrame(() => {
-                            this.scrollTop = newScrollTop;
-                        });
-                    }
+                    const currentY = e.pageY;
+                    const deltaY = currentY - lastY;
+                    
+                    // Calculate velocity for momentum
+                    velocity = deltaY / deltaTime * 12; // Znormalizowane
+                    lastY = currentY;
+                    timestamp = currentTime;
+                    
+                    // Ultra płynne scrollowanie z bezpośrednim renderowaniem
+                    const walk = (currentY - startY) * 1.3;
+                    const newScrollTop = scrollTop - walk;
+                    
+                    // Natychmiastowe ustawienie scrollTop bez requestAnimationFrame dla minimalnego opóźnienia
+                    this.scrollTop = newScrollTop;
                     
                     e.preventDefault();
                     e.stopPropagation();
@@ -1793,7 +1789,7 @@
                     this.classList.remove('grabbing');
                     
                     // Start momentum if we have enough velocity
-                    if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                    if (Math.abs(velocity) > 0.3 && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
@@ -1809,7 +1805,7 @@
                         this.style.userSelect = '';
                         this.classList.remove('grabbing');
                         
-                        if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                        if (Math.abs(velocity) > 0.3 && scrollContainer) {
                             momentumActive = true;
                             animationFrameId = requestAnimationFrame(momentumScroll);
                         }
@@ -1818,7 +1814,7 @@
                     }
                 });
                 
-                // Obsługa kółka myszy - ULTRA PŁYNNE z animowaniem
+                // Obsługa kółka myszy - ULTRA PŁYNNE z natychmiastową reakcją
                 container.addEventListener('wheel', function(e) {
                     // Zatrzymaj momentum jeśli aktywne
                     stopMomentum();
@@ -1826,19 +1822,27 @@
                     // Zapobiegaj domyślnemu zachowaniu
                     e.preventDefault();
                     
-                    // Płynne scrollowanie z animacją
+                    // Natychmiastowe scrollowanie z minimalnym opóźnieniem animacji
                     const delta = e.deltaY;
-                    smoothScrollTo(this, delta);
                     
-                    // Blokuj szybkie wielokrotne scrollowanie
+                    // Bezpośrednie scrollowanie dla natychmiastowej reakcji
+                    const immediateScroll = delta * 1.5;
+                    this.scrollTop += immediateScroll;
+                    
+                    // Dodaj płynną animację tylko dla większych ruchów
+                    if (Math.abs(delta) > 30) {
+                        smoothScrollTo(this, delta);
+                    }
+                    
+                    // Minimalny timeout dla klasy scrolling
                     this.classList.add('scrolling');
                     clearTimeout(this.scrollTimeout);
                     this.scrollTimeout = setTimeout(() => {
                         this.classList.remove('scrolling');
-                    }, 150);
+                    }, 80); // Zmniejszone z 150ms na 80ms
                 }, { passive: false });
                 
-                // Touch events dla urządzeń mobilnych
+                // Touch events dla urządzeń mobilnych - ZOPTYMALIZOWANE
                 container.addEventListener('touchstart', function(e) {
                     if (e.touches.length !== 1) return;
                     
@@ -1854,31 +1858,28 @@
                     this.classList.add('grabbing');
                     
                     stopMomentum();
-                });
+                }, { passive: true });
                 
                 container.addEventListener('touchmove', function(e) {
                     if (!isMouseDown || !scrollContainer || e.touches.length !== 1) return;
                     
                     const currentTime = performance.now();
-                    const deltaTime = currentTime - timestamp;
+                    const deltaTime = Math.max(1, currentTime - timestamp);
                     
-                    if (deltaTime > 0) {
-                        const currentY = e.touches[0].pageY;
-                        const deltaY = currentY - lastY;
-                        
-                        velocity = deltaY / deltaTime * 16;
-                        lastY = currentY;
-                        timestamp = currentTime;
-                        
-                        const walk = (currentY - startY) * 1.2;
-                        const newScrollTop = scrollTop - walk;
-                        
-                        requestAnimationFrame(() => {
-                            this.scrollTop = newScrollTop;
-                        });
-                        
-                        e.preventDefault();
-                    }
+                    const currentY = e.touches[0].pageY;
+                    const deltaY = currentY - lastY;
+                    
+                    velocity = deltaY / deltaTime * 12;
+                    lastY = currentY;
+                    timestamp = currentTime;
+                    
+                    const walk = (currentY - startY) * 1.3;
+                    const newScrollTop = scrollTop - walk;
+                    
+                    // Natychmiastowe scrollowanie
+                    this.scrollTop = newScrollTop;
+                    
+                    e.preventDefault();
                 }, { passive: false });
                 
                 container.addEventListener('touchend', function() {
@@ -1886,13 +1887,13 @@
                     this.style.userSelect = '';
                     this.classList.remove('grabbing');
                     
-                    if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                    if (Math.abs(velocity) > 0.3 && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
                     
                     scrollContainer = null;
-                });
+                }, { passive: true });
             });
         });
         
@@ -1907,7 +1908,7 @@
                     container.classList.remove('grabbing');
                 });
                 
-                if (Math.abs(velocity) > 0.5 && scrollContainer) {
+                if (Math.abs(velocity) > 0.3 && scrollContainer) {
                     momentumActive = true;
                     animationFrameId = requestAnimationFrame(momentumScroll);
                 }
@@ -1924,11 +1925,13 @@
                 // Force reflow dla lepszego scrollowania
                 const containers = panel.querySelectorAll(scrollContainers.join(','));
                 containers.forEach(container => {
+                    const scrollPos = container.scrollTop;
                     container.style.display = 'none';
-                    container.offsetHeight; // Trigger reflow
+                    void container.offsetHeight; // Trigger reflow
                     container.style.display = '';
+                    container.scrollTop = scrollPos;
                 });
-            }, 100);
+            }, 50);
         });
     }
 
@@ -2733,7 +2736,7 @@
                 showTab(tabName);
                 
                 if (tabName === 'shortcuts') {
-                    setTimeout(renderShortcuts, 100);
+                    setTimeout(renderShortcuts, 50);
                 }
                 
                 setTimeout(savePanelSize, 50);
@@ -3043,7 +3046,7 @@
         }
         
         if (document.getElementById('shortcuts').classList.contains('active')) {
-            setTimeout(renderShortcuts, 100);
+            setTimeout(renderShortcuts, 50);
         }
     }
 
@@ -3454,7 +3457,7 @@
     // =========================================================================
 
     async function initAccountAndLicense() {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 800));
         
         const accountId = await getAccountId();
         console.log('👤 ID konta:', accountId);
@@ -3695,7 +3698,7 @@
         });
         
         // Dodatkowe opóźnienie dla pewności
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
         
         const toggleBtn = createToggleButton();
         createMainPanel();
@@ -3706,7 +3709,7 @@
             setupToggleDrag(toggleBtn);
         }
         
-        // Inicjalizacja z opóźnieniem dla lepszej wydajności
+        // Inicjalizacja z minimalnym opóźnieniem dla lepszej wydajności
         setTimeout(async () => {
             await initAccountAndLicense();
             
@@ -3725,13 +3728,13 @@
                 requestAnimationFrame(() => {
                     setupSmoothScroll();
                 });
-            }, 300);
+            }, 150);
             
             // Interwał dla licencji
             setInterval(() => {
                 if (userAccountId) checkAndUpdateLicense(userAccountId);
             }, 5 * 60 * 1000);
-        }, 500);
+        }, 300);
     }
 
     // 🔹 Start panelu
