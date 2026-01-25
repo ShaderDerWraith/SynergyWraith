@@ -297,23 +297,13 @@
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* Ukryj scrollbar podczas scrollowania dla lepszej wydajności */
-        .scrolling::-webkit-scrollbar-thumb {
-            background: transparent !important;
-            transition: background 0.2s ease;
-        }
-
-        .scrolling {
-            scrollbar-color: transparent transparent !important;
-        }
-
-        /* Przywróć scrollbar po zatrzymaniu */
-        .addon-list-container:not(.scrolling)::-webkit-scrollbar-thumb,
-        .shortcuts-list-container:not(.scrolling)::-webkit-scrollbar-thumb,
-        .license-scroll-container:not(.scrolling)::-webkit-scrollbar-thumb,
-        .scrollable-container:not(.scrolling)::-webkit-scrollbar-thumb {
+        /* NAPRAWA: Scrollbar NIE miga - zawsze widoczny */
+        .addon-list-container::-webkit-scrollbar-thumb,
+        .shortcuts-list-container::-webkit-scrollbar-thumb,
+        .license-scroll-container::-webkit-scrollbar-thumb,
+        .scrollable-container::-webkit-scrollbar-thumb {
             background: linear-gradient(to bottom, #ff3300, #ff6600) !important;
-            transition: background 0.3s ease 0.5s;
+            transition: opacity 0.2s ease !important;
         }
 
         /* Optymalizacja dla Firefox */
@@ -324,10 +314,6 @@
             .scrollable-container {
                 scrollbar-width: thin;
                 scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5);
-            }
-            
-            .scrolling {
-                scrollbar-color: transparent transparent !important;
             }
         }
 
@@ -1632,7 +1618,7 @@
     let panelResizeTimer = null;
 
     // =========================================================================
-    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY DLA MAŁYCH LIST
+    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY
     // =========================================================================
 
     // 🔹 ZOPTYMALIZOWANA FUNKCJA SCROLLOWANIA
@@ -1669,24 +1655,22 @@
             velocity = 0;
         }
         
-        // Funkcja momentum (inercja) - ZOPTYMALIZOWANA DLA MAŁYCH LIST
+        // Funkcja momentum (inercja) - PRZYSPIESZONA 2x
         function momentumScroll() {
-            if (!scrollContainer || Math.abs(velocity) < 0.1) {
+            if (!scrollContainer || Math.abs(velocity) < 0.05) {
                 momentumActive = false;
                 velocity = 0;
                 return;
             }
             
-            // Apply friction - większe tarcie dla małych list
-            const itemCount = scrollContainer.children.length;
-            const friction = itemCount <= 5 ? 0.7 : 0.85;
-            velocity *= friction;
+            // Apply friction - szybsze tarcie dla natychmiastowego zatrzymania
+            velocity *= 0.75;
             
             // Apply scroll
             scrollContainer.scrollTop -= velocity;
             
             // Continue if we still have velocity
-            if (Math.abs(velocity) > 0.1) {
+            if (Math.abs(velocity) > 0.05) {
                 animationFrameId = requestAnimationFrame(momentumScroll);
             } else {
                 momentumActive = false;
@@ -1694,20 +1678,14 @@
             }
         }
         
-        // Funkcja płynnego scrollowania z easingiem - DOSTOSOWANA DLA MAŁYCH LIST
+        // Funkcja płynnego scrollowania z easingiem - PRZYSPIESZONA 2x
         function smoothScrollTo(target, deltaY) {
             if (!target) return;
             
             const startTime = performance.now();
-            const itemCount = target.children.length;
-            
-            // Długość animacji zależna od wielkości listy
-            const duration = itemCount <= 5 ? 80 : 150;
+            const duration = 60; // ZMNIEJSZONE 2x z 120ms
             const startScroll = target.scrollTop;
-            
-            // Mnożnik zależny od wielkości listy
-            const multiplier = itemCount <= 5 ? 1.5 : 2.5;
-            const distance = deltaY * multiplier;
+            const distance = deltaY * 4.0; // ZWIĘKSZONE 2x z 2.0
             
             function animate(currentTime) {
                 const elapsed = currentTime - startTime;
@@ -1737,6 +1715,9 @@
                 container.style.backfaceVisibility = 'hidden';
                 container.style.transform = 'translateZ(0)';
                 
+                // NAPRAWA: Usunięcie klasy scrolling, która powoduje miganie
+                container.classList.remove('scrolling');
+                
                 // Obsługa przeciągania myszą - ULTRA PŁYNNA
                 container.addEventListener('mousedown', function(e) {
                     if (e.button !== 0) return; // Tylko lewy przycisk myszy
@@ -1761,7 +1742,7 @@
                     e.stopPropagation();
                 });
                 
-                // Obsługa ruchu myszą - ULTRA PŁYNNA z dostosowaniem do wielkości listy
+                // Obsługa ruchu myszą - ULTRA PŁYNNA z PRZYSPIESZENIEM
                 container.addEventListener('mousemove', function(e) {
                     if (!isMouseDown || !scrollContainer) return;
                     
@@ -1771,15 +1752,13 @@
                     const currentY = e.pageY;
                     const deltaY = currentY - lastY;
                     
-                    // Calculate velocity for momentum
-                    const itemCount = this.children.length;
-                    const speedMultiplier = itemCount <= 5 ? 8 : 12;
-                    velocity = deltaY / deltaTime * speedMultiplier;
+                    // Calculate velocity for momentum - PRZYSPIESZONE
+                    velocity = deltaY / deltaTime * 20; // Zwiększone z 12
                     lastY = currentY;
                     timestamp = currentTime;
                     
-                    // Ultra płynne scrollowanie z dostosowaniem do wielkości listy
-                    const walk = (currentY - startY) * (itemCount <= 5 ? 0.8 : 1.3);
+                    // Ultra płynne scrollowanie z PRZYSPIESZENIEM
+                    const walk = (currentY - startY) * 2.0; // Zwiększone z 1.3
                     const newScrollTop = scrollTop - walk;
                     
                     // Natychmiastowe ustawienie scrollTop
@@ -1798,11 +1777,8 @@
                     this.style.userSelect = '';
                     this.classList.remove('grabbing');
                     
-                    // Start momentum if we have enough velocity
-                    const itemCount = this.children.length;
-                    const threshold = itemCount <= 5 ? 0.5 : 0.3;
-                    
-                    if (Math.abs(velocity) > threshold && scrollContainer) {
+                    // Start momentum if we have enough velocity - niższy próg
+                    if (Math.abs(velocity) > 0.2 && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
@@ -1818,10 +1794,7 @@
                         this.style.userSelect = '';
                         this.classList.remove('grabbing');
                         
-                        const itemCount = this.children.length;
-                        const threshold = itemCount <= 5 ? 0.5 : 0.3;
-                        
-                        if (Math.abs(velocity) > threshold && scrollContainer) {
+                        if (Math.abs(velocity) > 0.2 && scrollContainer) {
                             momentumActive = true;
                             animationFrameId = requestAnimationFrame(momentumScroll);
                         }
@@ -1830,7 +1803,7 @@
                     }
                 });
                 
-                // Obsługa kółka myszy - DOSTOSOWANA DLA MAŁYCH LIST
+                // Obsługa kółka myszy - ULTRA PŁYNNE z PRZYSPIESZENIEM
                 container.addEventListener('wheel', function(e) {
                     // Zatrzymaj momentum jeśli aktywne
                     stopMomentum();
@@ -1839,30 +1812,20 @@
                     e.preventDefault();
                     
                     const delta = e.deltaY;
-                    const itemCount = this.children.length;
                     
-                    // Dla małych list - bezpośrednie scrollowanie bez animacji
-                    if (itemCount <= 5) {
-                        // Mniejszy krok dla małych list
-                        const scrollStep = delta * 0.8;
-                        this.scrollTop += scrollStep;
-                    } else {
-                        // Dla większych list - normalne zachowanie
-                        const immediateScroll = delta * 1.2;
-                        this.scrollTop += immediateScroll;
-                        
-                        // Dodaj płynną animację tylko dla większych ruchów
-                        if (Math.abs(delta) > 20) {
-                            smoothScrollTo(this, delta);
-                        }
+                    // Natychmiastowe scrollowanie z większym mnożnikiem
+                    const immediateScroll = delta * 2.0; // Zwiększone z 1.2
+                    this.scrollTop += immediateScroll;
+                    
+                    // Dodaj płynną animację tylko dla większych ruchów
+                    if (Math.abs(delta) > 15) { // Zmniejszony próg
+                        smoothScrollTo(this, delta);
                     }
                     
-                    // Minimalny timeout dla klasy scrolling
-                    this.classList.add('scrolling');
-                    clearTimeout(this.scrollTimeout);
-                    this.scrollTimeout = setTimeout(() => {
-                        this.classList.remove('scrolling');
-                    }, 100);
+                    // NAPRAWA: Usunięcie klasy scrolling, która powoduje miganie
+                    // Zamiast tego, scrollbar zawsze widoczny
+                    
+                    e.stopPropagation();
                 }, { passive: false });
                 
                 // Touch events dla urządzeń mobilnych - ZOPTYMALIZOWANE
@@ -1892,13 +1855,11 @@
                     const currentY = e.touches[0].pageY;
                     const deltaY = currentY - lastY;
                     
-                    const itemCount = this.children.length;
-                    const speedMultiplier = itemCount <= 5 ? 8 : 12;
-                    velocity = deltaY / deltaTime * speedMultiplier;
+                    velocity = deltaY / deltaTime * 20; // Zwiększone z 12
                     lastY = currentY;
                     timestamp = currentTime;
                     
-                    const walk = (currentY - startY) * (itemCount <= 5 ? 0.8 : 1.3);
+                    const walk = (currentY - startY) * 2.0; // Zwiększone z 1.3
                     const newScrollTop = scrollTop - walk;
                     
                     // Natychmiastowe scrollowanie
@@ -1912,10 +1873,7 @@
                     this.style.userSelect = '';
                     this.classList.remove('grabbing');
                     
-                    const itemCount = this.children.length;
-                    const threshold = itemCount <= 5 ? 0.5 : 0.3;
-                    
-                    if (Math.abs(velocity) > threshold && scrollContainer) {
+                    if (Math.abs(velocity) > 0.2 && scrollContainer) {
                         momentumActive = true;
                         animationFrameId = requestAnimationFrame(momentumScroll);
                     }
@@ -1936,7 +1894,7 @@
                     container.classList.remove('grabbing');
                 });
                 
-                if (Math.abs(velocity) > 0.3 && scrollContainer) {
+                if (Math.abs(velocity) > 0.2 && scrollContainer) {
                     momentumActive = true;
                     animationFrameId = requestAnimationFrame(momentumScroll);
                 }
