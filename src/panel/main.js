@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Synergy Panel v4.6 - Final Edition (Ultra Smooth Scroll)
 // @namespace    http://tampermonkey.net/
-// @version      4.7.0
-// @description  Zaawansowany panel dodatków do gry z ultra płynnym scrollowaniem
+// @version      4.7.1
+// @description  Zaawansowany panel dodatków do gry z ultra płynnym scrollowaniem - FIXED
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.7.0 (Ultra Smooth Scroll)');
+    console.log('🚀 Synergy Panel loaded - v4.7.1 (Ultra Smooth Scroll FIXED)');
 
     // 🔹 Dodanie CSS z optymalizacjami dla scrollowania
     const panelCSS = `
@@ -268,7 +268,7 @@
             -webkit-overflow-scrolling: touch !important;
             overflow-anchor: none !important;
             contain: content !important;
-            scroll-behavior: auto !important;
+            scroll-behavior: smooth !important;
             overflow: hidden;
             overflow-y: auto;
         }
@@ -280,21 +280,6 @@
             transform: translateZ(0);
             backface-visibility: hidden;
             perspective: 1000;
-        }
-
-        /* Styl podczas scrollowania */
-        .grabbing {
-            cursor: grabbing !important;
-            user-select: none !important;
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-        }
-
-        .grabbing * {
-            pointer-events: none !important;
-            -webkit-touch-callout: none !important;
-            -webkit-tap-highlight-color: transparent !important;
         }
 
         /* NAPRAWA: Scrollbar NIE miga - zawsze widoczny */
@@ -1618,24 +1603,13 @@
     let panelResizeTimer = null;
 
     // =========================================================================
-    // 🔹 ULTRA PŁYNNY SYSTEM SCROLLOWANIA - ZOPTYMALIZOWANY
+    // 🔹 NAPRAWIONY SYSTEM SCROLLOWANIA - UPROSZCZONY I DZIAŁAJĄCY
     // =========================================================================
 
-    // 🔹 ZOPTYMALIZOWANA FUNKCJA SCROLLOWANIA
+    // 🔹 UPROSZCZONA FUNKCJA SCROLLOWANIA (NAPRAWA)
     function setupSmoothScroll() {
         const panel = document.getElementById('swAddonsPanel');
         if (!panel) return;
-        
-        // Zmienne globalne dla scrollowania
-        let isMouseDown = false;
-        let startY = 0;
-        let scrollTop = 0;
-        let scrollContainer = null;
-        let animationFrameId = null;
-        let velocity = 0;
-        let lastY = 0;
-        let timestamp = 0;
-        let momentumActive = false;
         
         // Lista kontenerów do scrollowania
         const scrollContainers = [
@@ -1644,65 +1618,6 @@
             '.license-scroll-container',
             '.scrollable-container'
         ];
-        
-        // Funkcja zatrzymania momentum
-        function stopMomentum() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            momentumActive = false;
-            velocity = 0;
-        }
-        
-        // Funkcja momentum (inercja) - PRZYSPIESZONA 2x
-        function momentumScroll() {
-            if (!scrollContainer || Math.abs(velocity) < 0.05) {
-                momentumActive = false;
-                velocity = 0;
-                return;
-            }
-            
-            // Apply friction - szybsze tarcie dla natychmiastowego zatrzymania
-            velocity *= 0.75;
-            
-            // Apply scroll
-            scrollContainer.scrollTop -= velocity;
-            
-            // Continue if we still have velocity
-            if (Math.abs(velocity) > 0.05) {
-                animationFrameId = requestAnimationFrame(momentumScroll);
-            } else {
-                momentumActive = false;
-                velocity = 0;
-            }
-        }
-        
-        // Funkcja płynnego scrollowania z easingiem - PRZYSPIESZONA 2x
-        function smoothScrollTo(target, deltaY) {
-            if (!target) return;
-            
-            const startTime = performance.now();
-            const duration = 60; // ZMNIEJSZONE 2x z 120ms
-            const startScroll = target.scrollTop;
-            const distance = deltaY * 4.0; // ZWIĘKSZONE 2x z 2.0
-            
-            function animate(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Easing function for smooth scroll
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                
-                target.scrollTop = startScroll + (distance * easeOut);
-                
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                }
-            }
-            
-            requestAnimationFrame(animate);
-        }
         
         // Inicjalizacja kontenerów
         scrollContainers.forEach(selector => {
@@ -1715,192 +1630,39 @@
                 container.style.backfaceVisibility = 'hidden';
                 container.style.transform = 'translateZ(0)';
                 
-                // NAPRAWA: Usunięcie klasy scrolling, która powoduje miganie
-                container.classList.remove('scrolling');
+                // NAPRAWIONO: Usunięcie zbędnych event listenerów które powodowały konflikty
                 
-                // Obsługa przeciągania myszą - ULTRA PŁYNNA
-                container.addEventListener('mousedown', function(e) {
-                    if (e.button !== 0) return; // Tylko lewy przycisk myszy
-                    
-                    isMouseDown = true;
-                    scrollContainer = this;
-                    startY = e.pageY - this.getBoundingClientRect().top + this.scrollTop;
-                    scrollTop = this.scrollTop;
-                    lastY = e.pageY;
-                    timestamp = performance.now();
-                    velocity = 0;
-                    
-                    // Styl podczas scrollowania
-                    this.style.cursor = 'grabbing';
-                    this.style.userSelect = 'none';
-                    this.classList.add('grabbing');
-                    
-                    // Zatrzymaj momentum
-                    stopMomentum();
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-                
-                // Obsługa ruchu myszą - ULTRA PŁYNNA z PRZYSPIESZENIEM
-                container.addEventListener('mousemove', function(e) {
-                    if (!isMouseDown || !scrollContainer) return;
-                    
-                    const currentTime = performance.now();
-                    const deltaTime = Math.max(1, currentTime - timestamp);
-                    
-                    const currentY = e.pageY;
-                    const deltaY = currentY - lastY;
-                    
-                    // Calculate velocity for momentum - PRZYSPIESZONE
-                    velocity = deltaY / deltaTime * 20; // Zwiększone z 12
-                    lastY = currentY;
-                    timestamp = currentTime;
-                    
-                    // Ultra płynne scrollowanie z PRZYSPIESZENIEM
-                    const walk = (currentY - startY) * 2.0; // Zwiększone z 1.3
-                    const newScrollTop = scrollTop - walk;
-                    
-                    // Natychmiastowe ustawienie scrollTop
-                    this.scrollTop = newScrollTop;
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-                
-                // Zakończenie scrollowania - ULTRA PŁYNNE
-                container.addEventListener('mouseup', function(e) {
-                    if (!isMouseDown) return;
-                    
-                    isMouseDown = false;
-                    this.style.cursor = '';
-                    this.style.userSelect = '';
-                    this.classList.remove('grabbing');
-                    
-                    // Start momentum if we have enough velocity - niższy próg
-                    if (Math.abs(velocity) > 0.2 && scrollContainer) {
-                        momentumActive = true;
-                        animationFrameId = requestAnimationFrame(momentumScroll);
-                    }
-                    
-                    scrollContainer = null;
-                });
-                
-                // Opuszczenie obszaru
-                container.addEventListener('mouseleave', function() {
-                    if (isMouseDown) {
-                        isMouseDown = false;
-                        this.style.cursor = '';
-                        this.style.userSelect = '';
-                        this.classList.remove('grabbing');
-                        
-                        if (Math.abs(velocity) > 0.2 && scrollContainer) {
-                            momentumActive = true;
-                            animationFrameId = requestAnimationFrame(momentumScroll);
-                        }
-                        
-                        scrollContainer = null;
-                    }
-                });
-                
-                // Obsługa kółka myszy - ULTRA PŁYNNE z PRZYSPIESZENIEM
+                // Obsługa kółka myszy - UPROSZCZONA
                 container.addEventListener('wheel', function(e) {
-                    // Zatrzymaj momentum jeśli aktywne
-                    stopMomentum();
-                    
-                    // Zapobiegaj domyślnemu zachowaniu
-                    e.preventDefault();
-                    
-                    const delta = e.deltaY;
-                    
-                    // Natychmiastowe scrollowanie z większym mnożnikiem
-                    const immediateScroll = delta * 2.0; // Zwiększone z 1.2
-                    this.scrollTop += immediateScroll;
-                    
-                    // Dodaj płynną animację tylko dla większych ruchów
-                    if (Math.abs(delta) > 15) { // Zmniejszony próg
-                        smoothScrollTo(this, delta);
-                    }
-                    
-                    // NAPRAWA: Usunięcie klasy scrolling, która powoduje miganie
-                    // Zamiast tego, scrollbar zawsze widoczny
-                    
+                    // Pozwól na natywne scrollowanie, tylko dodaj płynność
                     e.stopPropagation();
-                }, { passive: false });
+                    
+                    // Zapewnij płynne scrollowanie bez ingerencji
+                    this.scrollTop += e.deltaY * 0.5;
+                    
+                    // Zapobiegaj propagacji do rodziców
+                    if (Math.abs(e.deltaY) > 0) {
+                        e.preventDefault();
+                    }
+                }, { passive: false, capture: false });
                 
-                // Touch events dla urządzeń mobilnych - ZOPTYMALIZOWANE
+                // Touch events dla urządzeń mobilnych - UPROSZCZONE
+                let touchStartY = 0;
+                let touchStartScrollTop = 0;
+                
                 container.addEventListener('touchstart', function(e) {
                     if (e.touches.length !== 1) return;
-                    
-                    isMouseDown = true;
-                    scrollContainer = this;
-                    startY = e.touches[0].pageY - this.getBoundingClientRect().top + this.scrollTop;
-                    scrollTop = this.scrollTop;
-                    lastY = e.touches[0].pageY;
-                    timestamp = performance.now();
-                    velocity = 0;
-                    
-                    this.style.userSelect = 'none';
-                    this.classList.add('grabbing');
-                    
-                    stopMomentum();
+                    touchStartY = e.touches[0].clientY;
+                    touchStartScrollTop = this.scrollTop;
                 }, { passive: true });
                 
                 container.addEventListener('touchmove', function(e) {
-                    if (!isMouseDown || !scrollContainer || e.touches.length !== 1) return;
-                    
-                    const currentTime = performance.now();
-                    const deltaTime = Math.max(1, currentTime - timestamp);
-                    
-                    const currentY = e.touches[0].pageY;
-                    const deltaY = currentY - lastY;
-                    
-                    velocity = deltaY / deltaTime * 20; // Zwiększone z 12
-                    lastY = currentY;
-                    timestamp = currentTime;
-                    
-                    const walk = (currentY - startY) * 2.0; // Zwiększone z 1.3
-                    const newScrollTop = scrollTop - walk;
-                    
-                    // Natychmiastowe scrollowanie
-                    this.scrollTop = newScrollTop;
-                    
+                    if (e.touches.length !== 1) return;
+                    const deltaY = touchStartY - e.touches[0].clientY;
+                    this.scrollTop = touchStartScrollTop + deltaY;
                     e.preventDefault();
                 }, { passive: false });
-                
-                container.addEventListener('touchend', function() {
-                    isMouseDown = false;
-                    this.style.userSelect = '';
-                    this.classList.remove('grabbing');
-                    
-                    if (Math.abs(velocity) > 0.2 && scrollContainer) {
-                        momentumActive = true;
-                        animationFrameId = requestAnimationFrame(momentumScroll);
-                    }
-                    
-                    scrollContainer = null;
-                }, { passive: true });
             });
-        });
-        
-        // Globalne event listenery dla bezpieczeństwa
-        document.addEventListener('mouseup', function() {
-            if (isMouseDown) {
-                isMouseDown = false;
-                const containers = panel.querySelectorAll(scrollContainers.join(','));
-                containers.forEach(container => {
-                    container.style.cursor = '';
-                    container.style.userSelect = '';
-                    container.classList.remove('grabbing');
-                });
-                
-                if (Math.abs(velocity) > 0.2 && scrollContainer) {
-                    momentumActive = true;
-                    animationFrameId = requestAnimationFrame(momentumScroll);
-                }
-                
-                scrollContainer = null;
-            }
         });
         
         // Optymalizacja: Debounce dla resize
@@ -3241,7 +3003,7 @@
     function exportSettings() {
         try {
             const settings = {
-                v: '4.7.0',
+                v: '4.7.1',
                 t: Date.now(),
                 a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []),
                 s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}),
@@ -3328,7 +3090,7 @@
                 throw new Error('Brak informacji o wersji');
             }
             
-            if (settings.v !== '4.7.0') {
+            if (settings.v !== '4.7.1') {
                 if (!confirm(`To ustawienia z wersji ${settings.v}. Kontynuować import?`)) {
                     return;
                 }
@@ -3672,7 +3434,7 @@
     // =========================================================================
 
     async function initPanel() {
-        console.log('✅ Initializing Synergy Panel v4.7.0 (Ultra Smooth Scroll)...');
+        console.log('✅ Initializing Synergy Panel v4.7.1 (Ultra Smooth Scroll FIXED)...');
         
         // Oczekiwanie na załadowanie DOM
         await new Promise(resolve => {
@@ -3710,7 +3472,7 @@
             setTimeout(() => {
                 savePanelSize();
                 
-                // Inicjalizacja ULTRA PŁYNNEGO scrollowania PO załadowaniu zawartości
+                // Inicjalizacja NAPRAWIENEGO scrollowania PO załadowaniu zawartości
                 requestAnimationFrame(() => {
                     setupSmoothScroll();
                 });
@@ -3724,7 +3486,7 @@
     }
 
     // 🔹 Start panelu
-    console.log('🎯 Starting Synergy Panel v4.7.0 (Ultra Smooth Scroll)...');
+    console.log('🎯 Starting Synergy Panel v4.7.1 (Ultra Smooth Scroll FIXED)...');
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPanel);
