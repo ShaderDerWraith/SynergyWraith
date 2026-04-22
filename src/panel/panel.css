@@ -1,4 +1,8 @@
 /* 🔹 BASE STYLES - KOMPAKTOWA WERSJA 🔹 */
+:root {
+    --base-font-size: 12px;
+}
+
 #swPanelToggle {
     position: fixed;
     top: 20px;
@@ -41,6 +45,26 @@
     cursor: grab;
 }
 
+#swPanelToggle.saved {
+    animation: savePulse 1.5s ease-in-out;
+}
+
+@keyframes savePulse {
+    0% { 
+        box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(255, 153, 0, 1);
+        border-color: #ffcc00;
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
+        border-color: #ff3300;
+    }
+}
+
 /* 🔹 MAIN PANEL - KOMPAKTOWY 🔹 */
 #swAddonsPanel {
     position: fixed;
@@ -68,23 +92,38 @@
     max-width: 800px;
     max-height: 700px;
     resize: both;
-    font-size: 12px; /* baza dla rem */
+    font-size: var(--base-font-size);
     cursor: default;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
-/* 🔹 NOWY, DYSKRETNY UCHWYT RESIZE (zamiast paskudnej ikony) 🔹 */
+/* 🔹 UKRYCIE STAREGO UCHWYTU RESIZE (paskudna ikona) */
 #swAddonsPanel::-webkit-resizer {
-    background: linear-gradient(135deg, transparent 60%, rgba(255, 51, 0, 0.2) 60%, rgba(255, 51, 0, 0.4) 100%);
-    border: none;
-    border-radius: 0 0 8px 0;
-    box-shadow: none;
-    width: 14px;
-    height: 14px;
+    display: none;
 }
 
-/* 🔹 NAGŁÓWEK - KOMPAKTOWY + ANIMACJA OGNIA 🔹 */
+/* 🔹 NOWY DYSKRETNY UCHWYT RESIZE (prawie niewidoczny) */
+#swAddonsPanel {
+    resize: both;
+    position: relative;
+}
+#swAddonsPanel::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 51, 0, 0.2);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+/* 🔹 NAGŁÓWEK - ŻYWY OGNISTY GRADIENT (bez migania) */
 #swPanelHeader {
-    background: linear-gradient(to right, 
+    background: linear-gradient(135deg, 
         rgba(40, 0, 0, 0.95), 
         rgba(80, 0, 0, 0.95), 
         rgba(120, 0, 0, 0.95));
@@ -92,38 +131,34 @@
     text-align: center;
     border-bottom: 2px solid #ff3300;
     cursor: move;
-    font-size: 22px;
+    font-size: calc(var(--base-font-size) + 10px);
     font-weight: bold;
     color: #ffcc00;
     text-shadow: 
-        0 0 10px rgba(255, 51, 0, 0.8),
-        0 0 20px rgba(255, 51, 0, 0.6);
+        0 0 5px #ff3300,
+        0 0 10px #ff6600,
+        0 0 15px #ff9900;
     user-select: none;
     position: relative;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* 🔥 ŻYWA ANIMACJA OGNIA 🔥 */
-    animation: fireGlow 1.2s infinite alternate ease-in-out;
+    animation: fireBreath 1.8s infinite alternate ease-in-out;
 }
 
-@keyframes fireGlow {
+@keyframes fireBreath {
     0% {
         text-shadow: 0 0 4px #ff3300, 0 0 8px #ff6600, 0 0 12px #ff9900;
         color: #ffcc00;
     }
-    50% {
-        text-shadow: 0 0 8px #ff6600, 0 0 16px #ff3300, 0 0 24px #ff0000;
-        color: #ffaa33;
-    }
     100% {
-        text-shadow: 0 0 12px #ff9900, 0 0 20px #ffcc00, 0 0 28px #ff3300;
-        color: #ffdd77;
+        text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300, 0 0 30px #ff0000;
+        color: #ffdd99;
     }
 }
 
-/* 🔹 OBSZAR DO CHWYTANIA 🔹 */
+/* 🔹 OBSZAR DO CHWYTANIA */
 #swAddonsPanel::before {
     content: '';
     position: absolute;
@@ -135,7 +170,7 @@
     z-index: 1000;
 }
 
-/* 🔹 TABS - KOMPAKTOWE 🔹 */
+/* 🔹 TABS */
 .tab-container {
     display: flex;
     background: linear-gradient(to bottom, 
@@ -157,14 +192,13 @@
     transition: all 0.3s ease;
     color: #ff9966;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: calc(var(--base-font-size) - 1px);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     border-bottom: 2px solid transparent;
     position: relative;
     min-width: 80px;
     text-align: center;
-    text-decoration: none;
 }
 
 .tablink::after {
@@ -194,7 +228,7 @@
     box-shadow: 0 0 8px rgba(255, 102, 0, 0.8);
 }
 
-/* 🔹 TAB CONTENT 🔹 */
+/* 🔹 TAB CONTENT */
 .tabcontent {
     display: none;
     flex: 1;
@@ -221,8 +255,11 @@
     min-height: 0;
 }
 
-/* 🔹 DODATKI - KOMPAKTOWE 🔹 */
-.addon-list-container {
+/* 🔹 KONTENERY Z PRZEWIJANIEM - NATYWNE, PŁYNNE, BEZ OPOŹNIEŃ */
+.addon-list-container,
+.shortcuts-list-container,
+.license-scroll-container,
+.scrollable-container {
     width: 100%;
     max-width: 600px;
     flex: 1;
@@ -231,32 +268,53 @@
     margin-bottom: 8px;
     padding-right: 8px;
     padding-bottom: 15px;
-    scrollbar-width: auto;
+    scrollbar-width: thin;
     scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5);
     height: auto;
     min-height: 180px;
-    max-height: calc(100% - 150px);
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
 }
 
-.addon-list-container::-webkit-scrollbar {
-    width: 10px !important;
+/* USUNIĘCIE SZTUCZNEJ PŁYNNOŚCI (przyczyna spadków FPS) */
+.addon-list-container,
+.shortcuts-list-container,
+.license-scroll-container,
+.scrollable-container {
+    scroll-behavior: auto !important;
+    -webkit-overflow-scrolling: auto !important;
+    will-change: auto !important;
+    transform: none !important;
+    backface-visibility: visible !important;
 }
 
-.addon-list-container::-webkit-scrollbar-track {
-    background: rgba(40, 0, 0, 0.5) !important;
-    border-radius: 6px !important;
-    border: 1px solid #550000 !important;
+/* Scrollbary - tylko wizualnie */
+.addon-list-container::-webkit-scrollbar,
+.shortcuts-list-container::-webkit-scrollbar,
+.license-scroll-container::-webkit-scrollbar,
+.scrollable-container::-webkit-scrollbar {
+    width: 10px;
+    background: rgba(40, 0, 0, 0.5);
+    border-radius: 6px;
 }
 
-.addon-list-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #ff3300, #ff6600) !important;
-    border-radius: 6px !important;
-    border: 1px solid #ff9900 !important;
-    transition: background 0.2s;
+.addon-list-container::-webkit-scrollbar-track,
+.shortcuts-list-container::-webkit-scrollbar-track,
+.license-scroll-container::-webkit-scrollbar-track,
+.scrollable-container::-webkit-scrollbar-track {
+    background: rgba(40, 0, 0, 0.5);
+    border-radius: 6px;
+    border: 1px solid #550000;
 }
 
+.addon-list-container::-webkit-scrollbar-thumb,
+.shortcuts-list-container::-webkit-scrollbar-thumb,
+.license-scroll-container::-webkit-scrollbar-thumb,
+.scrollable-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #ff3300, #ff6600);
+    border-radius: 6px;
+    border: 1px solid #ff9900;
+}
+
+/* 🔹 DODATKI */
 .addon-list {
     width: 100%;
 }
@@ -298,17 +356,17 @@
 .addon-title {
     font-weight: 700;
     color: #ffcc00;
-    font-size: 1rem;
+    font-size: calc(var(--base-font-size) + 1px);
     margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: left; /* tytuł dodatku – do lewej */
+    text-align: left;
 }
 
 .addon-description {
     color: #ff9966;
-    font-size: 0.85rem;
+    font-size: calc(var(--base-font-size) - 1px);
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -325,7 +383,7 @@
     flex-shrink: 0;
 }
 
-/* 🔹 PRZYCISK ULUBIONYCH 🔹 */
+/* 🔹 ULUBIONE */
 .favorite-btn {
     background: transparent;
     border: none;
@@ -353,7 +411,7 @@
     text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
 }
 
-/* 🔹 ADDON SWITCH 🔹 */
+/* 🔹 SWITCH */
 .addon-switch {
     position: relative;
     display: inline-block;
@@ -392,7 +450,17 @@
     border-radius: 50%;
 }
 
-/* 🔹 FILTRY DODATKÓW 🔹 */
+.addon-switch input:checked + .addon-switch-slider {
+    background-color: #005500;
+    border-color: #00bb00;
+}
+
+.addon-switch input:checked + .addon-switch-slider:before {
+    transform: translateX(19px);
+    background-color: #00ff00;
+}
+
+/* 🔹 FILTRY */
 .addon-filters {
     display: flex;
     gap: 10px;
@@ -410,7 +478,7 @@
     border-radius: 5px;
     color: #ff9966;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: calc(var(--base-font-size) - 1px);
     font-weight: 600;
     transition: all 0.3s ease;
     text-transform: uppercase;
@@ -433,7 +501,7 @@
     box-shadow: 0 3px 10px rgba(255, 51, 0, 0.5);
 }
 
-/* 🔹 PRZYCISK ZAPISZ 🔹 */
+/* 🔹 ZAPISZ */
 #swSaveAndRestartButton {
     width: 100%;
     padding: 12px;
@@ -443,7 +511,7 @@
     color: #ffffff;
     cursor: pointer;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: calc(var(--base-font-size));
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -471,29 +539,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    z-index: 100;
     background: rgba(20, 0, 0, 0.7);
 }
 
-/* 🔹 SHORTCUTS LIST 🔹 */
-.shortcuts-list-container {
-    width: 100%;
-    max-width: 600px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 8px;
-    padding-right: 8px;
-    padding-bottom: 15px;
-    scrollbar-width: auto;
-    scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5);
-    min-height: 300px;
-    height: calc(100% - 50px);
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
+/* 🔹 SKRÓTY */
 .shortcut-item {
     background: linear-gradient(135deg, 
         rgba(40, 0, 0, 0.9), 
@@ -520,14 +569,14 @@
 .shortcut-name {
     font-weight: 700;
     color: #ffcc00;
-    font-size: 0.95rem;
+    font-size: calc(var(--base-font-size) + 1px);
     margin-bottom: 4px;
     text-align: left;
 }
 
 .shortcut-desc {
     color: #ff9966;
-    font-size: 0.8rem;
+    font-size: calc(var(--base-font-size) - 1px);
     text-align: left;
 }
 
@@ -537,18 +586,12 @@
     border: 1px solid #550000;
     border-radius: 4px;
     color: #ffcc00;
-    font-size: 0.85rem;
+    font-size: calc(var(--base-font-size) - 1px);
     font-weight: bold;
     text-align: center;
-    letter-spacing: 0.4px;
     min-width: 90px;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-/* 🔹 PRZYCISKI SKRÓTÓW 🔹 */
 .shortcut-set-btn, .shortcut-clear-btn {
     padding: 6px 12px;
     background: linear-gradient(135deg, #550000, #880000);
@@ -556,7 +599,7 @@
     border-radius: 4px;
     color: #ffcc00;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: calc(var(--base-font-size) - 1px);
     font-weight: 600;
     transition: all 0.3s ease;
     text-transform: uppercase;
@@ -570,21 +613,13 @@
     background: linear-gradient(135deg, #880000, #bb0000);
     color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 51, 0, 0.3);
 }
 
-/* 🔹 SKRÓTY TOGGLE 🔹 */
 .shortcut-toggle {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 24px;
-}
-
-.shortcut-toggle input {
-    opacity: 0;
-    width: 0;
-    height: 0;
 }
 
 .shortcut-toggle-slider {
@@ -610,27 +645,19 @@
     background-color: #ff3300;
     transition: .4s;
     border-radius: 50%;
-    transform: translateX(3px);
 }
 
-/* 🔹 LICENCJA 🔹 */
-.license-scroll-container {
-    width: 100%;
-    max-width: 600px;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    margin-bottom: 8px;
-    padding-right: 8px;
-    padding-bottom: 15px;
-    scrollbar-width: auto;
-    scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5);
-    height: auto;
-    min-height: 280px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
+.shortcut-toggle input:checked + .shortcut-toggle-slider {
+    background-color: #005500;
+    border-color: #00bb00;
 }
 
+.shortcut-toggle input:checked + .shortcut-toggle-slider:before {
+    transform: translateX(19px);
+    background-color: #00ff00;
+}
+
+/* 🔹 LICENCJA */
 .license-container {
     background: linear-gradient(135deg, 
         rgba(40, 0, 0, 0.9), 
@@ -642,27 +669,23 @@
     width: 100%;
     max-width: 600px;
     box-sizing: border-box;
-    word-wrap: break-word;
 }
 
 .license-header {
     color: #ffcc00;
-    font-size: 1rem;
+    font-size: calc(var(--base-font-size) + 2px);
     font-weight: bold;
     margin-bottom: 12px;
     border-bottom: 2px solid #ff3300;
     padding-bottom: 8px;
     text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
 }
 
 .license-status-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 10px;
-    font-size: 0.9rem;
+    font-size: calc(var(--base-font-size));
     padding: 6px 0;
     border-bottom: 1px solid rgba(255, 51, 0, 0.3);
 }
@@ -670,27 +693,15 @@
 .license-status-label {
     color: #ff9966;
     font-weight: 600;
-    white-space: nowrap;
-    font-size: 0.9rem;
-    min-width: 110px;
 }
 
 .license-status-value {
     font-weight: 600;
     text-align: right;
     color: #ffcc00;
-    max-width: 180px;
-    word-break: break-word;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    flex: 1;
-    margin-left: 15px;
 }
 
-/* 🔹 SETTINGS 🔹 */
+/* 🔹 USTAWIENIA */
 .settings-item {
     margin-bottom: 15px;
     padding: 15px;
@@ -707,7 +718,7 @@
 .settings-label {
     display: block;
     color: #ffcc00;
-    font-size: 0.95rem;
+    font-size: calc(var(--base-font-size) + 1px);
     margin-bottom: 10px;
     font-weight: 700;
     text-align: center;
@@ -718,7 +729,6 @@
     align-items: center;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 10px;
 }
 
 .font-size-btn {
@@ -735,15 +745,11 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    user-select: none;
-    padding: 0;
 }
 
 .font-size-btn:hover {
     background: linear-gradient(135deg, #880000, #bb0000);
-    border-color: #ff6600;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 51, 0, 0.4);
 }
 
 .font-size-display {
@@ -753,17 +759,15 @@
     border: 1px solid #550000;
     border-radius: 5px;
     color: #ffcc00;
-    font-size: 1rem;
+    font-size: calc(var(--base-font-size) + 2px);
     font-weight: bold;
     text-align: center;
 }
 
-/* 🔹 SUWAK PRZEŹROCZYSTOŚCI 🔹 */
 .slider-container {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
 }
 
 .slider-value {
@@ -771,17 +775,15 @@
     text-align: center;
     color: #ffcc00;
     font-weight: bold;
-    font-size: 0.9rem;
 }
 
 .opacity-slider {
     flex: 1;
     -webkit-appearance: none;
     height: 6px;
-    background: linear-gradient(to right, #2a0000, #550000);
+    background: #2a0000;
     border-radius: 4px;
     border: 1px solid #550000;
-    outline: none;
 }
 
 .opacity-slider::-webkit-slider-thumb {
@@ -792,76 +794,51 @@
     background: #ff3300;
     cursor: pointer;
     border: 2px solid #ffcc00;
-    box-shadow: 0 0 8px rgba(255, 51, 0, 0.8);
 }
 
-/* 🔹 PRZYCISK USTAW SKRÓT 🔹 */
-#panelShortcutSetBtn {
-    padding: 8px 15px;
+#importSettingsBtn, #exportSettingsBtn {
+    padding: 8px;
     background: linear-gradient(135deg, #550000, #880000);
     border: 1px solid #ff3300;
     border-radius: 5px;
-    color: #ffffff;
+    color: white;
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 700;
-    transition: all 0.3s ease;
+    font-size: calc(var(--base-font-size) - 1px);
+    font-weight: bold;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    white-space: nowrap;
-    min-width: 70px;
-    text-align: center;
 }
 
-/* 🔹 EKSPORT/IMPORT 🔹 */
-.import-export-container {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 15px;
-    padding: 15px;
-    background: linear-gradient(135deg, 
-        rgba(40, 0, 0, 0.9), 
-        rgba(80, 0, 0, 0.9));
-    border: 1px solid #550000;
-    border-radius: 8px;
-    box-sizing: border-box;
-}
-
-.import-export-btn {
-    flex: 1;
-    padding: 10px;
-    background: linear-gradient(135deg, #550000, #880000);
-    border: 1px solid #ff3300;
-    border-radius: 5px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85rem;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    text-align: center;
+#importSettingsBtn:hover, #exportSettingsBtn:hover {
+    background: linear-gradient(135deg, #880000, #bb0000);
 }
 
 .import-export-textarea {
     width: 100%;
     height: 100px;
-    padding: 10px;
     background: rgba(20, 0, 0, 0.8);
     border: 1px solid #550000;
     border-radius: 5px;
     color: #ffcc00;
-    font-size: 0.8rem;
-    font-family: 'Courier New', monospace;
+    font-size: calc(var(--base-font-size) - 2px);
+    font-family: monospace;
     resize: none;
-    box-sizing: border-box;
-    outline: none;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    line-height: 1.3;
+    padding: 8px;
 }
 
-/* 🔹 INFO 🔹 */
+#swResetButton {
+    padding: 10px;
+    background: linear-gradient(135deg, #550000, #880000);
+    border: 1px solid #ff3300;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 15px;
+}
+
+/* 🔹 INFO */
 .info-section {
     background: linear-gradient(135deg, 
         rgba(40, 0, 0, 0.9), 
@@ -872,156 +849,42 @@
     margin-bottom: 15px;
     width: 100%;
     max-width: 600px;
-    box-sizing: border-box;
-    text-align: left;
-    min-width: 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
 }
 
 .info-section h4 {
     color: #ff9966;
-    margin-top: 0;
-    font-size: 1rem;
-    margin-bottom: 12px;
-    border-bottom: 2px solid #550000;
-    padding-bottom: 8px;
     text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    margin-top: 0;
+    font-size: calc(var(--base-font-size) + 2px);
+    border-bottom: 1px solid #ff3300;
+    padding-bottom: 5px;
 }
 
 .info-section p {
     color: #ffcc00;
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: calc(var(--base-font-size));
     margin: 8px 0;
-    padding-left: 8px;
+    padding-left: 15px;
     position: relative;
-    text-align: left;
 }
 
-/* 🔹 SCROLLBAR 🔹 */
-.scrollable-container {
-    width: 100% !important;
-    max-width: 600px !important;
-    flex: 1 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    margin-bottom: 8px !important;
-    padding-right: 8px !important;
-    scroll-behavior: smooth !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: auto !important;
-    scrollbar-color: #ff3300 rgba(40, 0, 0, 0.5) !important;
-    height: calc(100% - 50px) !important;
-    min-height: 250px !important;
-    position: relative !important;
+.info-section p::before {
+    content: "•";
+    color: #ff6600;
+    position: absolute;
+    left: 0;
 }
 
-/* 🔹 MESSAGES 🔹 */
-.license-message {
-    padding: 10px 12px;
-    border-radius: 6px;
-    margin: 8px 0;
-    font-size: 0.85rem;
-    display: none;
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-/* 🔹 RESET BUTTON 🔹 */
-#swResetButton {
-    padding: 12px;
-    background: linear-gradient(135deg, 
-        rgba(80, 0, 0, 0.9), 
-        rgba(120, 0, 0, 0.9));
-    border: 1px solid #ff3300;
-    border-radius: 6px;
-    color: #ffffff;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    width: 100%;
-    max-width: 600px;
-    margin: 15px auto 8px auto;
-    display: block;
-    box-sizing: border-box;
-    text-align: center;
-}
-
-/* 🔹 SEARCH INPUT 🔹 */
-#searchAddons {
-    width: 100%;
-    max-width: 600px;
-    padding: 10px 14px;
-    background: rgba(40, 0, 0, 0.8);
-    border: 1px solid #550000;
-    border-radius: 6px;
-    color: #ffcc00;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-    outline: none;
-    transition: all 0.3s ease;
-    margin-bottom: 12px;
-    text-align: left;
-}
-
-/* 🔹 PREMIUM BADGE 🔹 */
-.premium-badge {
-    display: inline-block;
-    background: linear-gradient(45deg, #ff9900, #ffcc00);
-    color: #2a0000;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 3px;
-    margin-right: 6px;
-    text-shadow: none;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-/* 🔹 RESPONSYWNOŚĆ 🔹 */
+/* 🔹 RESPONSYWNOŚĆ */
 @media (max-width: 768px) {
     #swAddonsPanel {
         width: 95vw !important;
         min-width: 350px;
-        max-width: 95vw;
-        left: 10px !important;
-        right: 10px !important;
+        left: 2.5vw !important;
     }
-    
-    .info-section {
-        padding: 12px;
-        margin-left: 3px;
-        margin-right: 3px;
-        width: calc(100% - 6px);
+    .tablink {
+        font-size: 10px;
+        padding: 8px 10px;
+        min-width: 60px;
     }
-}
-
-@media (max-height: 600px) {
-    .addon-list-container {
-        max-height: 200px !important;
-    }
-}
-
-/* 🔹 ANIMACJE 🔹 */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.addon, .shortcut-item, .license-container, .settings-item, .info-section {
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* 🔹 PŁYNNE PRZEJŚCIA DLA ROZMIARU CZCIONKI (wsparcie dla JS) 🔹 */
-#swAddonsPanel, #swAddonsPanel * {
-    transition: font-size 0.1s ease-out, text-shadow 0.2s;
 }
