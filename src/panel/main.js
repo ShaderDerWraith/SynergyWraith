@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Synergy Panel v4.7.2 - Fixed Font Scaling & Native Scroll
+// @name         Synergy Panel v4.7.3 - Płynne scrollowanie + czcionka CSS
 // @namespace    http://tampermonkey.net/
-// @version      4.7.2
-// @description  Zaawansowany panel dodatków do gry - naprawiona czcionka i scroll
+// @version      4.7.3
+// @description  Zaawansowany panel dodatków do gry - naprawiona czcionka i płynny scroll
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,9 +13,9 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.7.2 (Fixed font & native scroll)');
+    console.log('🚀 Synergy Panel loaded - v4.7.3 (Płynny scroll + CSS font)');
 
-    // 🔹 CSS – używa zmiennej --base-font-size
+    // ========== CSS (z zmienną --base-font-size) ==========
     const panelCSS = `
         :root {
             --base-font-size: 12px;
@@ -31,7 +31,7 @@
             border-radius: 50%;
             cursor: grab;
             z-index: 1000000;
-            box-shadow: 0 0 15px rgba(255, 51, 0, 0.9);
+            box-shadow: 0 0 15px rgba(255,51,0,0.9);
             color: white;
             font-weight: bold;
             font-size: 20px;
@@ -50,13 +50,13 @@
         #swPanelToggle.dragging {
             cursor: grabbing;
             transform: scale(1.1);
-            box-shadow: 0 0 25px rgba(255, 102, 0, 1);
+            box-shadow: 0 0 25px rgba(255,102,0,1);
             border: 2px solid #ffcc00;
             z-index: 1000001;
         }
         #swPanelToggle:hover:not(.dragging) {
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 102, 0, 1);
+            box-shadow: 0 0 20px rgba(255,102,0,1);
             cursor: grab;
         }
         #swPanelToggle.saved {
@@ -726,7 +726,7 @@
     style.textContent = panelCSS;
     document.head.appendChild(style);
 
-    // 🔹 Konfiguracja
+    // ========== KONFIGURACJA ==========
     const CONFIG = {
         PANEL_POSITION: "sw_panel_position",
         PANEL_VISIBLE: "sw_panel_visible",
@@ -746,7 +746,6 @@
         PANEL_HEIGHT: "sw_panel_height"
     };
 
-    // 🔹 Lista dodatków
     const ADDONS = [
         { id: 'enhanced-stats', name: 'Enhanced Stats', description: 'Rozszerzone statystyki postaci', type: 'free', enabled: false, favorite: false, hidden: false },
         { id: 'trade-helper', name: 'Trade Helper', description: 'Pomocnik handlu i aukcji', type: 'free', enabled: false, favorite: false, hidden: false },
@@ -760,7 +759,6 @@
         { id: 'fishing-bot', name: 'Fishing Bot', description: 'Automatyczne łowienie ryb', type: 'premium', enabled: false, favorite: false, hidden: true }
     ];
 
-    // Safe storage
     if (!window.synergyWraith) {
         window.synergyWraith = {
             GM_getValue: (key, defaultValue) => { try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : defaultValue; } catch(e) { return defaultValue; } },
@@ -788,63 +786,48 @@
 
     // ========== NAPRAWIONA FUNKCJA CZCIONKI (CSS variable) ==========
     function applyFontSize(size, skipSave = false) {
-        const minSize = 8;
-        const maxSize = 16;
+        const minSize = 8, maxSize = 16;
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
         currentFontSize = clampedSize;
         if (!skipSave) SW.GM_setValue(CONFIG.FONT_SIZE, clampedSize);
-        
-        // Ustaw zmienną CSS na głównym panelu
         const panel = document.getElementById('swAddonsPanel');
-        if (panel) {
-            panel.style.setProperty('--base-font-size', clampedSize + 'px');
-        } else {
-            // fallback jeśli panel jeszcze nie istnieje
-            document.documentElement.style.setProperty('--base-font-size', clampedSize + 'px');
-        }
-        
-        // Aktualizacja wyświetlanej wartości
+        if (panel) panel.style.setProperty('--base-font-size', clampedSize + 'px');
+        else document.documentElement.style.setProperty('--base-font-size', clampedSize + 'px');
         const fontSizeValue = document.getElementById('fontSizeValue');
         if (fontSizeValue) fontSizeValue.textContent = clampedSize + 'px';
-        
-        // Aktualizacja stanu przycisków
-        const decreaseBtn = document.getElementById('fontSizeDecrease');
-        const increaseBtn = document.getElementById('fontSizeIncrease');
-        if (decreaseBtn) decreaseBtn.disabled = clampedSize <= minSize;
-        if (increaseBtn) increaseBtn.disabled = clampedSize >= maxSize;
+        const dec = document.getElementById('fontSizeDecrease'), inc = document.getElementById('fontSizeIncrease');
+        if (dec) dec.disabled = clampedSize <= minSize;
+        if (inc) inc.disabled = clampedSize >= maxSize;
     }
 
-    // ========== PRZEŹROCZYSTOŚĆ ==========
     function applyOpacity(opacity, skipSave = false) {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
-            const minOp = 30, maxOp = 100;
-            const clamped = Math.max(minOp, Math.min(maxOp, opacity));
+            const clamped = Math.max(30, Math.min(100, opacity));
             panel.style.opacity = clamped / 100;
             if (!skipSave) SW.GM_setValue(CONFIG.BACKGROUND_OPACITY, clamped);
-            const opacityValue = document.getElementById('opacityValue');
-            if (opacityValue) opacityValue.textContent = clamped + '%';
+            const valEl = document.getElementById('opacityValue');
+            if (valEl) valEl.textContent = clamped + '%';
         }
     }
 
-    // ========== ZAPISYWANIE ROZMIARU PANELU ==========
     function savePanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
-            const width = Math.max(450, Math.min(panel.offsetWidth, 800));
-            const height = Math.max(400, Math.min(panel.offsetHeight, 700));
-            SW.GM_setValue(CONFIG.PANEL_WIDTH, width);
-            SW.GM_setValue(CONFIG.PANEL_HEIGHT, height);
+            const w = Math.max(450, Math.min(panel.offsetWidth, 800));
+            const h = Math.max(400, Math.min(panel.offsetHeight, 700));
+            SW.GM_setValue(CONFIG.PANEL_WIDTH, w);
+            SW.GM_setValue(CONFIG.PANEL_HEIGHT, h);
         }
     }
 
     function loadPanelSize() {
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
-            const savedWidth = SW.GM_getValue(CONFIG.PANEL_WIDTH, 500);
-            const savedHeight = SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500);
-            panel.style.width = Math.max(450, Math.min(savedWidth, 800)) + 'px';
-            panel.style.height = Math.max(400, Math.min(savedHeight, 700)) + 'px';
+            const w = Math.max(450, Math.min(SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), 800));
+            const h = Math.max(400, Math.min(SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500), 700));
+            panel.style.width = w + 'px';
+            panel.style.height = h + 'px';
         }
     }
 
@@ -853,7 +836,6 @@
         panelResizeTimer = setTimeout(savePanelSize, 300);
     }
 
-    // ========== TWORZENIE ELEMENTÓW ==========
     function createToggleButton() {
         const old = document.getElementById('swPanelToggle');
         if (old) old.remove();
@@ -956,12 +938,11 @@
         if (saveBtn) saveBtn.addEventListener('click', () => { saveAddonsState(); savePanelSize(); showLicenseMessage('✅ Zapisano ustawienia! Odświeżanie gry...', 'success'); setTimeout(() => location.reload(), 1500); });
         const resetBtn = document.getElementById('swResetButton');
         if (resetBtn) resetBtn.addEventListener('click', () => { if(confirm('Czy na pewno chcesz zresetować wszystkie ustawienia?')) resetAllSettings(); });
-        const decFont = document.getElementById('fontSizeDecrease');
-        const incFont = document.getElementById('fontSizeIncrease');
+        const decFont = document.getElementById('fontSizeDecrease'), incFont = document.getElementById('fontSizeIncrease');
         if (decFont) decFont.addEventListener('click', () => applyFontSize(currentFontSize - 1));
         if (incFont) incFont.addEventListener('click', () => applyFontSize(currentFontSize + 1));
-        const opacitySlider = document.getElementById('opacitySlider');
-        if (opacitySlider) opacitySlider.addEventListener('input', (e) => applyOpacity(parseInt(e.target.value)));
+        const opSlider = document.getElementById('opacitySlider');
+        if (opSlider) opSlider.addEventListener('input', (e) => applyOpacity(parseInt(e.target.value)));
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -970,25 +951,22 @@
                 renderAddons();
             });
         });
-        const exportBtn = document.getElementById('exportSettingsBtn');
-        const importBtn = document.getElementById('importSettingsBtn');
-        if (exportBtn) exportBtn.addEventListener('click', exportSettings);
-        if (importBtn) importBtn.addEventListener('click', importSettings);
-        const searchInput = document.getElementById('searchAddons');
-        if (searchInput) searchInput.addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderAddons(); });
+        const expBtn = document.getElementById('exportSettingsBtn'), impBtn = document.getElementById('importSettingsBtn');
+        if (expBtn) expBtn.addEventListener('click', exportSettings);
+        if (impBtn) impBtn.addEventListener('click', importSettings);
+        const search = document.getElementById('searchAddons');
+        if (search) search.addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase(); renderAddons(); });
         setupPanelShortcutInput();
         setupTabs();
         setupGlobalShortcuts();
         const panel = document.getElementById('swAddonsPanel');
         if (panel) {
-            let ro;
-            try { ro = new ResizeObserver(() => handlePanelResize()); ro.observe(panel); } catch(e) { panel.addEventListener('mouseup', handlePanelResize); }
+            let ro; try { ro = new ResizeObserver(() => handlePanelResize()); ro.observe(panel); } catch(e) { panel.addEventListener('mouseup', handlePanelResize); }
         }
     }
 
     function setupPanelDrag() {
         const panel = document.getElementById('swAddonsPanel');
-        const header = document.getElementById('swPanelHeader');
         if (!panel) return;
         let isDragging = false, startX, startY, initialLeft, initialTop;
         const startDrag = (e) => {
@@ -1041,11 +1019,8 @@
             const rect = toggleBtn.getBoundingClientRect();
             initialLeft = rect.left;
             initialTop = rect.top;
-            dragTimer = setTimeout(() => {
-                isDragging = true;
-                toggleBtn.classList.add('dragging');
-            }, 100);
-            const onMouseMove = (e) => {
+            dragTimer = setTimeout(() => { isDragging = true; toggleBtn.classList.add('dragging'); }, 100);
+            const onMove = (e) => {
                 if (!isDragging) return;
                 let newLeft = initialLeft + (e.clientX - startX);
                 let newTop = initialTop + (e.clientY - startY);
@@ -1055,10 +1030,10 @@
                 toggleBtn.style.top = newTop + 'px';
                 e.preventDefault();
             };
-            const onMouseUp = () => {
+            const onUp = () => {
                 clearTimeout(dragTimer);
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
                 if (isDragging) {
                     isDragging = false;
                     toggleBtn.classList.remove('dragging');
@@ -1067,8 +1042,8 @@
                     togglePanel();
                 }
             };
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
         });
     }
 
@@ -1083,17 +1058,16 @@
     }
 
     function setupPanelShortcutInput() {
-        const input = document.getElementById('panelShortcutInput');
-        const setBtn = document.getElementById('panelShortcutSetBtn');
-        if (!input || !setBtn) return;
+        const inp = document.getElementById('panelShortcutInput'), setBtn = document.getElementById('panelShortcutSetBtn');
+        if (!inp || !setBtn) return;
         const saved = SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A');
         panelShortcut = saved;
-        input.value = panelShortcut;
+        inp.value = panelShortcut;
         setBtn.addEventListener('click', () => {
-            input.value = 'Wciśnij kombinację...';
-            input.style.borderColor = '#ff3300';
+            inp.value = 'Wciśnij kombinację...';
+            inp.style.borderColor = '#ff3300';
             let keys = [], isSetting = true;
-            const keyDownHandler = (e) => {
+            const keyDown = (e) => {
                 if (!isSetting) return;
                 e.preventDefault();
                 const parts = [];
@@ -1102,30 +1076,29 @@
                 if (e.altKey) parts.push('Alt');
                 const main = e.key.toUpperCase();
                 if (!['CONTROL','SHIFT','ALT','META'].includes(main)) parts.push(main);
-                const shortcut = parts.join('+');
-                input.value = shortcut;
+                inp.value = parts.join('+');
                 keys = parts;
             };
-            const keyUpHandler = (e) => {
+            const keyUp = (e) => {
                 if (!isSetting) return;
                 if (keys.length >= 2) {
                     isSetting = false;
-                    document.removeEventListener('keydown', keyDownHandler);
-                    document.removeEventListener('keyup', keyUpHandler);
+                    document.removeEventListener('keydown', keyDown);
+                    document.removeEventListener('keyup', keyUp);
                     panelShortcut = keys.join('+');
                     SW.GM_setValue(CONFIG.CUSTOM_SHORTCUT, panelShortcut);
-                    input.value = panelShortcut;
-                    input.style.borderColor = '#00cc00';
-                    setTimeout(() => { input.style.borderColor = '#550000'; }, 2000);
+                    inp.value = panelShortcut;
+                    inp.style.borderColor = '#00cc00';
+                    setTimeout(() => inp.style.borderColor = '#550000', 2000);
                     const msg = document.getElementById('swResetMessage');
                     if (msg) { msg.textContent = `✅ Skrót ustawiony: ${panelShortcut}`; msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
                 }
             };
-            const escHandler = (e) => { if (e.key === 'Escape') { isSetting = false; document.removeEventListener('keydown', keyDownHandler); document.removeEventListener('keyup', keyUpHandler); document.removeEventListener('keydown', escHandler); input.value = panelShortcut; input.style.borderColor = '#550000'; } };
-            document.addEventListener('keydown', keyDownHandler);
-            document.addEventListener('keyup', keyUpHandler);
-            document.addEventListener('keydown', escHandler);
-            setTimeout(() => { if (isSetting) { isSetting = false; document.removeEventListener('keydown', keyDownHandler); document.removeEventListener('keyup', keyUpHandler); document.removeEventListener('keydown', escHandler); input.value = panelShortcut; input.style.borderColor = '#550000'; } }, 10000);
+            const esc = (e) => { if (e.key === 'Escape') { isSetting = false; document.removeEventListener('keydown', keyDown); document.removeEventListener('keyup', keyUp); document.removeEventListener('keydown', esc); inp.value = panelShortcut; inp.style.borderColor = '#550000'; } };
+            document.addEventListener('keydown', keyDown);
+            document.addEventListener('keyup', keyUp);
+            document.addEventListener('keydown', esc);
+            setTimeout(() => { if (isSetting) { isSetting = false; document.removeEventListener('keydown', keyDown); document.removeEventListener('keyup', keyUp); document.removeEventListener('keydown', esc); inp.value = panelShortcut; inp.style.borderColor = '#550000'; } }, 10000);
         });
     }
 
@@ -1135,8 +1108,8 @@
                 const tabName = tab.getAttribute('data-tab');
                 document.querySelectorAll('.tabcontent').forEach(c => { c.classList.remove('active'); c.style.display = 'none'; });
                 document.querySelectorAll('.tablink').forEach(t => t.classList.remove('active'));
-                const activeContent = document.getElementById(tabName);
-                if (activeContent) { activeContent.classList.add('active'); activeContent.style.display = 'flex'; }
+                const active = document.getElementById(tabName);
+                if (active) { active.classList.add('active'); active.style.display = 'flex'; }
                 tab.classList.add('active');
                 if (tabName === 'shortcuts') setTimeout(renderShortcuts, 50);
                 savePanelSize();
@@ -1165,6 +1138,34 @@
                     if (addon && addon.enabled && !addon.locked) toggleAddon(addonId, false);
                 }
             });
+        });
+    }
+
+    // ========== PŁYNNE SCROLLOWANIE (LEKKIE, BEZ LAGÓW) ==========
+    function initSmoothScroll() {
+        const containers = document.querySelectorAll('.addon-list-container, .shortcuts-list-container, .license-scroll-container, .scrollable-container');
+        containers.forEach(container => {
+            let scrollTarget = container.scrollTop;
+            let isScrolling = false;
+            const smoothScroll = () => {
+                const diff = scrollTarget - container.scrollTop;
+                if (Math.abs(diff) < 0.5) {
+                    container.scrollTop = scrollTarget;
+                    isScrolling = false;
+                    return;
+                }
+                container.scrollTop += diff * 0.12; // 12% różnicy na klatkę = płynnie, ale szybko
+                requestAnimationFrame(smoothScroll);
+            };
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                scrollTarget += e.deltaY;
+                scrollTarget = Math.max(0, Math.min(scrollTarget, container.scrollHeight - container.clientHeight));
+                if (!isScrolling) {
+                    isScrolling = true;
+                    requestAnimationFrame(smoothScroll);
+                }
+            }, { passive: false });
         });
     }
 
@@ -1239,14 +1240,16 @@
         const keyDown = (e) => { if (!isSetting) return; e.preventDefault(); const parts = []; if (e.ctrlKey) parts.push('Ctrl'); if (e.shiftKey) parts.push('Shift'); if (e.altKey) parts.push('Alt'); const main = e.key.toUpperCase(); if (!['CONTROL','SHIFT','ALT','META'].includes(main)) parts.push(main); display.textContent = parts.join('+'); keys = parts; };
         const keyUp = (e) => { if (!isSetting) return; if (keys.length >= 2) { isSetting = false; document.removeEventListener('keydown', keyDown); document.removeEventListener('keyup', keyUp); const shortcut = keys.join('+'); addonShortcuts[id] = shortcut; saveAddonShortcuts(); shortcutsEnabled[id] = false; saveShortcutsEnabledState(); display.textContent = shortcut; display.style.color = '#00ff00'; setTimeout(() => display.style.color = '#ffcc00', 2000); } };
         const esc = (e) => { if (e.key === 'Escape') { isSetting = false; document.removeEventListener('keydown', keyDown); document.removeEventListener('keyup', keyUp); document.removeEventListener('keydown', esc); display.textContent = addonShortcuts[id] || 'Brak skrótu'; } };
-        document.addEventListener('keydown', keyDown); document.addEventListener('keyup', keyUp); document.addEventListener('keydown', esc);
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('keyup', keyUp);
+        document.addEventListener('keydown', esc);
         setTimeout(() => { if (isSetting) { isSetting = false; document.removeEventListener('keydown', keyDown); document.removeEventListener('keyup', keyUp); document.removeEventListener('keydown', esc); display.textContent = addonShortcuts[id] || 'Brak skrótu'; } }, 10000);
     }
     function clearAddonShortcut(id) { delete addonShortcuts[id]; delete shortcutsEnabled[id]; saveAddonShortcuts(); saveShortcutsEnabledState(); const d = document.getElementById(`shortcut-display-${id}`); if (d) d.textContent = 'Brak skrótu'; }
     function toggleShortcutEnabled(id, enabled) { shortcutsEnabled[id] = enabled; saveShortcutsEnabledState(); }
     function exportSettings() {
         try {
-            const settings = { v: '4.7.2', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
+            const settings = { v: '4.7.3', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
             const json = JSON.stringify(settings);
             const base64 = btoa(unescape(encodeURIComponent(json)));
             let obf = base64.split('').reverse().join('').replace(/=/g,'_').replace(/\+/g,'-').replace(/\//g,'.');
@@ -1310,7 +1313,8 @@
         const msg = document.getElementById('swResetMessage');
         if (msg) { msg.textContent = '✅ Reset, odświeżanie...'; msg.style.display = 'block'; setTimeout(() => location.reload(), 2000); }
     }
-    // ========== LICENCJA (uproszczona, bez zmian) ==========
+
+    // ========== LICENCJA ==========
     async function initAccountAndLicense() {
         await new Promise(r => setTimeout(r, 800));
         const acc = await getAccountId();
@@ -1382,7 +1386,11 @@
         setTimeout(async () => {
             await initAccountAndLicense();
             requestAnimationFrame(() => { renderAddons(); renderShortcuts(); });
-            setTimeout(() => savePanelSize(), 150);
+            // Uruchom płynne scrollowanie po wyrenderowaniu
+            setTimeout(() => {
+                initSmoothScroll();
+                savePanelSize();
+            }, 150);
             setInterval(() => { if (userAccountId) checkAndUpdateLicense(userAccountId); }, 5*60*1000);
         }, 300);
     }
