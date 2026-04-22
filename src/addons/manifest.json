@@ -1,0 +1,22 @@
+{
+  "addons": [
+    {
+      "id": "kcs-icons",
+      "name": "KCS Icons",
+      "description": "Premium icons for Tribal Wars",
+      "type": "premium"
+    },
+    {
+      "id": "auto-looter",
+      "name": "Auto Looter",
+      "description": "Inteligentny zbieracz łupów",
+      "type": "premium"
+    },
+    {
+      "id": "enhanced-stats",
+      "name": "Enhanced Stats",
+      "description": "Rozszerzone statystyki postaci",
+      "type": "free"
+    }
+  ]
+}

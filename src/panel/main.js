@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Synergy Panel v4.7.4 - Final Clean & Smooth
+// @name         Synergy Panel v4.7.5 - Dynamic Addons from Manifest
 // @namespace    http://tampermonkey.net/
-// @version      4.7.4
-// @description  Zaawansowany panel dodatków do gry - bez zbędnych emotikon, z płynnym scrollowaniem
+// @version      4.7.5
+// @description  Zaawansowany panel dodatków z automatycznym wykrywaniem z manifest.json
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,766 +13,125 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.7.4 (Final Clean)');
+    console.log('🚀 Synergy Panel loaded - v4.7.5 (Dynamic Manifest)');
 
-    // ========== CSS (z zmienną --base-font-size) ==========
+    // ========== CSS ==========
     const panelCSS = `
-        :root {
-            --base-font-size: 12px;
-        }
+        :root { --base-font-size: 12px; }
         #swPanelToggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 40px;
-            height: 40px;
+            position: fixed; top: 20px; left: 20px; width: 40px; height: 40px;
             background: url('https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg') center/cover no-repeat;
-            border: 2px solid #ff3300;
-            border-radius: 50%;
-            cursor: grab;
-            z-index: 1000000;
-            box-shadow: 0 0 15px rgba(255,51,0,0.9);
-            color: white;
-            font-weight: bold;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-shadow: 0 0 5px black;
-            transition: all 0.2s ease;
-            user-select: none;
-            overflow: hidden;
-            padding: 0;
-            margin: 0;
-            line-height: 1;
-            background-color: transparent !important;
+            border: 2px solid #ff3300; border-radius: 50%; cursor: grab; z-index: 1000000;
+            box-shadow: 0 0 15px rgba(255,51,0,0.9); color: white; font-weight: bold; font-size: 20px;
+            display: flex; align-items: center; justify-content: center; text-shadow: 0 0 5px black;
+            transition: all 0.2s ease; user-select: none; overflow: hidden; padding: 0; margin: 0;
+            line-height: 1; background-color: transparent !important;
         }
-        #swPanelToggle.dragging {
-            cursor: grabbing;
-            transform: scale(1.1);
-            box-shadow: 0 0 25px rgba(255,102,0,1);
-            border: 2px solid #ffcc00;
-            z-index: 1000001;
-        }
-        #swPanelToggle:hover:not(.dragging) {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255,102,0,1);
-            cursor: grab;
-        }
-        #swPanelToggle.saved {
-            animation: savePulse 1.5s ease-in-out;
-        }
-        @keyframes savePulse {
-            0% { box-shadow: 0 0 15px rgba(255,51,0,0.9); border-color: #ff3300; }
-            50% { box-shadow: 0 0 30px rgba(255,153,0,1); border-color: #ffcc00; transform: scale(1.05); }
-            100% { box-shadow: 0 0 15px rgba(255,51,0,0.9); border-color: #ff3300; }
-        }
+        #swPanelToggle.dragging { cursor: grabbing; transform: scale(1.1); box-shadow: 0 0 25px rgba(255,102,0,1); border: 2px solid #ffcc00; z-index: 1000001; }
+        #swPanelToggle:hover:not(.dragging) { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,102,0,1); cursor: grab; }
+        #swPanelToggle.saved { animation: savePulse 1.5s ease-in-out; }
+        @keyframes savePulse { 0% { box-shadow: 0 0 15px rgba(255,51,0,0.9); border-color: #ff3300; } 50% { box-shadow: 0 0 30px rgba(255,153,0,1); border-color: #ffcc00; transform: scale(1.05); } 100% { box-shadow: 0 0 15px rgba(255,51,0,0.9); border-color: #ff3300; } }
         #swAddonsPanel {
-            position: fixed;
-            top: 70px;
-            left: 20px;
-            width: 500px;
-            height: 500px;
+            position: fixed; top: 70px; left: 20px; width: 500px; height: 500px;
             background: linear-gradient(135deg, rgba(20,0,0,0.98), rgba(40,0,0,0.98), rgba(80,0,0,0.98));
-            border: 2px solid #ff3300;
-            border-radius: 10px;
-            color: #ffffff;
-            z-index: 999999;
+            border: 2px solid #ff3300; border-radius: 10px; color: #ffffff; z-index: 999999;
             box-shadow: 0 0 25px rgba(255,51,0,0.8), inset 0 0 40px rgba(255,51,0,0.1);
-            backdrop-filter: blur(10px);
-            display: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            min-width: 450px;
-            min-height: 400px;
-            max-width: 800px;
-            max-height: 700px;
-            resize: both;
-            font-size: var(--base-font-size);
-            cursor: default;
+            backdrop-filter: blur(10px); display: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; min-width: 450px; min-height: 400px; max-width: 800px; max-height: 700px;
+            resize: both; font-size: var(--base-font-size); cursor: default;
         }
-        /* Ukrycie starego uchwytu resize */
-        #swAddonsPanel::-webkit-resizer {
-            display: none;
-        }
-        /* Nowy uchwyt resize – mały trójkąt w prawym dolnym rogu */
-        #swAddonsPanel::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 0 15px 15px;
-            border-color: transparent transparent rgba(255,51,0,0.3) transparent;
-            pointer-events: none;
-            z-index: 10000;
-        }
+        #swAddonsPanel::-webkit-resizer { display: none; }
+        #swAddonsPanel::after { content: ''; position: absolute; bottom: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 0 15px 15px; border-color: transparent transparent rgba(255,51,0,0.3) transparent; pointer-events: none; z-index: 10000; }
         #swPanelHeader {
             background: linear-gradient(135deg, rgba(40,0,0,0.95), rgba(80,0,0,0.95), rgba(120,0,0,0.95));
-            padding: 12px;
-            text-align: center;
-            border-bottom: 2px solid #ff3300;
-            cursor: move;
-            font-size: calc(var(--base-font-size) + 10px);
-            font-weight: bold;
-            color: #ffcc00;
+            padding: 12px; text-align: center; border-bottom: 2px solid #ff3300; cursor: move;
+            font-size: calc(var(--base-font-size) + 10px); font-weight: bold; color: #ffcc00;
             text-shadow: 0 0 5px #ff3300, 0 0 10px #ff6600, 0 0 15px #ff9900;
-            user-select: none;
-            position: relative;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            user-select: none; position: relative; height: 50px; display: flex; align-items: center; justify-content: center;
             animation: fireBreath 1.8s infinite alternate ease-in-out;
         }
-        @keyframes fireBreath {
-            0% { text-shadow: 0 0 4px #ff3300, 0 0 8px #ff6600, 0 0 12px #ff9900; color: #ffcc00; }
-            100% { text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300, 0 0 30px #ff0000; color: #ffdd99; }
-        }
-        #swAddonsPanel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 75px;
-            cursor: move;
-            z-index: 1000;
-        }
-        .tab-container {
-            display: flex;
-            background: linear-gradient(to bottom, rgba(40,0,0,0.95), rgba(30,0,0,0.95));
-            border-bottom: 1px solid #ff3300;
-            padding: 0 4px;
-            justify-content: center;
-            height: 40px;
-        }
-        .tablink {
-            background: none;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px 16px;
-            margin: 0 2px;
-            transition: all 0.3s ease;
-            color: #ff9966;
-            font-weight: 600;
-            font-size: calc(var(--base-font-size) - 1px);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            border-bottom: 2px solid transparent;
-            position: relative;
-            min-width: 80px;
-            text-align: center;
-        }
-        .tablink::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 2px;
-            background: #ff3300;
-            transition: width 0.3s ease;
-        }
+        @keyframes fireBreath { 0% { text-shadow: 0 0 4px #ff3300, 0 0 8px #ff6600, 0 0 12px #ff9900; color: #ffcc00; } 100% { text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300, 0 0 30px #ff0000; color: #ffdd99; } }
+        #swAddonsPanel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 75px; cursor: move; z-index: 1000; }
+        .tab-container { display: flex; background: linear-gradient(to bottom, rgba(40,0,0,0.95), rgba(30,0,0,0.95)); border-bottom: 1px solid #ff3300; padding: 0 4px; justify-content: center; height: 40px; }
+        .tablink { background: none; border: none; outline: none; cursor: pointer; padding: 10px 16px; margin: 0 2px; transition: all 0.3s ease; color: #ff9966; font-weight: 600; font-size: calc(var(--base-font-size) - 1px); text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 2px solid transparent; position: relative; min-width: 80px; text-align: center; }
+        .tablink::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 0; height: 2px; background: #ff3300; transition: width 0.3s ease; }
         .tablink:hover::after { width: 80%; }
         .tablink.active { color: #ffcc00; text-shadow: 0 0 6px rgba(255,102,0,0.8); }
         .tablink.active::after { width: 100%; background: linear-gradient(to right, #ff3300, #ffcc00, #ff3300); box-shadow: 0 0 8px rgba(255,102,0,0.8); }
-        .tabcontent {
-            display: none;
-            flex: 1;
-            overflow: hidden;
-            flex-direction: column;
-            position: relative;
-            height: calc(100% - 90px);
-        }
+        .tabcontent { display: none; flex: 1; overflow: hidden; flex-direction: column; position: relative; height: calc(100% - 90px); }
         .tabcontent.active { display: flex; }
-        .sw-tab-content {
-            padding: 12px;
-            background: rgba(20,0,0,0.7);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-            flex: 1;
-            min-height: 0;
-        }
-        /* Kontenery scroll – naturalne, bez sztucznych poprawek */
-        .addon-list-container,
-        .shortcuts-list-container,
-        .license-scroll-container,
-        .scrollable-container {
-            width: 100%;
-            max-width: 600px;
-            flex: 1;
-            overflow-y: auto !important;
-            overflow-x: hidden;
-            margin-bottom: 8px;
-            padding-right: 8px;
-            padding-bottom: 15px;
-            scrollbar-width: thin;
-            scrollbar-color: #ff3300 rgba(40,0,0,0.5);
-            height: auto;
-            min-height: 180px;
-            scroll-behavior: auto;
-        }
-        /* Specjalne dla INFO – przesunięcie scrolla, żeby nie nachodził na treść */
-        #info .scrollable-container {
-            padding-right: 15px;
-        }
-        /* Scrollbary */
-        .addon-list-container::-webkit-scrollbar,
-        .shortcuts-list-container::-webkit-scrollbar,
-        .license-scroll-container::-webkit-scrollbar,
-        .scrollable-container::-webkit-scrollbar {
-            width: 10px;
-            background: rgba(40,0,0,0.5);
-            border-radius: 6px;
-        }
-        .addon-list-container::-webkit-scrollbar-track,
-        .shortcuts-list-container::-webkit-scrollbar-track,
-        .license-scroll-container::-webkit-scrollbar-track,
-        .scrollable-container::-webkit-scrollbar-track {
-            background: rgba(40,0,0,0.5);
-            border-radius: 6px;
-            border: 1px solid #550000;
-        }
-        .addon-list-container::-webkit-scrollbar-thumb,
-        .shortcuts-list-container::-webkit-scrollbar-thumb,
-        .license-scroll-container::-webkit-scrollbar-thumb,
-        .scrollable-container::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, #ff3300, #ff6600);
-            border-radius: 6px;
-            border: 1px solid #ff9900;
-        }
+        .sw-tab-content { padding: 12px; background: rgba(20,0,0,0.7); height: 100%; display: flex; flex-direction: column; align-items: center; overflow: hidden; position: relative; flex: 1; min-height: 0; }
+        .addon-list-container, .shortcuts-list-container, .license-scroll-container, .scrollable-container { width: 100%; max-width: 600px; flex: 1; overflow-y: auto !important; overflow-x: hidden; margin-bottom: 8px; padding-right: 8px; padding-bottom: 15px; scrollbar-width: thin; scrollbar-color: #ff3300 rgba(40,0,0,0.5); height: auto; min-height: 180px; scroll-behavior: auto; }
+        #info .scrollable-container { padding-right: 15px; }
+        .addon-list-container::-webkit-scrollbar, .shortcuts-list-container::-webkit-scrollbar, .license-scroll-container::-webkit-scrollbar, .scrollable-container::-webkit-scrollbar { width: 10px; background: rgba(40,0,0,0.5); border-radius: 6px; }
+        .addon-list-container::-webkit-scrollbar-track, .shortcuts-list-container::-webkit-scrollbar-track, .license-scroll-container::-webkit-scrollbar-track, .scrollable-container::-webkit-scrollbar-track { background: rgba(40,0,0,0.5); border-radius: 6px; border: 1px solid #550000; }
+        .addon-list-container::-webkit-scrollbar-thumb, .shortcuts-list-container::-webkit-scrollbar-thumb, .license-scroll-container::-webkit-scrollbar-thumb, .scrollable-container::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #ff3300, #ff6600); border-radius: 6px; border: 1px solid #ff9900; }
         .addon-list { width: 100%; }
-        .addon {
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 6px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            min-height: 55px;
-            box-sizing: border-box;
-            width: 100%;
-        }
-        .addon:hover {
-            transform: translateY(-2px);
-            border-color: #ff3300;
-            box-shadow: 0 4px 12px rgba(255,51,0,0.4);
-            background: linear-gradient(135deg, rgba(80,0,0,0.95), rgba(120,0,0,0.95));
-        }
-        .addon-header {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-width: 0;
-            margin-right: 15px;
-        }
-        .addon-title {
-            font-weight: 700;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) + 1px);
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: left;
-        }
-        .addon-description {
-            color: #ff9966;
-            font-size: calc(var(--base-font-size) - 1px);
-            line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: left;
-        }
-        .addon-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-        .favorite-btn {
-            background: transparent;
-            border: none;
-            font-size: 16px;
-            color: #666666;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            transition: all 0.3s ease;
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
+        .addon { background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: center; min-height: 55px; box-sizing: border-box; width: 100%; }
+        .addon:hover { transform: translateY(-2px); border-color: #ff3300; box-shadow: 0 4px 12px rgba(255,51,0,0.4); background: linear-gradient(135deg, rgba(80,0,0,0.95), rgba(120,0,0,0.95)); }
+        .addon-header { display: flex; flex-direction: column; flex: 1; min-width: 0; margin-right: 15px; }
+        .addon-title { font-weight: 700; color: #ffcc00; font-size: calc(var(--base-font-size) + 1px); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+        .addon-description { color: #ff9966; font-size: calc(var(--base-font-size) - 1px); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+        .addon-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .favorite-btn { background: transparent; border: none; font-size: 16px; color: #666666; cursor: pointer; padding: 0; line-height: 1; transition: all 0.3s ease; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
         .favorite-btn:hover { color: #ff9900; background: rgba(255,153,0,0.1); }
         .favorite-btn.favorite { color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.8); }
-        .addon-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
+        .addon-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .addon-switch input { opacity: 0; width: 0; height: 0; }
-        .addon-switch-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #2a0000;
-            border: 1px solid #550000;
-            transition: .4s;
-            border-radius: 30px;
-        }
-        .addon-switch-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 2px;
-            background-color: #ff3300;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        .addon-switch input:checked + .addon-switch-slider {
-            background-color: #005500;
-            border-color: #00bb00;
-        }
-        .addon-switch input:checked + .addon-switch-slider:before {
-            transform: translateX(19px);
-            background-color: #00ff00;
-        }
-        .addon-filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 600px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 15px;
-            background: linear-gradient(135deg, #2a0000, #550000);
-            border: 1px solid #550000;
-            border-radius: 5px;
-            color: #ff9966;
-            cursor: pointer;
-            font-size: calc(var(--base-font-size) - 1px);
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            white-space: nowrap;
-            min-width: 100px;
-            text-align: center;
-        }
-        .filter-btn:hover {
-            background: linear-gradient(135deg, #550000, #880000);
-            color: #ffcc00;
-            transform: translateY(-2px);
-        }
-        .filter-btn.active {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            border-color: #ff3300;
-            color: #ffffff;
-            box-shadow: 0 3px 10px rgba(255,51,0,0.5);
-        }
-        #swSaveAndRestartButton {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #005500, #007700);
-            border: 1px solid #00bb00;
-            border-radius: 6px;
-            color: #ffffff;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: var(--base-font-size);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-top: 15px;
-            margin-bottom: 8px;
-            display: block;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        #swSaveAndRestartButton:hover {
-            background: linear-gradient(135deg, #007700, #009900);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,255,0,0.4);
-        }
-        .save-button-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 15px auto 8px auto;
-            padding-top: 12px;
-            border-top: 1px solid #550000;
-            text-align: center;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(20,0,0,0.7);
-        }
-        .shortcut-item {
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 6px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            box-sizing: border-box;
-            flex-wrap: wrap;
-        }
-        .shortcut-info {
-            flex: 1;
-            min-width: 200px;
-            margin-right: 15px;
-            margin-bottom: 10px;
-        }
-        .shortcut-name {
-            font-weight: 700;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) + 1px);
-            margin-bottom: 4px;
-            text-align: left;
-        }
-        .shortcut-desc {
-            color: #ff9966;
-            font-size: calc(var(--base-font-size) - 1px);
-            text-align: left;
-        }
-        .shortcut-display {
-            padding: 6px 10px;
-            background: rgba(25,0,0,0.8);
-            border: 1px solid #550000;
-            border-radius: 4px;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) - 1px);
-            font-weight: bold;
-            text-align: center;
-            min-width: 90px;
-        }
-        .shortcut-set-btn, .shortcut-clear-btn {
-            padding: 6px 12px;
-            background: linear-gradient(135deg, #550000, #880000);
-            border: 1px solid #ff3300;
-            border-radius: 4px;
-            color: #ffcc00;
-            cursor: pointer;
-            font-size: calc(var(--base-font-size) - 1px);
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            white-space: nowrap;
-            min-width: 65px;
-            text-align: center;
-        }
-        .shortcut-set-btn:hover, .shortcut-clear-btn:hover {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            color: #ffffff;
-            transform: translateY(-2px);
-        }
-        .shortcut-toggle {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-        .shortcut-toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #2a0000;
-            border: 1px solid #550000;
-            transition: .4s;
-            border-radius: 30px;
-        }
-        .shortcut-toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 2px;
-            background-color: #ff3300;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        .shortcut-toggle input:checked + .shortcut-toggle-slider {
-            background-color: #005500;
-            border-color: #00bb00;
-        }
-        .shortcut-toggle input:checked + .shortcut-toggle-slider:before {
-            transform: translateX(19px);
-            background-color: #00ff00;
-        }
-        .license-container {
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 12px;
-            width: 100%;
-            max-width: 600px;
-            box-sizing: border-box;
-        }
-        .license-header {
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) + 2px);
-            font-weight: bold;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #ff3300;
-            padding-bottom: 8px;
-            text-align: center;
-        }
-        .license-status-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: var(--base-font-size);
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255,51,0,0.3);
-        }
+        .addon-switch-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #2a0000; border: 1px solid #550000; transition: .4s; border-radius: 30px; }
+        .addon-switch-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 2px; background-color: #ff3300; transition: .4s; border-radius: 50%; }
+        .addon-switch input:checked + .addon-switch-slider { background-color: #005500; border-color: #00bb00; }
+        .addon-switch input:checked + .addon-switch-slider:before { transform: translateX(19px); background-color: #00ff00; }
+        .addon-filters { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; max-width: 600px; justify-content: center; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 15px; background: linear-gradient(135deg, #2a0000, #550000); border: 1px solid #550000; border-radius: 5px; color: #ff9966; cursor: pointer; font-size: calc(var(--base-font-size) - 1px); font-weight: 600; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; min-width: 100px; text-align: center; }
+        .filter-btn:hover { background: linear-gradient(135deg, #550000, #880000); color: #ffcc00; transform: translateY(-2px); }
+        .filter-btn.active { background: linear-gradient(135deg, #880000, #bb0000); border-color: #ff3300; color: #ffffff; box-shadow: 0 3px 10px rgba(255,51,0,0.5); }
+        #swSaveAndRestartButton { width: 100%; padding: 12px; background: linear-gradient(135deg, #005500, #007700); border: 1px solid #00bb00; border-radius: 6px; color: #ffffff; cursor: pointer; font-weight: 700; font-size: var(--base-font-size); transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 15px; margin-bottom: 8px; display: block; box-sizing: border-box; text-align: center; }
+        #swSaveAndRestartButton:hover { background: linear-gradient(135deg, #007700, #009900); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,255,0,0.4); }
+        .save-button-container { width: 100%; max-width: 600px; margin: 15px auto 8px auto; padding-top: 12px; border-top: 1px solid #550000; text-align: center; min-height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(20,0,0,0.7); }
+        .shortcut-item { background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; flex-wrap: wrap; }
+        .shortcut-info { flex: 1; min-width: 200px; margin-right: 15px; margin-bottom: 10px; }
+        .shortcut-name { font-weight: 700; color: #ffcc00; font-size: calc(var(--base-font-size) + 1px); margin-bottom: 4px; text-align: left; }
+        .shortcut-desc { color: #ff9966; font-size: calc(var(--base-font-size) - 1px); text-align: left; }
+        .shortcut-display { padding: 6px 10px; background: rgba(25,0,0,0.8); border: 1px solid #550000; border-radius: 4px; color: #ffcc00; font-size: calc(var(--base-font-size) - 1px); font-weight: bold; text-align: center; min-width: 90px; }
+        .shortcut-set-btn, .shortcut-clear-btn { padding: 6px 12px; background: linear-gradient(135deg, #550000, #880000); border: 1px solid #ff3300; border-radius: 4px; color: #ffcc00; cursor: pointer; font-size: calc(var(--base-font-size) - 1px); font-weight: 600; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; min-width: 65px; text-align: center; }
+        .shortcut-set-btn:hover, .shortcut-clear-btn:hover { background: linear-gradient(135deg, #880000, #bb0000); color: #ffffff; transform: translateY(-2px); }
+        .shortcut-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .shortcut-toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #2a0000; border: 1px solid #550000; transition: .4s; border-radius: 30px; }
+        .shortcut-toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 2px; background-color: #ff3300; transition: .4s; border-radius: 50%; }
+        .shortcut-toggle input:checked + .shortcut-toggle-slider { background-color: #005500; border-color: #00bb00; }
+        .shortcut-toggle input:checked + .shortcut-toggle-slider:before { transform: translateX(19px); background-color: #00ff00; }
+        .license-container { background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 6px; padding: 15px; margin-bottom: 12px; width: 100%; max-width: 600px; box-sizing: border-box; }
+        .license-header { color: #ffcc00; font-size: calc(var(--base-font-size) + 2px); font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid #ff3300; padding-bottom: 8px; text-align: center; }
+        .license-status-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: var(--base-font-size); padding: 6px 0; border-bottom: 1px solid rgba(255,51,0,0.3); }
         .license-status-label { color: #ff9966; font-weight: 600; }
         .license-status-value { font-weight: 600; text-align: right; color: #ffcc00; }
         .license-status-valid { color: #00ff00 !important; }
         .license-status-invalid { color: #ff3300 !important; }
-        .settings-item {
-            margin-bottom: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 600px;
-            box-sizing: border-box;
-        }
-        .settings-label {
-            display: block;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) + 1px);
-            margin-bottom: 10px;
-            font-weight: 700;
-            text-align: center;
-        }
-        .font-size-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-        .font-size-btn {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #550000, #880000);
-            border: 1px solid #ff3300;
-            border-radius: 5px;
-            color: #ffcc00;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .font-size-btn:hover {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            transform: translateY(-2px);
-        }
-        .font-size-display {
-            min-width: 65px;
-            padding: 8px;
-            background: rgba(40,0,0,0.8);
-            border: 1px solid #550000;
-            border-radius: 5px;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) + 2px);
-            font-weight: bold;
-            text-align: center;
-        }
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .slider-value {
-            min-width: 45px;
-            text-align: center;
-            color: #ffcc00;
-            font-weight: bold;
-        }
-        .opacity-slider {
-            flex: 1;
-            -webkit-appearance: none;
-            height: 6px;
-            background: #2a0000;
-            border-radius: 4px;
-            border: 1px solid #550000;
-        }
-        .opacity-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #ff3300;
-            cursor: pointer;
-            border: 2px solid #ffcc00;
-        }
-        #panelShortcutSetBtn {
-            padding: 8px 15px;
-            background: linear-gradient(135deg, #550000, #880000);
-            border: 1px solid #ff3300;
-            border-radius: 5px;
-            color: #ffffff;
-            cursor: pointer;
-            font-size: calc(var(--base-font-size) - 1px);
-            font-weight: 700;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            white-space: nowrap;
-            min-width: 70px;
-        }
-        #panelShortcutSetBtn:hover {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255,51,0,0.4);
-        }
-        .import-export-container {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 15px;
-            padding: 15px;
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-        .import-export-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-        .import-export-btn {
-            flex: 1;
-            padding: 10px;
-            background: linear-gradient(135deg, #550000, #880000);
-            border: 1px solid #ff3300;
-            border-radius: 5px;
-            color: #ffffff;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: calc(var(--base-font-size) - 1px);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            text-align: center;
-        }
-        .import-export-btn:hover {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            transform: translateY(-2px);
-        }
-        .import-export-textarea {
-            width: 100%;
-            height: 100px;
-            background: rgba(20,0,0,0.8);
-            border: 1px solid #550000;
-            border-radius: 5px;
-            color: #ffcc00;
-            font-size: calc(var(--base-font-size) - 2px);
-            font-family: monospace;
-            resize: none;
-            padding: 8px;
-        }
-        #swResetButton {
-            padding: 10px;
-            background: linear-gradient(135deg, #550000, #880000);
-            border: 1px solid #ff3300;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 15px;
-        }
-        #swResetButton:hover {
-            background: linear-gradient(135deg, #880000, #bb0000);
-            transform: translateY(-2px);
-        }
-        .info-section {
-            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
-            border: 1px solid #550000;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            width: 100%;
-            max-width: 600px;
-            box-sizing: border-box;
-        }
-        .info-section h4 {
-            color: #ff9966;
-            text-align: center;
-            margin-top: 0;
-            font-size: calc(var(--base-font-size) + 2px);
-            border-bottom: 1px solid #ff3300;
-            padding-bottom: 5px;
-        }
-        .info-section p {
-            color: #ffcc00;
-            font-size: var(--base-font-size);
-            margin: 8px 0;
-            padding-left: 15px;
-            position: relative;
-        }
-        .info-section p::before {
-            content: "•";
-            color: #ff6600;
-            position: absolute;
-            left: 0;
-        }
-        @media (max-width: 768px) {
-            #swAddonsPanel {
-                width: 95vw !important;
-                min-width: 350px;
-                left: 2.5vw !important;
-            }
-            .tablink {
-                font-size: 10px;
-                padding: 8px 10px;
-                min-width: 60px;
-            }
-        }
+        .settings-item { margin-bottom: 15px; padding: 15px; background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 8px; width: 100%; max-width: 600px; box-sizing: border-box; }
+        .settings-label { display: block; color: #ffcc00; font-size: calc(var(--base-font-size) + 1px); margin-bottom: 10px; font-weight: 700; text-align: center; }
+        .font-size-controls { display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .font-size-btn { width: 36px; height: 36px; background: linear-gradient(135deg, #550000, #880000); border: 1px solid #ff3300; border-radius: 5px; color: #ffcc00; cursor: pointer; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .font-size-btn:hover { background: linear-gradient(135deg, #880000, #bb0000); transform: translateY(-2px); }
+        .font-size-display { min-width: 65px; padding: 8px; background: rgba(40,0,0,0.8); border: 1px solid #550000; border-radius: 5px; color: #ffcc00; font-size: calc(var(--base-font-size) + 2px); font-weight: bold; text-align: center; }
+        .slider-container { display: flex; align-items: center; gap: 12px; }
+        .slider-value { min-width: 45px; text-align: center; color: #ffcc00; font-weight: bold; }
+        .opacity-slider { flex: 1; -webkit-appearance: none; height: 6px; background: #2a0000; border-radius: 4px; border: 1px solid #550000; }
+        .opacity-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #ff3300; cursor: pointer; border: 2px solid #ffcc00; }
+        #panelShortcutSetBtn { padding: 8px 15px; background: linear-gradient(135deg, #550000, #880000); border: 1px solid #ff3300; border-radius: 5px; color: #ffffff; cursor: pointer; font-size: calc(var(--base-font-size) - 1px); font-weight: 700; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; min-width: 70px; }
+        #panelShortcutSetBtn:hover { background: linear-gradient(135deg, #880000, #bb0000); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,51,0,0.4); }
+        .import-export-container { width: 100%; max-width: 600px; margin-top: 15px; padding: 15px; background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 8px; box-sizing: border-box; }
+        .import-export-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+        .import-export-btn { flex: 1; padding: 10px; background: linear-gradient(135deg, #550000, #880000); border: 1px solid #ff3300; border-radius: 5px; color: #ffffff; cursor: pointer; font-weight: 700; font-size: calc(var(--base-font-size) - 1px); transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
+        .import-export-btn:hover { background: linear-gradient(135deg, #880000, #bb0000); transform: translateY(-2px); }
+        .import-export-textarea { width: 100%; height: 100px; background: rgba(20,0,0,0.8); border: 1px solid #550000; border-radius: 5px; color: #ffcc00; font-size: calc(var(--base-font-size) - 2px); font-family: monospace; resize: none; padding: 8px; }
+        #swResetButton { padding: 10px; background: linear-gradient(135deg, #550000, #880000); border: 1px solid #ff3300; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; width: 100%; max-width: 600px; margin-top: 15px; }
+        #swResetButton:hover { background: linear-gradient(135deg, #880000, #bb0000); transform: translateY(-2px); }
+        .info-section { background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9)); border: 1px solid #550000; border-radius: 8px; padding: 15px; margin-bottom: 15px; width: 100%; max-width: 600px; box-sizing: border-box; }
+        .info-section h4 { color: #ff9966; text-align: center; margin-top: 0; font-size: calc(var(--base-font-size) + 2px); border-bottom: 1px solid #ff3300; padding-bottom: 5px; }
+        .info-section p { color: #ffcc00; font-size: var(--base-font-size); margin: 8px 0; padding-left: 15px; position: relative; }
+        .info-section p::before { content: "•"; color: #ff6600; position: absolute; left: 0; }
+        @media (max-width: 768px) { #swAddonsPanel { width: 95vw !important; min-width: 350px; left: 2.5vw !important; } .tablink { font-size: 10px; padding: 8px 10px; min-width: 60px; } }
     `;
 
     const style = document.createElement('style');
@@ -799,19 +158,41 @@
         PANEL_HEIGHT: "sw_panel_height"
     };
 
-    const ADDONS = [
-        { id: 'enhanced-stats', name: 'Enhanced Stats', description: 'Rozszerzone statystyki postaci', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'trade-helper', name: 'Trade Helper', description: 'Pomocnik handlu i aukcji', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'chat-manager', name: 'Chat Manager', description: 'Zaawansowane zarządzanie czatem', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'quest-logger', name: 'Quest Logger', description: 'Logowanie postępów w zadaniach', type: 'free', enabled: false, favorite: false, hidden: false },
-        { id: 'kcs-icons', name: 'KCS Icons', description: 'Profesjonalne ikony do interfejsu', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'auto-looter', name: 'Auto Looter', description: 'Inteligentny zbieracz łupów', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'quest-helper', name: 'Quest Helper', description: 'Pełna pomoc w zadaniach z mapą', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'combat-log', name: 'Combat Log', description: 'Szczegółowy log walki z analizą', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'auto-potion', name: 'Auto Potion', description: 'Automatyczne używanie mikstur', type: 'premium', enabled: false, favorite: false, hidden: true },
-        { id: 'fishing-bot', name: 'Fishing Bot', description: 'Automatyczne łowienie ryb', type: 'premium', enabled: false, favorite: false, hidden: true }
-    ];
+    // 🆕 DYNAMICZNA LISTA DODATKÓW – będzie wypełniana z manifest.json
+    let ADDONS = [];
 
+    // 🆕 Funkcja ładująca listę dodatków z manifestu (GitHub RAW)
+    async function loadAddonsFromManifest() {
+        const MANIFEST_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/addons/manifest.json';
+        try {
+            const response = await fetch(MANIFEST_URL + '?v=' + Date.now());
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const manifest = await response.json();
+            if (manifest.addons && Array.isArray(manifest.addons)) {
+                ADDONS = manifest.addons.map(addon => ({
+                    id: addon.id,
+                    name: addon.name,
+                    description: addon.description,
+                    type: addon.type || 'free',
+                    enabled: false,
+                    favorite: false,
+                    hidden: false,
+                    locked: (addon.type === 'premium')
+                }));
+                console.log(`✅ Załadowano ${ADDONS.length} dodatków z manifestu`);
+                // Po załadowaniu – przywróć zapisany stan włączonych/ulubionych
+                restoreAddonsState();
+                renderAddons();
+            } else {
+                throw new Error('Brak tablicy addons w manifest');
+            }
+        } catch (error) {
+            console.error('❌ Nie udało się pobrać manifest.json:', error);
+            ADDONS = []; // pusta lista – brak dodatków
+        }
+    }
+
+    // Safe storage
     if (!window.synergyWraith) {
         window.synergyWraith = {
             GM_getValue: (key, defaultValue) => { try { const val = localStorage.getItem(key); return val ? JSON.parse(val) : defaultValue; } catch(e) { return defaultValue; } },
@@ -837,7 +218,7 @@
     let licenseExpiry = null;
     let panelResizeTimer = null;
 
-    // ========== FUNKCJA CZCIONKI (CSS variable) ==========
+    // ========== FUNKCJA CZCIONKI ==========
     function applyFontSize(size, skipSave = false) {
         const minSize = 8, maxSize = 16;
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
@@ -1302,7 +683,7 @@
     function toggleShortcutEnabled(id, enabled) { shortcutsEnabled[id] = enabled; saveShortcutsEnabledState(); }
     function exportSettings() {
         try {
-            const settings = { v: '4.7.4', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
+            const settings = { v: '4.7.5', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
             const json = JSON.stringify(settings);
             const base64 = btoa(unescape(encodeURIComponent(json)));
             let obf = base64.split('').reverse().join('').replace(/=/g,'_').replace(/\+/g,'-').replace(/\//g,'.');
@@ -1444,6 +825,10 @@
     async function initPanel() {
         await new Promise(r => { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', r); else r(); });
         await new Promise(r => setTimeout(r, 50));
+        
+        // 🆕 NAJPIERW ZAŁADUJ MANIFEST Z DODATKAMI
+        await loadAddonsFromManifest();
+        
         const toggle = createToggleButton();
         createMainPanel();
         loadSavedState();

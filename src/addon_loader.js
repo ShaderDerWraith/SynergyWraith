@@ -2,12 +2,12 @@
 (function() {
     'use strict';
     
-    console.log('🔄 Synergy Auto Addon Loader');
+    console.log('🔄 Synergy Auto Addon Loader v2');
     
     const ADDONS_BASE_URL = 'https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/src/addons/';
     const loadedAddons = new Set();
     
-    // 🔹 Sprawdź które dodatki są włączone
+    // 🔹 Sprawdź które dodatki są włączone (z panelu)
     function getEnabledAddons() {
         try {
             const saved = localStorage.getItem('sw_favorite_addons');
@@ -19,37 +19,32 @@
         return [];
     }
     
-    // 🔹 Załaduj dodatek
+    // 🔹 Załaduj dodatek (z rejestracją w panelu)
     async function loadAddon(addonId) {
-        if (loadedAddons.has(addonId)) {
-            console.log(`⏩ Addon ${addonId} już załadowany`);
-            return;
-        }
+        if (loadedAddons.has(addonId)) return;
         
         try {
-            console.log(`📦 Ładowanie dodatku: ${addonId}`);
+            const url = `${ADDONS_BASE_URL}${addonId}.js?v=${Date.now()}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const code = await response.text();
             
-            const response = await fetch(`${ADDONS_BASE_URL}${addonId}.js?v=${Date.now()}`);
+            // Wyciągnij metadane z nagłówka skryptu
+            const nameMatch = code.match(/@name\s+(.+)/);
+            const descMatch = code.match(/@description\s+(.+)/);
+            const addonName = nameMatch ? nameMatch[1].trim() : addonId;
+            const addonDesc = descMatch ? descMatch[1].trim() : 'Brak opisu';
             
-            if (response.ok) {
-                const code = await response.text();
-                
-                // Wykonaj kod dodatku
-                const script = document.createElement('script');
-                script.textContent = code;
-                document.head.appendChild(script);
-                
-                loadedAddons.add(addonId);
-                console.log(`✅ Dodatek załadowany: ${addonId}`);
-                
-                // Zapisz w pamięci, że dodatek jest aktywny
-                if (window.synergyWraith) {
-                    window.synergyWraith.activeAddons = window.synergyWraith.activeAddons || [];
-                    window.synergyWraith.activeAddons.push(addonId);
-                }
-            } else {
-                console.error(`❌ Nie znaleziono dodatku: ${addonId}`);
-            }
+            // Sprawdź, czy dodatek jest już zarejestrowany w panelu (przez manifest)
+            // Jeśli nie – dodaj go tymczasowo (opcjonalne, ale manifest już to robi)
+            // Tutaj tylko wykonujemy kod dodatku
+            const script = document.createElement('script');
+            script.textContent = code;
+            document.head.appendChild(script);
+            
+            loadedAddons.add(addonId);
+            console.log(`✅ Dodatek załadowany: ${addonName} (${addonId})`);
+            
         } catch (error) {
             console.error(`❌ Błąd ładowania dodatku ${addonId}:`, error);
         }
@@ -57,59 +52,29 @@
     
     // 🔹 Monitoruj zmiany włączonych dodatków
     function monitorAddonChanges() {
-        let lastEnabled = [];
-        
         setInterval(() => {
             const enabled = getEnabledAddons();
-            
-            // Sprawdź które dodatki trzeba załadować
             enabled.forEach(addonId => {
                 if (!loadedAddons.has(addonId)) {
                     loadAddon(addonId);
                 }
             });
-            
-            // Sprawdź które dodatki trzeba wyłączyć (opcjonalnie)
-            // Możesz dodać funkcję unloadAddon jeśli potrzebujesz
-            
-            lastEnabled = enabled;
-        }, 2000); // Sprawdzaj co 2 sekundy
+        }, 2000);
     }
     
-    // 🔹 Start
+    // Start
     function init() {
-        console.log('🎯 Starting auto addon loader...');
-        
-        // Poczekaj na załadowanie panelu
+        console.log('🎯 Auto addon loader started');
         setTimeout(() => {
             monitorAddonChanges();
-            
-            // Załaduj początkowo włączone dodatki
+            // Załaduj początkowo włączone
             setTimeout(() => {
                 const enabled = getEnabledAddons();
-                enabled.forEach(addonId => {
-                    loadAddon(addonId);
-                });
+                enabled.forEach(loadAddon);
             }, 1000);
         }, 3000);
     }
     
-    // Start po załadowaniu strony
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-    
-    // 🔹 Eksport funkcji dla panelu
-    window.synergyAddonLoader = {
-        loadAddon: loadAddon,
-        unloadAddon: function(addonId) {
-            console.log(`Unloading ${addonId}...`);
-            // Tu możesz dodać logikę wyłączania dodatków
-        },
-        getLoadedAddons: function() {
-            return Array.from(loadedAddons);
-        }
-    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();
