@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Synergy Panel v4.7.3 - Płynne scrollowanie + czcionka CSS
+// @name         Synergy Panel v4.7.4 - Final Clean & Smooth
 // @namespace    http://tampermonkey.net/
-// @version      4.7.3
-// @description  Zaawansowany panel dodatków do gry - naprawiona czcionka i płynny scroll
+// @version      4.7.4
+// @description  Zaawansowany panel dodatków do gry - bez zbędnych emotikon, z płynnym scrollowaniem
 // @author       ShaderDerWraith
 // @match        *://*/*
 // @icon         https://raw.githubusercontent.com/ShaderDerWraith/SynergyWraith/main/public/icon.jpg
@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    console.log('🚀 Synergy Panel loaded - v4.7.3 (Płynny scroll + CSS font)');
+    console.log('🚀 Synergy Panel loaded - v4.7.4 (Final Clean)');
 
     // ========== CSS (z zmienną --base-font-size) ==========
     const panelCSS = `
@@ -95,16 +95,17 @@
         #swAddonsPanel::-webkit-resizer {
             display: none;
         }
-        /* Dyskretny uchwyt */
+        /* Nowy uchwyt resize – mały trójkąt w prawym dolnym rogu */
         #swAddonsPanel::after {
             content: '';
             position: absolute;
-            bottom: 3px;
-            right: 3px;
-            width: 12px;
-            height: 12px;
-            background: rgba(255,51,0,0.2);
-            border-radius: 2px;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 15px 15px;
+            border-color: transparent transparent rgba(255,51,0,0.3) transparent;
             pointer-events: none;
             z-index: 10000;
         }
@@ -219,6 +220,10 @@
             height: auto;
             min-height: 180px;
             scroll-behavior: auto;
+        }
+        /* Specjalne dla INFO – przesunięcie scrolla, żeby nie nachodził na treść */
+        #info .scrollable-container {
+            padding-right: 15px;
         }
         /* Scrollbary */
         .addon-list-container::-webkit-scrollbar,
@@ -558,6 +563,8 @@
         }
         .license-status-label { color: #ff9966; font-weight: 600; }
         .license-status-value { font-weight: 600; text-align: right; color: #ffcc00; }
+        .license-status-valid { color: #00ff00 !important; }
+        .license-status-invalid { color: #ff3300 !important; }
         .settings-item {
             margin-bottom: 15px;
             padding: 15px;
@@ -640,19 +647,60 @@
             cursor: pointer;
             border: 2px solid #ffcc00;
         }
-        #importSettingsBtn, #exportSettingsBtn {
-            padding: 8px;
+        #panelShortcutSetBtn {
+            padding: 8px 15px;
             background: linear-gradient(135deg, #550000, #880000);
             border: 1px solid #ff3300;
             border-radius: 5px;
-            color: white;
+            color: #ffffff;
             cursor: pointer;
             font-size: calc(var(--base-font-size) - 1px);
-            font-weight: bold;
+            font-weight: 700;
+            transition: all 0.3s ease;
             text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+            min-width: 70px;
         }
-        #importSettingsBtn:hover, #exportSettingsBtn:hover {
+        #panelShortcutSetBtn:hover {
             background: linear-gradient(135deg, #880000, #bb0000);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,51,0,0.4);
+        }
+        .import-export-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
+            border: 1px solid #550000;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .import-export-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .import-export-btn {
+            flex: 1;
+            padding: 10px;
+            background: linear-gradient(135deg, #550000, #880000);
+            border: 1px solid #ff3300;
+            border-radius: 5px;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: calc(var(--base-font-size) - 1px);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            text-align: center;
+        }
+        .import-export-btn:hover {
+            background: linear-gradient(135deg, #880000, #bb0000);
+            transform: translateY(-2px);
         }
         .import-export-textarea {
             width: 100%;
@@ -678,6 +726,10 @@
             max-width: 600px;
             margin-top: 15px;
         }
+        #swResetButton:hover {
+            background: linear-gradient(135deg, #880000, #bb0000);
+            transform: translateY(-2px);
+        }
         .info-section {
             background: linear-gradient(135deg, rgba(40,0,0,0.9), rgba(80,0,0,0.9));
             border: 1px solid #550000;
@@ -686,6 +738,7 @@
             margin-bottom: 15px;
             width: 100%;
             max-width: 600px;
+            box-sizing: border-box;
         }
         .info-section h4 {
             color: #ff9966;
@@ -784,7 +837,7 @@
     let licenseExpiry = null;
     let panelResizeTimer = null;
 
-    // ========== NAPRAWIONA FUNKCJA CZCIONKI (CSS variable) ==========
+    // ========== FUNKCJA CZCIONKI (CSS variable) ==========
     function applyFontSize(size, skipSave = false) {
         const minSize = 8, maxSize = 16;
         const clampedSize = Math.max(minSize, Math.min(maxSize, size));
@@ -848,7 +901,7 @@
 
     function generatePanelHTML() {
         return `
-            <div id="swPanelHeader"><strong>SYNERGY</strong> ${isAdmin ? ' <span style="color:#00ff00; font-size:14px;">👑</span>' : ''}</div>
+            <div id="swPanelHeader"><strong>SYNERGY</strong></div>
             <div class="tab-container">
                 <button class="tablink active" data-tab="addons">Dodatki</button>
                 <button class="tablink" data-tab="shortcuts">Skróty</button>
@@ -858,7 +911,7 @@
             </div>
             <div id="addons" class="tabcontent active">
                 <div class="sw-tab-content">
-                    <div style="width:100%; max-width:600px; margin:0 auto 12px auto;"><input type="text" id="searchAddons" placeholder="🔍 Wyszukaj dodatki..." style="width:100%; padding:10px 14px; background:rgba(40,0,0,0.8); border:1px solid #550000; border-radius:6px; color:#ffcc00; font-size:12px; box-sizing:border-box;"></div>
+                    <div style="width:100%; max-width:600px; margin:0 auto 12px auto;"><input type="text" id="searchAddons" placeholder="Wyszukaj dodatki..." style="width:100%; padding:10px 14px; background:rgba(40,0,0,0.8); border:1px solid #550000; border-radius:6px; color:#ffcc00; font-size:12px; box-sizing:border-box;"></div>
                     <div class="addon-filters">
                         <button class="filter-btn active" data-filter="all">Wszystkie</button>
                         <button class="filter-btn" data-filter="enabled">Włączone</button>
@@ -866,7 +919,7 @@
                         <button class="filter-btn" data-filter="favorites">Ulubione</button>
                     </div>
                     <div class="addon-list-container"><div class="addon-list" id="addon-list"></div></div>
-                    <div class="save-button-container"><button id="swSaveAndRestartButton">💾 Zapisz i odśwież grę</button></div>
+                    <div class="save-button-container"><button id="swSaveAndRestartButton">Zapisz i odśwież grę</button></div>
                     <div id="swAddonsMessage" class="license-message" style="display: none;"></div>
                 </div>
             </div>
@@ -898,7 +951,7 @@
                         <div class="settings-item"><div class="settings-label">Przeźroczystość panelu:</div><div class="slider-container"><input type="range" min="30" max="100" value="90" class="opacity-slider" id="opacitySlider" step="1"><span class="slider-value" id="opacityValue">90%</span></div><small style="color:#ff9966; font-size:10px; display:block; text-align:center;">30-100%</small></div>
                         <div class="settings-item"><div class="settings-label">Skrót do panelu:</div><div style="display:flex; gap:8px; align-items:center; margin-bottom:5px;"><input type="text" id="panelShortcutInput" style="flex:1; padding:8px; background:rgba(40,0,0,0.8); border:1px solid #550000; border-radius:4px; color:#ffcc00; font-size:12px; text-align:center;" value="Ctrl+A" readonly><button id="panelShortcutSetBtn">Ustaw</button></div></div>
                         <div class="import-export-container"><div class="settings-label">Eksport/Import ustawień:</div><div class="import-export-buttons"><button class="import-export-btn" id="exportSettingsBtn">Eksportuj</button><button class="import-export-btn" id="importSettingsBtn">Importuj</button></div><textarea class="import-export-textarea" id="settingsTextarea" placeholder="Dane pojawią się tutaj po eksporcie..."></textarea></div>
-                        <div style="margin:15px auto 0 auto; padding-top:12px; border-top:1px solid #550000; width:100%; max-width:600px; text-align:center;"><button id="swResetButton">🔄 Resetuj ustawienia</button></div>
+                        <div style="margin:15px auto 0 auto; padding-top:12px; border-top:1px solid #550000; width:100%; max-width:600px; text-align:center;"><button id="swResetButton">Resetuj ustawienia</button></div>
                     </div>
                     <div id="swResetMessage" style="margin-top:12px; padding:10px; border-radius:5px; display:none; font-size:11px; width:100%; max-width:600px; text-align:center;"></div>
                 </div>
@@ -1141,7 +1194,7 @@
         });
     }
 
-    // ========== PŁYNNE SCROLLOWANIE (LEKKIE, BEZ LAGÓW) ==========
+    // ========== PŁYNNE SCROLLOWANIE ==========
     function initSmoothScroll() {
         const containers = document.querySelectorAll('.addon-list-container, .shortcuts-list-container, .license-scroll-container, .scrollable-container');
         containers.forEach(container => {
@@ -1154,7 +1207,7 @@
                     isScrolling = false;
                     return;
                 }
-                container.scrollTop += diff * 0.12; // 12% różnicy na klatkę = płynnie, ale szybko
+                container.scrollTop += diff * 0.12;
                 requestAnimationFrame(smoothScroll);
             };
             container.addEventListener('wheel', (e) => {
@@ -1249,7 +1302,7 @@
     function toggleShortcutEnabled(id, enabled) { shortcutsEnabled[id] = enabled; saveShortcutsEnabledState(); }
     function exportSettings() {
         try {
-            const settings = { v: '4.7.3', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
+            const settings = { v: '4.7.4', t: Date.now(), a: SW.GM_getValue(CONFIG.FAVORITE_ADDONS, []), s: SW.GM_getValue(CONFIG.SHORTCUTS_CONFIG, {}), se: SW.GM_getValue(CONFIG.SHORTCUTS_ENABLED, {}), p: SW.GM_getValue(CONFIG.CUSTOM_SHORTCUT, 'Ctrl+A'), f: SW.GM_getValue(CONFIG.FONT_SIZE, 13), o: SW.GM_getValue(CONFIG.BACKGROUND_OPACITY, 90), w: SW.GM_getValue(CONFIG.PANEL_WIDTH, 500), h: SW.GM_getValue(CONFIG.PANEL_HEIGHT, 500) };
             const json = JSON.stringify(settings);
             const base64 = btoa(unescape(encodeURIComponent(json)));
             let obf = base64.split('').reverse().join('').replace(/=/g,'_').replace(/\+/g,'-').replace(/\//g,'.');
@@ -1360,11 +1413,23 @@
     }
     function updateAccountDisplay(id) {
         const el = document.getElementById('swAccountId');
-        if (el) { el.innerHTML = `${id} <span class="copy-icon" title="Kopiuj">📋</span>`; const copy = el.querySelector('.copy-icon'); if(copy) copy.addEventListener('click',()=>{ navigator.clipboard.writeText(id); showLicenseMessage('ID skopiowane','success'); }); }
+        if (el) {
+            el.innerHTML = `${id} <span class="copy-icon" title="Skopiuj ID">📋</span>`;
+            const copy = el.querySelector('.copy-icon');
+            if (copy) {
+                copy.addEventListener('click', () => {
+                    navigator.clipboard.writeText(id);
+                    showLicenseMessage('✅ Skopiowano ID konta', 'success');
+                });
+            }
+        }
     }
     function updateLicenseDisplay() {
         const status = document.getElementById('swLicenseStatus');
-        if (status) { status.textContent = isLicenseVerified ? 'Aktywna' : 'Nieaktywna'; status.className = isLicenseVerified ? 'license-status-valid' : 'license-status-invalid'; }
+        if (status) {
+            status.textContent = isLicenseVerified ? 'Aktywna' : 'Nieaktywna';
+            status.className = isLicenseVerified ? 'license-status-valid' : 'license-status-invalid';
+        }
         const expirySpan = document.getElementById('swLicenseExpiry');
         if (expirySpan) expirySpan.textContent = licenseExpiry ? licenseExpiry.toLocaleDateString('pl-PL') : '-';
         const daysSpan = document.getElementById('swLicenseDaysLeft');
@@ -1386,7 +1451,6 @@
         setTimeout(async () => {
             await initAccountAndLicense();
             requestAnimationFrame(() => { renderAddons(); renderShortcuts(); });
-            // Uruchom płynne scrollowanie po wyrenderowaniu
             setTimeout(() => {
                 initSmoothScroll();
                 savePanelSize();
