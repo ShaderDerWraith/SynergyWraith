@@ -4,7 +4,7 @@
 // @version      1.2
 // @description  Premium icons for Tribal Wars (requires Synergy Wraith license)
 // @author       SynergyWraith
-// @match        *://*.tribalwars.com/*
+// @match        https://tempest.margonem.pl/
 // @grant        none
 // @run-at       document-end
 // ==/UserScript==
@@ -137,7 +137,7 @@
         "Grota Martwodrzewów - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-dendro.gif", //reuzen
         "Katakumby Antycznego Gniewu - przedsionek": "https://micc.garmory-cdn.cloud/obrazki/npc/kol/kolos-drakolisz.gif", //drako
     };
-
+ 	
     // ========================================================
 
     const CACHE_KEY = 'kcsMonsterIconCache_v0.1';
